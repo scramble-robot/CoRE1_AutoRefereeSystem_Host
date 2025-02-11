@@ -39,7 +39,7 @@ namespace CoRE1_AutoRefereeSystem_Host
 
             if (!allHostShutdown) {
                 MessageBox.Show("You must excecute 'shutdown' command on all booted HostPCBs.",
-                    "Failed to terminate CoRE-1 2024 Host program", MessageBoxButton.OK, MessageBoxImage.Error);
+                    "Failed to terminate CoRE-1: 2025 Host program", MessageBoxButton.OK, MessageBoxImage.Error);
                 e.Cancel = true;
             }
         }
