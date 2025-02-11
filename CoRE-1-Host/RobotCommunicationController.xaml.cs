@@ -10,7 +10,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
 
 
-namespace CoRE_1_Host
+namespace CoRE1_AutoRefereeSystem_Host
 {
     /// <summary>
     /// RobotCommunicationController.xaml の相互作用ロジック

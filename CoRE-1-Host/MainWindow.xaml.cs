@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Input;
 
 
-namespace CoRE_1_Host
+namespace CoRE1_AutoRefereeSystem_Host
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

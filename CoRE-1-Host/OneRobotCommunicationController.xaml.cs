@@ -9,7 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 
 
-namespace CoRE_1_Host
+namespace CoRE1_AutoRefereeSystem_Host
 {
     /// <summary>
     /// OneRobotCommunicationController.xaml の相互作用ロジック

@@ -11,11 +11,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
-using static CoRE_1_Host.BaseStatusManager;
-using static CoRE_1_Host.RobotStatusManager;
+using static CoRE1_AutoRefereeSystem_Host.BaseStatusManager;
+using static CoRE1_AutoRefereeSystem_Host.RobotStatusManager;
 
 
-namespace CoRE_1_Host
+namespace CoRE1_AutoRefereeSystem_Host
 {
     /// <summary>
     /// BaseStatusManager.xaml の相互作用ロジック

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace CoRE_1_Host
+namespace CoRE1_AutoRefereeSystem_Host
 {
     /// <summary>
     /// Interaction logic for App.xaml

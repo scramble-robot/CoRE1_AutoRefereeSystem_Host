@@ -3,7 +3,7 @@ using System.IO.Ports;
 using System.Management;
 
 
-namespace CoRE_1_Host
+namespace CoRE1_AutoRefereeSystem_Host
 {
     // USBを抜き差ししたタイミングで自動的に選択可能なCOMポートを更新するためのクラス
     public class COMPortWatcher

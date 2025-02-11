@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 
 
-namespace CoRE_1_Host
+namespace CoRE1_AutoRefereeSystem_Host
 {
     /// <summary>
     /// RobotStatusManager.xaml の相互作用ロジック

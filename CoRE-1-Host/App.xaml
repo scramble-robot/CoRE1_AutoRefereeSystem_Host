@@ -1,7 +1,7 @@
-﻿<Application x:Class="CoRE_1_Host.App"
+﻿<Application x:Class="CoRE1_AutoRefereeSystem_Host.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:CoRE_1_Host"
+             xmlns:local="clr-namespace:CoRE1_AutoRefereeSystem_Host"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              StartupUri="MainWindow.xaml">
     <Application.Resources>

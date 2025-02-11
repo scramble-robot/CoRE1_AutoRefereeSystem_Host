@@ -14,7 +14,7 @@ using System.Text;
 using System.Diagnostics;
 
 
-namespace CoRE_1_Host
+namespace CoRE1_AutoRefereeSystem_Host
 {
     public class Master {
         // シングルトン

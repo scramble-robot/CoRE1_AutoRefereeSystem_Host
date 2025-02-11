@@ -1,7 +1,7 @@
 ﻿using System;
 
 
-namespace CoRE_1_Host
+namespace CoRE1_AutoRefereeSystem_Host
 {
     public class CoreClass
     {
