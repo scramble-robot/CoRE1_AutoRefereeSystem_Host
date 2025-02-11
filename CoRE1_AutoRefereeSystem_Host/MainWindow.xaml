@@ -13,18 +13,21 @@
         KeyDown="Window_KeyDown">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="340" />
+            <RowDefinition Height="900" />
+            <RowDefinition Height="0" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <StackPanel x:Name="MainStackPanel"
                     Grid.Row="0"
                     Orientation="Horizontal"
-                    HorizontalAlignment="Center">
+                    HorizontalAlignment="Center"
+                    >
             <StackPanel x:Name="LeftStackPanel"
                         Orientation="Vertical"
                         Width="1500">
                 <StackPanel x:Name="LeftUpStackPanel"
-                            Orientation="Horizontal">
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Left">
                     <StackPanel x:Name="GameFormatStackPanel"
                                 Background="#66F5E98B">
                         <Label Content="GAME FORMAT"
@@ -200,12 +203,10 @@
                         </StackPanel>
 
                     </StackPanel>
-                    <StackPanel x:Name="RedTeamEMStackPanel"
+                   <StackPanel x:Name="RedTeamEMStackPanel"
                                 Background="#20FF0000"
                                 Margin="0,4,0,0">
-                        <Label Content="red team enhancement materials"
-                               FontSize="26"
-                               FontFamily="ROG Fonts" />
+
                         <StackPanel Orientation="Horizontal">
                             <Button x:Name="RedEMSpot1Button"
                                     Content="SPOT 1"
@@ -215,11 +216,7 @@
                                     FontSize="24"
                                     Margin="10,10,0,5"
                                     Height="40" />
-                            <Label Content=" Attack buff effect remaining time"
-                                   FontSize="26"
-                                   FontWeight="Bold"
-                                   Margin="5,10,5,5"
-                                   VerticalAlignment="Bottom" />
+                            
                             <TextBox x:Name="RedAttackbuff1TimeTextBlock"
                                      IsEnabled="False"
                                      IsReadOnly="True"
@@ -229,19 +226,8 @@
                                      Margin="5,10,10,10"
                                      Width="100"
                                      TextAlignment="Center" />
-                            <Button x:Name="RedEMSpot2Button"
-                                    Content="SPOT 2"
-                                    Background="#FF44B73A"
-                                    BorderBrush="#FF44B73A"
-                                    Click="RedEMSpot2Button_Click"
-                                    FontSize="24"
-                                    Margin="30,10,5,5"
-                                    Height="40" />
-                            <Label Content="Healing"
-                                   FontSize="26"
-                                   FontWeight="Bold"
-                                   Margin="5,10,0,5"
-                                   VerticalAlignment="Bottom" />
+                            
+
                         </StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <Button x:Name="RedEMSpot3Button"
@@ -252,11 +238,7 @@
                                     FontSize="24"
                                     Margin="10,10,0,5"
                                     Height="40" />
-                            <Label Content=" Attack buff effect remaining time"
-                                   FontSize="26"
-                                   FontWeight="Bold"
-                                   Margin="5,10,5,5"
-                                   VerticalAlignment="Bottom" />
+                          
                             <TextBox x:Name="RedAttackbuff3TimeTextBlock"
                                      IsEnabled="False"
                                      IsReadOnly="True"
@@ -267,8 +249,21 @@
                                      Width="100"
                                      TextAlignment="Center" />
                         </StackPanel>
+                        <Button x:Name="RedEMSpot2Button"
+                                Content="SPOT 2"
+                                Background="#FF44B73A"
+                                BorderBrush="#FF44B73A"
+                                Click="RedEMSpot2Button_Click"
+                                FontSize="24"
+                                Margin="30,10,5,5"
+                                Height="40" />
 
                     </StackPanel>
+
+                    <local:AutoTurretCommunicationController x:Name="Red1"
+                                                             AutoTurretLabel="Red 1"
+                                                             AutoTurretColor="#10FF0000"/>
+
                 </StackPanel>
             </StackPanel>
             <StackPanel x:Name="CenterStackPanel">
@@ -531,7 +526,7 @@
             </StackPanel>
         </StackPanel>
         <StackPanel x:Name="RobotBaseStackPanel"
-                    Grid.Row="1"
+                    Grid.Row="2"
                     Orientation="Horizontal">
             <StackPanel x:Name="RedTeamStackPanel"
                         Orientation="Horizontal"

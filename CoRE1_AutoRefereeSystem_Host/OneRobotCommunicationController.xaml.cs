@@ -18,7 +18,7 @@ namespace CoRE1_AutoRefereeSystem_Host
     {
         /* 依存プロパティの設定 ****************************************************************************************************************************************/
         #region
-        public static readonly DependencyProperty RobotColorProperty = DependencyProperty.Register("RobotColor", typeof(string), typeof(RobotCommunicationController), new PropertyMetadata("#10FF0000"));
+        public static readonly DependencyProperty RobotColorProperty = DependencyProperty.Register("RobotColor", typeof(string), typeof(OneRobotCommunicationController), new PropertyMetadata("#10FF0000"));
         public static readonly DependencyProperty RobotLabelProperty = DependencyProperty.Register("RobotLabel", typeof(string), typeof(RobotStatusManager), new PropertyMetadata("Blue/Red #"));
 
         public string RobotLabel {
