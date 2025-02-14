@@ -75,41 +75,6 @@ namespace CoRE1_AutoRefereeSystem_Host
             {"[SCAT]StrayedCats", 1},
         };
 
-        // テスト用
-        /*public string[] TeamName = {
-            "NONE",
-            "2001",
-            "2002",
-            "2003",
-            "2004",
-            "2005",
-            "2006",
-            "2103",
-            "2203",
-            "2303",
-            "2403",
-            "2803",
-            "3703",
-            "3903"
-        };
-
-        public Dictionary<string, int> TeamNodeNo = new Dictionary<string, int> {
-            {"2001", 2001},
-            {"2002", 2002},
-            {"2003", 2003},
-            {"2004", 2004},
-            {"2005", 2005},
-            {"2006", 2006},
-            {"2103", 2103},
-            {"2203", 2203},
-            {"2303", 2303},
-            {"2403", 2403},
-            {"2803", 2803},
-            {"3703", 3703},
-            {"0503", 0503},
-            {"3903", 3903}
-        };*/
-
         public Dictionary<string, string> BaseNodeNo = new Dictionary<string, string> {
             {"BaseL", "2001 2002"},
             {"BaseC", "2003 2004"},
@@ -214,17 +179,17 @@ namespace CoRE1_AutoRefereeSystem_Host
             DRAW,
         };
 
-        public enum CommunicationSeqEnum {
+        public enum ARSSequenceEnum {
             NONE,
-            OPEN,
-            WAIT_POWER_ON,
-            SET_CH,
-            WAIT_SETTING_CH,
-            SET_RUN,
-            WAIT_SETTING_RUN,
-            SEND,
-            WAIT_CLIENT_DATA,
-            CLIENT_OK,
+            HARDWARE_RESET,
+            SOFTWARE_RESET,
+            OPENED,
+            CLOSING,
+            SETTING_CH,
+            PING,
+            BOOTING,
+            UPDATING,
+            SHUTING_DOWN,
         };
 
         public enum HPBarColorEnum {
@@ -261,9 +226,18 @@ namespace CoRE1_AutoRefereeSystem_Host
         public GameStatusEnum GameStatus { set; get; } = GameStatusEnum.PREGAME;
         public SettingStatusEnum SettingStatus { set; get; } = SettingStatusEnum.NONE;
 
+        public bool IsUpdatingStatus { set; get; } = false;
+
         private static bool _addedTimeout = false;
 
-        public bool IsUpdatingStatus { set; get; } = false;
+        public Settings SettingsJson { set; get; }
+
+        public bool SettingsChanged { set; get; } = false;
+
+        // ARS通信のタイムアウト設定の乱数
+        public int TimeoutMin { set; get; } = 1500;
+        public int TimeoutMax { set; get; } = 2500;
+        public Random ARSTimeoutRandom { set; get; } = new Random();
 
         /***** 各種試合状況 *******************************************************************************************************/
         public string GameTime { set; get; } = "00:00";
@@ -303,7 +277,6 @@ namespace CoRE1_AutoRefereeSystem_Host
                 Application.Current.Dispatcher.Invoke(() => {
                     var window = GetMainWindow();
                     if (!window.RedEMSpot1Button.IsEnabled) num++;
-                    if (!window.RedEMSpot2Button.IsEnabled) num++;
                     if (!window.RedEMSpot3Button.IsEnabled) num++;
                 });
                 return num;
@@ -311,13 +284,12 @@ namespace CoRE1_AutoRefereeSystem_Host
         }
 
         public int TotalBlueEMs {
-            private set { ; }
+            private set {; }
             get {
                 int num = 0;
                 Application.Current.Dispatcher.Invoke(() => {
                     var window = GetMainWindow();
                     if (!window.BlueEMSpot1Button.IsEnabled) num++;
-                    if (!window.BlueEMSpot2Button.IsEnabled) num++;
                     if (!window.BlueEMSpot3Button.IsEnabled) num++;
                 });
                 return num;
@@ -326,7 +298,7 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         public int RedAttackBuff { set; get; } = 1;
         public bool IsRedAttackBuff1Active { set; get; } = false;
-        public bool IsRedAttackBuff3Active {  set; get; } = false;
+        public bool IsRedAttackBuff3Active { set; get; } = false;
 
         public int BlueAttackBuff { set; get; } = 1;
         public bool IsBlueAttackBuff1Active { set; get; } = false;
@@ -749,7 +721,6 @@ namespace CoRE1_AutoRefereeSystem_Host
             PauseTimer();
             AllocateButton();
         }
-
         public event Action ClearDataEvent;
         public void ClearData() {
             Instance.DuringGame = false;
@@ -899,7 +870,6 @@ namespace CoRE1_AutoRefereeSystem_Host
                 var window = GetMainWindow();
                 if (Instance.GameStatus == GameStatusEnum.NONE
                     || Instance.GameStatus == GameStatusEnum.POSTGAME) {
-                    _addedTimeout = false;
                     window.PreliminaryRadioButton.IsEnabled = true;
                     window.SettingStartButton.IsEnabled = true;
                     window.SettingResetButton.IsEnabled = false;
