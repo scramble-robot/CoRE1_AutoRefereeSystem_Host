@@ -11,10 +11,12 @@ namespace CoRE1_AutoRefereeSystem_Host
     /// <summary>
     /// RobotStatusManager.xaml の相互作用ロジック
     /// </summary>
-    public partial class RobotStatusManager : UserControl {
+    public partial class RobotStatusManager : UserControl
+    {
         /* RobotStatusの定義 ******************************************************************************************************************************************/
         #region
-        public class RobotStatus {
+        public class RobotStatus
+        {
             private readonly RobotStatusManager _robotStatusManager;
             // public int team2idx;
             private Master.RobotConnectionEnum _connection;
@@ -44,12 +46,12 @@ namespace CoRE1_AutoRefereeSystem_Host
             }
 
             public Master.HPBarColorEnum HPBarColor {
-                get { return _hpBarColor;}
+                get { return _hpBarColor; }
                 set { _hpBarColor = value; }
             }
 
             public Master.DamagePanelColorEnum DamagePanelColor {
-                get { return _damagePanelColor;}
+                get { return _damagePanelColor; }
                 set { _damagePanelColor = value; }
             }
 
@@ -60,7 +62,7 @@ namespace CoRE1_AutoRefereeSystem_Host
 
             public int TeamID {
                 get { return _teamID; }
-                set { _teamID = value;}
+                set { _teamID = value; }
             }
 
             public string TeamColor {
@@ -95,7 +97,7 @@ namespace CoRE1_AutoRefereeSystem_Host
 
             public bool DefeatedFlag {
                 get { return _defeatedFlag; }
-                set { 
+                set {
                     _defeatedFlag = value;
                     if (_defeatedFlag) {
                         _hpBarColor = Master.HPBarColorEnum.YELLOW;
@@ -126,8 +128,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         AddRobotLog("Respawn & Invincible Time Start...");
                         _hpBarColor = Master.HPBarColorEnum.GREEN;
                         _damagePanelColor = Master.DamagePanelColorEnum.GREEN;
-                    }
-                    else if (_invincibilityFlagPrev && !InvincibilityFlag) {
+                    } else if (_invincibilityFlagPrev && !InvincibilityFlag) {
                         AddRobotLog("Invincile Time End.");
                         if (_teamColor.Contains("Red")) {
                             _hpBarColor = Master.HPBarColorEnum.RED;
@@ -243,7 +244,7 @@ namespace CoRE1_AutoRefereeSystem_Host
             private set { _status = value; }
             get { return _status; }
         }
-        
+
         // タイマー
         private DateTime _startTime;
         private TimeSpan _remainingTime;
@@ -275,7 +276,6 @@ namespace CoRE1_AutoRefereeSystem_Host
         #region
         private void UserControl_Loaded(object sender, RoutedEventArgs e) {
             Status.TeamColor = PanelLabel.Replace(" ", "");
-            Debug.WriteLine(Status.TeamColor);
             if (Status.TeamColor.Contains("Red")) {
                 Status.HPBarColor = Master.HPBarColorEnum.RED;
                 Status.DamagePanelColor = Master.DamagePanelColorEnum.RED;
@@ -284,9 +284,11 @@ namespace CoRE1_AutoRefereeSystem_Host
                 Status.DamagePanelColor = Master.DamagePanelColorEnum.BLUE;
             }
 
+            /*
             TeamNameComboBox.SelectedIndex = 0;
-
             this.IsEnabled = false;
+            */
+
             //RespawnButton.IsEnabled = false;
             //DefeatButton.IsEnabled = false;
             //PunishButton.IsEnabled = false;
@@ -296,6 +298,7 @@ namespace CoRE1_AutoRefereeSystem_Host
             int maxHp = Master.Instance.MaxHP;
             if (this.IsEnabled) {
                 if (Master.Instance.GameFormat == Master.GameFormatEnum.PRELIMINALY) {
+                    Status.TeamColor = PanelLabel.Replace(" ", "");
                     if (Status.TeamColor.Contains("Red")) maxHp = Master.Instance.PreRedMaxHP;
                     else maxHp = Master.Instance.PreBlueMaxHP;
                 }
@@ -326,8 +329,10 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         /* ボタン等のイベント ****************************************************************************************************************************************/
         private void TeamNameComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+            if (TeamNameComboBox.SelectedItem is null) return;
             Status.TeamName = TeamNameComboBox.SelectedItem.ToString();
             Status.TeamID = TeamNameComboBox.SelectedIndex;
+            Master.Instance.SettingsChanged = true;
         }
 
         private void RespawnButton_Click(object sender, RoutedEventArgs e) {
@@ -355,6 +360,7 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         public void PunishButton_Click(object sender, RoutedEventArgs e) {
             int attackBuff = 1;
+
             if (Status.TeamColor.Contains("Red")) attackBuff = Master.Instance.BlueAttackBuff;
             else attackBuff = Master.Instance.RedAttackBuff;
 
@@ -385,6 +391,8 @@ namespace CoRE1_AutoRefereeSystem_Host
         }
 
         private void OnRespawnTimedEvent(object source, ElapsedEventArgs e) {
+            if (!Master.Instance.DuringGame) return;
+
             var timePassed = DateTime.Now - _startTime;
             Status.RespawnTime = _remainingTime - timePassed;
 
