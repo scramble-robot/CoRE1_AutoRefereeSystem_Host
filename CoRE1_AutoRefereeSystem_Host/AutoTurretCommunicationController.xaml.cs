@@ -462,5 +462,9 @@ namespace CoRE1_AutoRefereeSystem_Host
         private void ComPortSelectionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             ;
         }
+
+        private void Robot1_Loaded(object sender, RoutedEventArgs e) {
+
+        }
     }
 }
