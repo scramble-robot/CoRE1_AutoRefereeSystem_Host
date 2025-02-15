@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:CoRE1_AutoRefereeSystem_Host"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d"
              d:DesignHeight="460"
              d:DesignWidth="600"
@@ -20,8 +21,7 @@
                                           PanelColor="{Binding AutoTurretColor, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
                                           Width="300"
                                           Height="415"
-                                          VerticalAlignment="Top"
-                                          Loaded="Robot1_Loaded" />
+                                          VerticalAlignment="Top" />
                 <StackPanel Orientation="Horizontal"
                             Margin="0,5,0,0">
                     <ToggleButton x:Name="CommEnabledToggleButton1"
@@ -64,32 +64,30 @@
                              FontWeight="Bold"
                              IsReadOnly="True"
                              VerticalAlignment="Center"
-                             Width="200" />
-                    <ComboBox x:Name="ComPortSelectionComboBox"
-                              Width="60"
-                              Margin="8,10,5,10"
-                              FontSize="12"
-                              SelectionChanged="ComPortSelectionComboBox_SelectionChanged" />
+                             Width="275" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
+                    <TextBox x:Name="EndPointTextBox"
+                             materialDesign:HintAssist.Hint="Endpoint {IP}:{PORT}"
+                             TextWrapping="Wrap"
+                             FontSize="14"
+                             Style="{DynamicResource MaterialDesignTextBox}"
+                             Margin="10,5,0,5"
+                             Width="130"
+                             TextChanged="EndPointTextBox_TextChanged" 
+                             KeyDown="EndPointTextBox_KeyDown"/>
                     <Button x:Name="ConnectButton"
                             Content="Open"
-                            Margin="10,5,5,5"
+                            Margin="5,5,0,5"
                             Click="ConnectButton_Click"
                             HorizontalAlignment="Left"
-                            Width="85" />
+                            Width="70" />
                     <Button x:Name="BootButton"
                             Content="Boot"
-                            Margin="15,5,5,5"
+                            Margin="5,5,5,5"
                             Background="#FF44B73A"
                             BorderBrush="#FF44B73A"
                             Click="BootButton_Click" />
-                    <Button x:Name="ShutdownButton"
-                            Content="Shutdown"
-                            Margin="10,5,5,5"
-                            BorderBrush="#FFB7403A"
-                            Background="#FFB7403A"
-                            Click="ShutdownButton_Click" />
                 </StackPanel>
                 <Label Content="HostPCB Link Log"
                        Margin="10,5,10,0"
@@ -106,6 +104,7 @@
                          Background="#67FFFFFF" />
                 <StackPanel Orientation="Horizontal">
                     <TextBox x:Name="SendDataTextBox"
+                             materialDesign:HintAssist.Hint="Command"
                              TextWrapping="Wrap"
                              FontSize="12"
                              Style="{DynamicResource MaterialDesignTextBox}"

@@ -190,6 +190,7 @@ namespace CoRE1_AutoRefereeSystem_Host
             BOOTING,
             UPDATING,
             SHUTING_DOWN,
+            RECONNECTING,
         };
 
         public enum HPBarColorEnum {

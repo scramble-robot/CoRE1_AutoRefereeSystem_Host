@@ -9,6 +9,12 @@ using System.Windows.Threading;
 using System.Net.Sockets;
 using System.Linq;
 using System.Diagnostics;
+using Newtonsoft.Json.Linq;
+using System.IO;
+using System.Windows.Input;
+using System.Net;
+using System.Media;
+
 
 namespace CoRE1_AutoRefereeSystem_Host
 {
@@ -34,18 +40,17 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         /* 各種通信で使用する変数 ****************************************************************************************************************************************/
         // Arduinoサーバー
-        private const string ArduinoIP = "192.168.11.200";
-        private const int ArduinoPort = 8888;
+        private IPEndPoint? serverIPEndPoint = null;
 
-        private TcpClient _tcpClient;
-        private NetworkStream _tcpStream;
+        private TcpClient? client = null;
+        private NetworkStream? stream = null;
 
         private int _isBusy = 0; // interlock用
         private List<string> _sendData = new List<string>();
 
         private bool _isWatching = false;
+        public Master.ARSSequenceEnum arsSequence = Master.ARSSequenceEnum.NONE;
 
-        private int numHardwareReset = 0;
         private int numSoftwareReset = 0;
         private int numTimeout = 0;
         private bool statusChanged = false;
@@ -59,16 +64,15 @@ namespace CoRE1_AutoRefereeSystem_Host
         public AutoTurretCommunicationController() {
             InitializeComponent();
 
-            _tcpClient = new TcpClient();
-
-
             // それぞれ個別のタイマーを使用する
             // Master.Instance.UpdateEvent += UpdateRobotStatus;
 
             _updateTimer = new System.Timers.Timer();
             _updateTimer.Interval = 500;
             _updateTimer.Elapsed += UpdateRobotStatus;
-            //_updateTimer.Start();
+            _updateTimer.Start();
+
+            StartWatchingReceiveData();
 
             _logClearTimer = new System.Timers.Timer();
             _logClearTimer.Interval = 10 * 60 * 1000;
@@ -95,11 +99,9 @@ namespace CoRE1_AutoRefereeSystem_Host
             } else {
                 Robot1.Status.Connection = Master.RobotConnectionEnum.DISABLED;
                 CommEnabledToggleButton1.IsEnabled = false;
-                ComPortSelectionComboBox.IsEnabled = false;
                 ConnectButton.IsEnabled = false;
                 PingButton1.IsEnabled = false;
                 BootButton.IsEnabled = false;
-                ShutdownButton.IsEnabled = false;
                 SendButton.IsEnabled = false;
             }
         }
@@ -118,139 +120,284 @@ namespace CoRE1_AutoRefereeSystem_Host
                 });
             }
 
-            try {
-                var robot = Robot1;
-                var robotStatus = Robot1.Status;
-                var robotRecivedTextBox = ReceivedDataTextBox1;
+            if (arsSequence != Master.ARSSequenceEnum.UPDATING) {
+                try {
+                    if (arsSequence == Master.ARSSequenceEnum.OPENED) {
+                        ;
+                    } else if (arsSequence == Master.ARSSequenceEnum.RECONNECTING) {
+                        Debug.WriteLine(serverIPEndPoint);
+                        client = new TcpClient();
+                        client.Connect(serverIPEndPoint);
+                        stream = client.GetStream();
 
-                bool defeatedFlag = robotStatus.DefeatedFlag;
-                bool powerRelayOnFlag = robotStatus.PowerOnFlag;
-                int hpBarColor = (int)robotStatus.HPBarColor;
-                int dpColor = (int)robotStatus.DamagePanelColor;
-                //int hpPercent = 100 * robotStatus.HP / robotStatus.MaxHP;
-                int hpPercent = 100;
+                        // タイムアウトの設定
+                        stream.ReadTimeout = 2000;
+                        stream.WriteTimeout = 2000;
 
-                // 送信データを規定のプロトコルに基づいて作成
-                _sendData.Clear();
+                        string command = "boot autoturret";
+                        SendTextToArduino(command);
+                        Dispatcher.Invoke(() => {
+                            HostStatusTextBox.Text = "Reconnecting succeeded";
+                        });
 
-                // 宛先の機能No (05はauto turret)
-                _sendData.Add("07");
+                        arsSequence = Master.ARSSequenceEnum.BOOTING;
+                    } else if (arsSequence == Master.ARSSequenceEnum.BOOTING) {
+                        string data = ReadTo(">");
+                        Dispatcher.Invoke(() => {
+                            LinkTextBox.AppendText(data + ">");
 
-                // [b0: アクティブフラグ, b1: 撃破フラグ]
-                _sendData.Add(
-                    (BitShift(powerRelayOnFlag, 0) | BitShift(defeatedFlag, 1)).ToString("X2")
-                );
+                            if (data.Contains("[OK]")) {
+                                HostStatusTextBox.Text = "Boot succeeded";
+                                HostStatusTextBox.IsEnabled = true;
 
-                // [b0..3:HPバーのカラー,b4..7:ダメージプレートのカラー]
-                _sendData.Add(
-                    (BitShift(hpBarColor, 0) | BitShift(dpColor, 4)).ToString("X2")
-                 );
+                                ConnectButton.IsEnabled = false;
+                                PingButton1.IsEnabled = false;
 
-                // [b0~b5: DP無敵フラグ] 共通陣地のみで使用
-                _sendData.Add(
-                    "00"
-                );
+                                Robot1.RespawnButton.IsEnabled = true;
+                                Robot1.DefeatButton.IsEnabled = true;
+                                Robot1.PunishButton.IsEnabled = true;
 
-                // HP% 0x00 ~ 0x64 (100)
-                _sendData.Add(hpPercent.ToString("X2"));
+                                //stream.ReadTimeout = Master.Instance.ARSTimeoutRandom.Next(
+                                //    Master.Instance.TimeoutMin, Master.Instance.TimeoutMax
+                                //);
+                                statusChanged = true;
+                                Robot1.Status.Connection = Master.RobotConnectionEnum.CONNECTED;
+                                arsSequence = Master.ARSSequenceEnum.UPDATING;
+                            } else {
+                                HostStatusTextBox.Text = "Boot failed";
+                                arsSequence = Master.ARSSequenceEnum.OPENED;
+                                StartWatchingReceiveData();
+                            }
+                        });
+                    } else if (arsSequence == Master.ARSSequenceEnum.SHUTING_DOWN) {
+                        var converter = new System.Windows.Media.BrushConverter();
+                        Dispatcher.Invoke(() => {
+                            HostStatusTextBox.Text = "Shutting down";
+                            //HostStatusTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#00FFFFFF");
+                        });
 
-                // 未使用
-                _sendData.Add("00");
+                        Thread.Sleep(3000);
+                        string command = "shutdown";
+                        SendTextToArduino(command);
+                        // string data = _serialPort.ReadTo(">");
+                        // HACK
+                        string data = "OK";
+                        if (data.Contains("OK")) {
+                            Dispatcher.Invoke(() => {
+                                HostStatusTextBox.Text = "ARS shutdown";
+                                HostStatusTextBox.IsEnabled = false;
 
-                // コンフィグコマンド
-                _sendData.Add("00");
+                                LinkTextBox.AppendText(data + ">");
+                                LinkTextBox.ScrollToEnd();
 
-                // コンフィグパラメータ
-                _sendData.Add("00");
+                                BootButton.Content = "Boot";
+                                ConnectButton.IsEnabled = true;
+                                BootButton.IsEnabled = true;
+                                PingButton1.IsEnabled = true;
+                            });
+
+                            numSoftwareReset = 0;
+                            numTimeout = 0;
+                            Robot1.Status.Connection = Master.RobotConnectionEnum.ENABLED;
+                            arsSequence = Master.ARSSequenceEnum.OPENED;
+
+                            // shutdownコマンドは時間がかかるので，cpuResetは無し
+                            // Thread.Sleep(1000);
+                            // command = "cpuReset";
+                            // SendTextToHostPCB(command, false);
+                            StartWatchingReceiveData();
+                        }
+                    }
+                    //else if (arsSequence == Master.ARSSequenceEnum.SOFTWARE_RESET) {
+                    //    ;
+                    //}
+                } catch (Exception ex) when (ex is IOException || ex is TimeoutException) {
+                    statusChanged = true;
+                    SystemSounds.Exclamation.Play();
+
+                    var converter = new System.Windows.Media.BrushConverter();
+                    Dispatcher.Invoke(() => {
+                        LinkTextBox.AppendText($"[{DateTime.Now.ToString("HH:mm:ss.ff")}] Disconnected \r\n" +
+                            $"[{DateTime.Now.ToString("HH:mm:ss.ff")}] Retry to start ARS\r\n"
+                        );
+                        LinkTextBox.ScrollToEnd();
+
+                        HostStatusTextBox.Text = "Restarting: Openning HostPCB";
+                        HostStatusTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#66F5E98B");
+                    });
+
+                    numSoftwareReset++;
+                    if (!client.Connected) client.Close();
+                    stream.Close();
+                    Thread.Sleep(2000);
+                    arsSequence = Master.ARSSequenceEnum.RECONNECTING;
+                } catch (Exception ex) {
+                    Debug.WriteLine(ex.Message);
+                    return;
+                } finally {
+                    Interlocked.Exchange(ref _isBusy, 0);
+                }
+                return;
+            } else { // arsSequence == Master.ARSSequenceEnum.UPDATING
+                if (_isWatching) StopWatchingReceivedData();
 
                 try {
-                    // データを送信
-                    Dispatcher.Invoke(() => {
-                        LinkTextBox.AppendText($"[{DateTime.Now.ToString("HH:mm:ss.ff")}] Requesting... \r\n");
-                        // LinkTextBox.ScrollToEnd();
-                    });
-                    string command = "send " + Master.Instance.TeamNodeNo[Robot1.Status.TeamName].ToString("D4") + " "
-                                     + String.Join(",", _sendData);
-                    Debug.WriteLine(command);
-                    SendTextToArduino(command);
+                    // Arduinoに送信する情報
+                    var robot = Robot1;
+                    var robotStatus = Robot1.Status;
+                    var robotRecivedTextBox = ReceivedDataTextBox1;
 
-                    string receivedDataString = ReadSendCommandResponse(command);
+                    bool defeatedFlag = robotStatus.DefeatedFlag;
+                    bool powerRelayOnFlag = robotStatus.PowerOnFlag;
+                    int hpBarColor = (int)robotStatus.HPBarColor;
+                    int dpColor = (int)robotStatus.DamagePanelColor;
+                    //int hpPercent = 100 * robotStatus.HP / robotStatus.MaxHP;
+                    int hpPercent = 100;
 
-                    if (receivedDataString.Contains("error")) {
+
+                    // 送信データを規定のプロトコルに基づいて作成
+                    _sendData.Clear();
+
+                    // 宛先の機能No (05はauto turret)
+                    _sendData.Add("07");
+
+                    // [b0: アクティブフラグ, b1: 撃破フラグ]
+                    _sendData.Add(
+                        (BitShift(powerRelayOnFlag, 0) | BitShift(defeatedFlag, 1)).ToString("X2")
+                    );
+
+                    // [b0..3:HPバーのカラー,b4..7:ダメージプレートのカラー]
+                    _sendData.Add(
+                        (BitShift(hpBarColor, 0) | BitShift(dpColor, 4)).ToString("X2")
+                     );
+
+                    // [b0~b5: DP無敵フラグ] 共通陣地のみで使用
+                    _sendData.Add(
+                        "00"
+                    );
+
+                    // HP% 0x00 ~ 0x64 (100)
+                    _sendData.Add(hpPercent.ToString("X2"));
+
+                    // 未使用
+                    _sendData.Add("00");
+
+                    // コンフィグコマンド
+                    _sendData.Add("00");
+
+                    // コンフィグパラメータ
+                    _sendData.Add("00");
+
+                    // Arduinoからの応答待機
+                    try {
+                        // データを送信
                         Dispatcher.Invoke(() => {
-                            LinkTextBox.AppendText($"[{DateTime.Now.ToString("HH:mm:ss:ff")}] ERR, Sleep 100ms... \r\n");
-                            LinkTextBox.AppendText("--------- \r\n");
+                            LinkTextBox.AppendText($"[{DateTime.Now.ToString("HH:mm:ss.ff")}] Requesting... \r\n");
+                            // LinkTextBox.ScrollToEnd();
+                        });
+                        string command = "send " + Master.Instance.TeamNodeNo[robotStatus.TeamName].ToString("D4") + " "
+                                         + String.Join(",", _sendData);
+                        SendTextToArduino(command);
+
+                        string receivedDataString = ReadSendCommandResponse(command);
+
+                        if (receivedDataString.Contains("error")) {
+                            Dispatcher.Invoke(() => {
+                                LinkTextBox.AppendText($"[{DateTime.Now.ToString("HH:mm:ss:ff")}] ERR, Sleep 100ms... \r\n");
+                                LinkTextBox.AppendText("--------- \r\n");
+                                LinkTextBox.ScrollToEnd();
+                            });
+                            Thread.Sleep(100);
+                            return;
+                        } else {
+                            Dispatcher.Invoke(() => {
+                                robotRecivedTextBox.AppendText(
+                                $"[{Master.Instance.CurrentTime.Minutes:00}:{Master.Instance.CurrentTime.Seconds:00}:{Master.Instance.CurrentTime.Milliseconds:000}]\""
+                                + receivedDataString + "\r\n");
+                                robotRecivedTextBox.ScrollToEnd();
+                            });
+
+                            Dispatcher.Invoke(() => {
+                                LinkTextBox.AppendText($"[{DateTime.Now.ToString("HH:mm:ss.ff")}] Response succeeded \r\n");
+                                LinkTextBox.AppendText("--------- \r\n");
+                                LinkTextBox.ScrollToEnd();
+                            });
+                        }
+
+                        // 受信データの複号
+                        // 文字列を,で分割し，それぞれの16進数の文字をint型に変換
+                        int[] info = receivedDataString.Split(',').Select(part => Convert.ToInt32(part, 16)).ToArray();
+
+                        //if (Master.Instance.DuringGame && !robotStatus.DefeatedFlag && !robotStatus.InvincibilityFlag) {
+                        //    // ダメージパネルのヒット情報からHPを計算
+                        //    int attackBuff = 1;
+                        //    if (robotStatus.TeamColor.Contains("Red"))
+                        //        attackBuff = Master.Instance.BlueAttackBuff;
+                        //    else
+                        //        attackBuff = Master.Instance.RedAttackBuff;
+
+                        //    for (int i = 0; i < 4; i++) {
+                        //        if (BitHigh(info[4], i)) {
+                        //            robotStatus.HP -= attackBuff * Master.Instance.HitDamage;
+                        //            robotStatus.DamageTaken += attackBuff * Master.Instance.HitDamage;
+                        //            robotStatus.AddRobotLog($"Hit DP{i}. -{attackBuff * Master.Instance.HitDamage}, now: {robotStatus.HP}/{robotStatus.MaxHP}");
+                        //        }
+                        //    }
+                        //}
+
+                        //if (robotStatus.HP <= 0) {
+                        //    robotStatus.DamageTaken -= Math.Abs(robotStatus.HP);
+                        //    robotStatus.HP = 0;
+                        //    if (!robotStatus.DefeatedFlag) {
+                        //        robotStatus.AddRobotLog("Defeated");
+                        //        robotStatus.DefeatedFlag = true;
+                        //        robotStatus.PowerOnFlag = false;
+                        //        robotStatus.DefeatedNum++;
+                        //        if (Master.Instance.GameFormat != Master.GameFormatEnum.PRELIMINALY
+                        //            && !Master.Instance.GameEndFlag) {
+                        //            robot.StartRespawnTimer();
+                        //        }
+                        //    }
+                        //}
+
+                        if (statusChanged) {
+                            var converter = new System.Windows.Media.BrushConverter();
+                            Dispatcher.Invoke(() => {
+                                HostStatusTextBox.IsEnabled = true;
+                                HostStatusTextBox.Text = $"ARS: OK, SR: {numSoftwareReset}";
+                                HostStatusTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
+                            });
+                            statusChanged = false;
+                        }
+                        //numTimeout = 0;
+                    } catch (Exception ex) when (ex is IOException || ex is TimeoutException) {
+                        statusChanged = true;
+                        SystemSounds.Exclamation.Play();
+
+                        var converter = new System.Windows.Media.BrushConverter();
+                        Dispatcher.Invoke(() => {
+                            LinkTextBox.AppendText($"[{DateTime.Now.ToString("HH:mm:ss.ff")}] Disconnected \r\n" +
+                                $"[{DateTime.Now.ToString("HH:mm:ss.ff")}] Retry to start ARS\r\n"
+                            );
                             LinkTextBox.ScrollToEnd();
-                        });
-                        Thread.Sleep(100);
-                        return;
-                    } else {
-                        Dispatcher.Invoke(() => {
-                            robotRecivedTextBox.AppendText(
-                            $"[{Master.Instance.CurrentTime.Minutes:00}:{Master.Instance.CurrentTime.Seconds:00}:{Master.Instance.CurrentTime.Milliseconds:000}]\""
-                            + receivedDataString + "\r\n");
-                            robotRecivedTextBox.ScrollToEnd();
+
+                            HostStatusTextBox.Text = "Restarting: Openning HostPCB";
+                            HostStatusTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#66F5E98B");
                         });
 
-                        Dispatcher.Invoke(() => {
-                            LinkTextBox.AppendText($"[{DateTime.Now.ToString("HH:mm:ss.ff")}] Response succeeded \r\n");
-                            LinkTextBox.AppendText("--------- \r\n");
-                            LinkTextBox.ScrollToEnd();
-                        });
+                        numSoftwareReset++;
+                        if (!client.Connected) client.Close();
+                        stream.Close();
+                        Thread.Sleep(2000);
+                        arsSequence = Master.ARSSequenceEnum.RECONNECTING;
+                    } 
+                    catch (Exception ex) {
+                        Debug.WriteLine(ex);
                     }
 
-                    // 受信データの複号
-                    // 文字列を,で分割し，それぞれの16進数の文字をint型に変換
-                    int[] info = receivedDataString.Split(',').Select(part => Convert.ToInt32(part, 16)).ToArray();
-
-                    //if (Master.Instance.DuringGame && !robotStatus.DefeatedFlag && !robotStatus.InvincibilityFlag) {
-                    //    // ダメージパネルのヒット情報からHPを計算
-                    //    int attackBuff = 1;
-                    //    if (robotStatus.TeamColor.Contains("Red"))
-                    //        attackBuff = Master.Instance.BlueAttackBuff;
-                    //    else
-                    //        attackBuff = Master.Instance.RedAttackBuff;
-
-                    //    for (int i = 0; i < 4; i++) {
-                    //        if (BitHigh(info[4], i)) {
-                    //            robotStatus.HP -= attackBuff * Master.Instance.HitDamage;
-                    //            robotStatus.DamageTaken += attackBuff * Master.Instance.HitDamage;
-                    //            robotStatus.AddRobotLog($"Hit DP{i}. -{attackBuff * Master.Instance.HitDamage}, now: {robotStatus.HP}/{robotStatus.MaxHP}");
-                    //        }
-                    //    }
-                    //}
-
-                    //if (robotStatus.HP <= 0) {
-                    //    robotStatus.DamageTaken -= Math.Abs(robotStatus.HP);
-                    //    robotStatus.HP = 0;
-                    //    if (!robotStatus.DefeatedFlag) {
-                    //        robotStatus.AddRobotLog("Defeated");
-                    //        robotStatus.DefeatedFlag = true;
-                    //        robotStatus.PowerOnFlag = false;
-                    //        robotStatus.DefeatedNum++;
-                    //        if (Master.Instance.GameFormat != Master.GameFormatEnum.PRELIMINALY
-                    //            && !Master.Instance.GameEndFlag) {
-                    //            robot.StartRespawnTimer();
-                    //        }
-                    //    }
-                    //}
-
-                    //if (statusChanged) {
-                    //    var converter = new System.Windows.Media.BrushConverter();
-                    //    Dispatcher.Invoke(() => {
-                    //        HostStatusTextBox.IsEnabled = true;
-                    //        HostStatusTextBox.Text = $"ARS: OK,  H/SR: {numHardwareReset}/{numSoftwareReset}";
-                    //        HostStatusTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
-                    //    });
-                    //    statusChanged = false;
-                    //}
-                    //numTimeout = 0;
-                } catch (Exception ex) {
-                    ;
+                } finally {
+                    Interlocked.Exchange(ref _isBusy, 0);
                 }
-
-            } finally {
-                Interlocked.Exchange(ref _isBusy, 0);
             }
         }
 
@@ -258,37 +405,35 @@ namespace CoRE1_AutoRefereeSystem_Host
             logClear = true;
         }
 
-        //private void StartWatchingReceiveData() {
-        //    _isWatching = true;
-        //    _serialPort.DataReceived += WatchReceivedData;
-        //}
+        private void StartWatchingReceiveData() {
+            _isWatching = true;
+            _updateTimer.Elapsed += WatchReceivedData;
+        }
 
-        //private void StopWatchingReceivedData() {
-        //    _isWatching = false;
-        //    _serialPort.DataReceived -= WatchReceivedData;
-        //}
+        private void StopWatchingReceivedData() {
+            _isWatching = false;
+            _updateTimer.Elapsed -= WatchReceivedData;
+        }
 
-        //// 試合中以外ではこの関数で常時受信データを監視する
-        //private void WatchReceivedData(object sender, SerialDataReceivedEventArgs e) {
-        //    string data = _serialPort.ReadExisting();
-        //    Dispatcher.Invoke(() => {
-        //        LinkTextBox.AppendText(data);
-        //        LinkTextBox.ScrollToEnd();
-        //    });
-        //}
+        // 試合中以外ではこの関数で常時受信データを監視する
+        private async void WatchReceivedData(object sender, EventArgs args) {
+            if (stream is null) {
+                Debug.WriteLine("stream is null");
+                return;
+            }
 
+            if (stream.DataAvailable) {
+                byte[] buffer = new byte[256];
+                int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+                string data = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                Dispatcher.Invoke(() => {
+                    LinkTextBox.AppendText(data);
+                    LinkTextBox.ScrollToEnd();
+                });
+            }
+        }
 
         private string ReadSendCommandResponse(string command) {
-            /*string receivedData = _serialPort.ReadTo(">");
-            if (receivedData.Length < 5) return "comm error";
-
-            int colonIdx = receivedData.IndexOf(':');
-            if (colonIdx == -1) return $"data error: {receivedData}";
-
-            string data = receivedData.Substring(colonIdx - 10, 23 + 10 + 1);
-            Debug.WriteLine(data);
-            return data;*/
-
             // 始めにこちらから送信したcommandがそのままホスト基板から返ってくる
             string data1 = ReadLine();
             if (!data1.Contains(command)) {
@@ -318,23 +463,24 @@ namespace CoRE1_AutoRefereeSystem_Host
             return "receive error";
         }
 
-        private string ReadTo(string value) {
-            if (_tcpStream == null) return "error";
+        private string ReadTo(string value, int timeoutMilliseconds=2000) {
+            if (stream == null) return "error";
 
             StringBuilder sb = new StringBuilder();
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
-            while (true) {
-                if (_tcpStream.DataAvailable) {
-                    Debug.WriteLine("data available");
-                    int b = _tcpStream.ReadByte();
+            while (stopwatch.ElapsedMilliseconds < timeoutMilliseconds) {
+                if (stream.DataAvailable) {
+                    int b = stream.ReadByte();
                     string receivedChar = Convert.ToChar(b).ToString();
                     //string receivedChar = System.Text.Encoding.ASCII.GetString(new byte[] { b })
                     //string receivedChar = b.ToString()
-                    Debug.WriteLine(receivedChar);
                     sb.Append(receivedChar);
+                    Debug.Write(receivedChar);
                     if (receivedChar == value) return sb.ToString();
                 }
             }
+            throw new TimeoutException("read timeout");
         }
 
         private string ReadLine() {
@@ -344,6 +490,153 @@ namespace CoRE1_AutoRefereeSystem_Host
             return data1.Substring(0, data1.Length - 1); // \r\nは除外
         }
 
+        private void CommEnabledToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
+            if (CommEnabledToggleButton1.IsChecked == true) {
+                Robot1.Status.Connection = Master.RobotConnectionEnum.ENABLED;
+                ConnectButton.IsEnabled = true;
+            } else {
+                Robot1.Status.Connection = Master.RobotConnectionEnum.DISABLED;
+                ConnectButton.IsEnabled = false;
+            }
+        }
+
+
+        private void ConnectButton_Click(object sender, RoutedEventArgs e) {
+            if (client is null || !client.Connected) {
+                if (serverIPEndPoint is null) {
+                    Debug.WriteLine("stream is null");
+                    return;
+                }
+                try {
+                    client = new TcpClient();
+                    client.Connect(serverIPEndPoint);
+                    stream = client.GetStream();
+
+                    // タイムアウトの設定
+                    stream.ReadTimeout = 2000;
+                    stream.WriteTimeout = 2000;
+
+                    arsSequence = Master.ARSSequenceEnum.OPENED;
+                    HostStatusTextBox.Text = "Arduino server connected";
+                    ConnectButton.Content = "Close";
+                    PingButton1.IsEnabled = true;
+                    BootButton.IsEnabled = true;
+                    SendButton.IsEnabled = true;
+                } catch (Exception ex) {
+                    MessageBox.Show($"{this.Name}: Failed to connect to Arduino server\n" +
+                         $"\nProbably, selected IP has already been connnected by another.",
+                         "Connection failure", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            } else {
+                StopWatchingReceivedData();
+                Thread.Sleep(1000);
+
+                if (stream is not null) {
+                    stream.Close();
+                }
+                client.Close();
+                arsSequence = Master.ARSSequenceEnum.NONE;
+                HostStatusTextBox.Text = "Arduino server closed";
+                ConnectButton.Content = "Open";
+                ConnectButton.IsEnabled = true;
+                PingButton1.IsEnabled = false;
+                BootButton.IsEnabled = false;
+                SendButton.IsEnabled = false;
+            }
+
+        }
+
+        private void SendButton_Click(object obj, RoutedEventArgs e) {
+            if (stream is null) {
+                Debug.WriteLine("stream is null");
+                return;
+            }
+
+            SendTextToArduino(SendDataTextBox.Text);
+            LinkTextBox.AppendText($"|--> ");
+            SendDataTextBox.Clear();
+        }
+
+
+        private void SendDataTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e) {
+            if (e.Key == System.Windows.Input.Key.Enter) {
+                SendButton_Click(this, new RoutedEventArgs());
+            }
+        }
+
+        //private void BootButton_Click(object sender, RoutedEventArgs e) {
+        //    if (stream is null) return;
+        //    if (arsSequence != Master.ARSSequenceEnum.OPENED) return;
+
+        //    StopWatchingReceivedData();
+        //    try {
+        //        HostStatusTextBox.Text = "Booting ARS...";
+        //        arsSequence = Master.ARSSequenceEnum.BOOTING;
+
+        //        string command = "boot autoturret";
+        //        SendTextToArduino(command);
+        //    } catch (Exception ex) {
+        //        ;
+        //    }
+        //}
+
+        private void BootButton_Click(object sender, RoutedEventArgs e) {
+            if (stream is null) {
+                Debug.WriteLine("stream is null");
+                return;
+            }
+            if (arsSequence == Master.ARSSequenceEnum.OPENED) {
+                StopWatchingReceivedData();
+                try {
+                    HostStatusTextBox.Text = "Booting ARS...";
+                    string command = "boot autoturret";
+                    SendTextToArduino(command);
+
+                    BootButton.Content = "Shtdwn";
+                    arsSequence = Master.ARSSequenceEnum.BOOTING;
+
+                } catch (Exception ex) {
+                    ;
+                }
+            } else if (arsSequence == Master.ARSSequenceEnum.UPDATING) {
+                arsSequence = Master.ARSSequenceEnum.SHUTING_DOWN;
+            }
+        }
+
+        private void PingButton_Click(Object sender, RoutedEventArgs e) {
+            if (stream is null) {
+                Debug.WriteLine("stream is null");
+                return;
+            }
+            if (arsSequence != Master.ARSSequenceEnum.OPENED) return;
+
+            string command = "ping autoturret";
+            SendTextToArduino(command);
+        }
+
+
+        private void SendTextToArduino(string text, bool verbose = true) {
+            if (stream is null) {
+                Debug.WriteLine("stream is null");
+                return;
+            }
+
+            byte[] data = System.Text.Encoding.ASCII.GetBytes(text + "\r\n");
+            //foreach (byte b in data) {
+            //    stream.Write(new byte[] { b }, 0, 1);
+            //    Thread.Sleep(2);
+            //}
+
+            stream.Write(data, 0, data.Length);
+
+            if (verbose) {
+                Dispatcher.Invoke(() => {
+                    // LinkTextBox.AppendText($"[{DateTime.Now.ToString("HH:mm:ss.ff")}] {text}\r\n");
+                    LinkTextBox.AppendText($"|-${text}\r\n");
+                    LinkTextBox.ScrollToEnd();
+                });
+            }
+        }
 
         private bool BitHigh(int data, int i) {
             return ((data & (0b1 << i)) >> i != 0) ? true : false;
@@ -358,113 +651,51 @@ namespace CoRE1_AutoRefereeSystem_Host
             return data << shift;
         }
 
-        private void CommEnabledToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
-            if (CommEnabledToggleButton1.IsChecked == true) {
-                Robot1.Status.Connection = Master.RobotConnectionEnum.ENABLED;
-                ConnectButton.IsEnabled = true;
-                ComPortSelectionComboBox.IsEnabled = true;
-            } else {
-                Robot1.Status.Connection = Master.RobotConnectionEnum.DISABLED;
-                ConnectButton.IsEnabled = false;
-                ComPortSelectionComboBox.IsEnabled = false;
-            }
+        private void EndPointTextBox_TextChanged(object sender, TextChangedEventArgs e) {
+            var converter = new System.Windows.Media.BrushConverter();
+            EndPointTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#30FF0000");
         }
 
-
-        private void ConnectButton_Click(object sender, RoutedEventArgs e) {
-            if (!_tcpClient.Connected) {
-                try {
-                    _tcpClient.Connect(ArduinoIP, ArduinoPort);
-                    _tcpStream = _tcpClient.GetStream();
-
-                    // タイムアウトの設定
-                    _tcpStream.ReadTimeout = 5000;
-                    _tcpStream.WriteTimeout = 5000;
-
-                    HostStatusTextBox.Text = "Arduino server connected";
-                    ConnectButton.Content = "Close";
-                    PingButton1.IsEnabled = true;
-                    BootButton.IsEnabled = true;
-                    ShutdownButton.IsEnabled = false;
-                    SendButton.IsEnabled = true;
-
-                    _updateTimer.Start();
-
-                } catch (Exception ex) {
-                    MessageBox.Show($"{this.Name}: Failed to connect to Arduino\n"// +
-                         //$"\nProbably, selected COM port has already been connnected by another.",
-                         ,
-                         "Connection failure", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            } else {
-                _updateTimer.Stop();
-
-                _tcpStream.Close();
-                _tcpClient.Close();
-                ConnectButton.Content = "Connect";
-                ConnectButton.IsEnabled = true;
-                PingButton1.IsEnabled = false;
-                BootButton.IsEnabled = false;
-                ShutdownButton.IsEnabled = false;
-                SendButton.IsEnabled = false;
-            }
-
-        }
-
-        private void SendButton_Click(object obj, RoutedEventArgs e) {
-            if (_tcpStream == null) return;
-            SendTextToArduino(SendDataTextBox.Text);
-            SendDataTextBox.Clear();
-        }
-
-
-        private void SendDataTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e) {
+        private void EndPointTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e) {
             if (e.Key == System.Windows.Input.Key.Enter) {
-                SendButton_Click(this, new RoutedEventArgs());
+                string input = EndPointTextBox.Text;
+                if (TryParseIpPort(input, out IPEndPoint? tmpIPEndPoint)) {
+                    Keyboard.ClearFocus();
+                    e.Handled = true;
+
+                    serverIPEndPoint = tmpIPEndPoint;
+                    Debug.WriteLine(serverIPEndPoint);
+                    var converter = new System.Windows.Media.BrushConverter();
+                    EndPointTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
+                } else {
+                    MessageBox.Show($"Invalid endpoint: {EndPointTextBox.Text}.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 
-        private void BootButton_Click(object sender, RoutedEventArgs e) {
-            if (_tcpStream == null) return;
-        }
+        static bool TryParseIpPort(string input, out IPEndPoint? endPoint) {
+            endPoint = null;
 
-        private void ShutdownButton_Click(object sender, RoutedEventArgs e) {
-            ;
-        }
+            // ":"が含まれていない場合は無効
+            if (!input.Contains(":"))
+                return false;
 
-        private void PingButton_Click(Object sender, RoutedEventArgs e) {
-            ;
-        }
+            // ":"で分割
+            string[] parts = input.Split(':');
+            if (parts.Length != 2)
+                return false;
 
+            // IPアドレスのチェック
+            if (!IPAddress.TryParse(parts[0], out IPAddress? ipAddress))
+                return false;
 
-        private void SendTextToArduino(string text, bool verbose = true) {
-            if (_tcpStream == null) return;
+            // ポート番号のチェック（1～65535）
+            if (!int.TryParse(parts[1], out int port) || port < 1 || port > 65535)
+                return false;
 
-            byte[] data = System.Text.Encoding.ASCII.GetBytes(text + "\r\n");
-            //foreach (byte b in data) {
-            //    _tcpStream.Write(new byte[] { b }, 0, 1);
-            //    Thread.Sleep(2);
-            //}
-
-            _tcpStream.Write(data, 0, data.Length);
-
-            Debug.WriteLine("sended");
-
-            if (verbose) {
-                Dispatcher.Invoke(() => {
-                    // LinkTextBox.AppendText($"[{DateTime.Now.ToString("HH:mm:ss.ff")}] {text}\r\n");
-                    LinkTextBox.AppendText($"|-${text}\r\n");
-                    LinkTextBox.ScrollToEnd();
-                });
-            }
-        }
-
-        private void ComPortSelectionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            ;
-        }
-
-        private void Robot1_Loaded(object sender, RoutedEventArgs e) {
-
+            // IPEndPointを作成
+            endPoint = new IPEndPoint(ipAddress, port);
+            return true;
         }
     }
 }

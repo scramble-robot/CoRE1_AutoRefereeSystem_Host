@@ -162,7 +162,7 @@ namespace CoRE1_AutoRefereeSystem_Host
         private string _lastCommTeam = "Blue";
         private List<string> _sendData = new List<string>();
 
-        public Master.CommunicationSeqEnum commSeq = Master.CommunicationSeqEnum.NONE;
+        //public Master.CommunicationSeqEnum commSeq = Master.CommunicationSeqEnum.NONE;
 
         public BaseStatusManager() {
             InitializeComponent();
