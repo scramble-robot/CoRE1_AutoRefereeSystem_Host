@@ -11,7 +11,7 @@
              d:Background="White"
              Loaded="UserControl_Loaded"
              IsEnabledChanged="UserControl_IsEnabledChanged">
-    <Grid Background="{Binding RobotColor, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
+    <Grid Background="{Binding AutoTurretColor, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
         <StackPanel HorizontalAlignment="Left"
                     Orientation="Horizontal"
                     VerticalAlignment="Top">
