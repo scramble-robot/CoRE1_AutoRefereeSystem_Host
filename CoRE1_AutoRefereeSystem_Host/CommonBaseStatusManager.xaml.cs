@@ -13,7 +13,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
-using static CoRE1_AutoRefereeSystem_Host.BaseStatusManager;
+using static CoRE1_AutoRefereeSystem_Host.CommonBaseStatusManager;
 using static CoRE1_AutoRefereeSystem_Host.RobotStatusManager;
 using System.Windows.Input;
 using System.Text;
@@ -24,14 +24,14 @@ using System.Media;
 namespace CoRE1_AutoRefereeSystem_Host
 {
     /// <summary>
-    /// BaseStatusManager.xaml の相互作用ロジック
+    /// CommonBaseStatusManager.xaml の相互作用ロジック
     /// </summary>
-    public partial class BaseStatusManager : UserControl
+    public partial class CommonBaseStatusManager : UserControl
     {
         /* BaseStatusの定義 ******************************************************************************************************************************************/
         #region
         public class BaseStatus {
-            private readonly BaseStatusManager _baseStatusManager;
+            private readonly CommonBaseStatusManager _baseStatusManager;
             private Master.BaseConnectionEnum _connection;
             private bool _isActive = false;
             private Master.HPBarColorEnum _occupationLevelBarColor;
@@ -61,7 +61,7 @@ namespace CoRE1_AutoRefereeSystem_Host
 
             private List<string> _log = new List<string>();
 
-            public BaseStatus(BaseStatusManager instance) {
+            public BaseStatus(CommonBaseStatusManager instance) {
                 _baseStatusManager = instance;
             }
 
@@ -468,7 +468,7 @@ namespace CoRE1_AutoRefereeSystem_Host
         private System.Timers.Timer _updateTimer;
         private System.Timers.Timer _logClearTimer;
 
-        public BaseStatusManager() {
+        public CommonBaseStatusManager() {
             InitializeComponent();
             _baseStatus = new BaseStatus(this);
 
