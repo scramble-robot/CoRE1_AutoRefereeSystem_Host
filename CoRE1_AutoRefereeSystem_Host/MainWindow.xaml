@@ -548,14 +548,10 @@
             <StackPanel x:Name="BaseStackPanel"
                         Margin="0,0,0,0"
                         Background="White">
-                <local:BaseStatusManager x:Name="BaseL"
-                                         BasePanelLabel="Base-L" />
                 <local:BaseStatusManager x:Name="BaseC"
-                                         BasePanelLabel="Base-C"
-                                         Width="440" />
-                <local:BaseStatusManager x:Name="BaseR"
-                                         BasePanelLabel="Base-R"
-                                         Width="440" />
+                                         BasePanelLabel="BaseC"
+                                         Background="#66F5E98B"/>
+   
             </StackPanel>
             <StackPanel x:Name="BlueTeamStackPanel"
                         Orientation="Horizontal"

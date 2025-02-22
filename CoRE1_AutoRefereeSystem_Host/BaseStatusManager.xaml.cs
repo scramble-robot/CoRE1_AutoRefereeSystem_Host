@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
 using System.IO.Ports;
 using System.Linq;
+using System.Net.Sockets;
+using System.Net;
 using System.Security;
 using System.Threading;
 using System.Timers;
@@ -13,6 +15,10 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
 using static CoRE1_AutoRefereeSystem_Host.BaseStatusManager;
 using static CoRE1_AutoRefereeSystem_Host.RobotStatusManager;
+using System.Windows.Input;
+using System.Text;
+using System.IO;
+using System.Media;
 
 
 namespace CoRE1_AutoRefereeSystem_Host
@@ -28,20 +34,30 @@ namespace CoRE1_AutoRefereeSystem_Host
             private readonly BaseStatusManager _baseStatusManager;
             private Master.BaseConnectionEnum _connection;
             private bool _isActive = false;
-            private static Master.HPBarColorEnum _occupationLevelBarColor;
+            private Master.HPBarColorEnum _occupationLevelBarColor;
             private Master.DamagePanelColorEnum _damagePanelColor;
+            private Master.OccupiedEnum _occupied = Master.OccupiedEnum.NO;
 
-            private string _teamColor;
-
-            private static Master.OccupiedEnum _occupied = Master.OccupiedEnum.NO;
+            // 赤は -5 ~ -1
+            // 中点が 0
+            // 青は 1 ~ 5
             private int _occupationLevel = 0;
-            private bool _dpLIsInvulnerable = false;
-            private bool _dpCIsInvulnerable = false;
-            private bool _dpRIsInvulnerable = false;
 
-            private DateTime _dpLInvulnerableStartTime;
-            private DateTime _dpCInvulnerableStartTime;
-            private DateTime _dpRInvulnerableStartTime;
+            public enum DamagePanelPosition {
+                LeftRDP,
+                CenterRDP,
+                RightRDP,
+                LeftBDP,
+                CenterBDP,
+                RightBDP
+            }
+
+            private DateTime _lastAttackStartTime;
+            private TimeSpan _lastAttackRemaingTime;
+
+            private bool[] _dpIsInvulnerable = new bool[6];
+            private DateTime[] _dpInvulnerableStartTime = new DateTime[6];
+            private TimeSpan[] _dpInvulnerableRemainingTime = new TimeSpan[6];
 
             private List<string> _log = new List<string>();
 
@@ -59,9 +75,9 @@ namespace CoRE1_AutoRefereeSystem_Host
                 set { _isActive = value; }
             }
 
-            public string NodeNo { get; set; }
+            public string NodeNo { get; set; } = "0109";
 
-            public static Master.HPBarColorEnum OccupationLevelBarColor {
+            public Master.HPBarColorEnum OccupationLevelBarColor {
                 get { return _occupationLevelBarColor; }
                 set { _occupationLevelBarColor = value; }
             }
@@ -71,61 +87,344 @@ namespace CoRE1_AutoRefereeSystem_Host
                 set { _damagePanelColor = value; }
             }
 
-            public string TeamColor {
-                get { return _teamColor; }
-                set { _teamColor = value; }
-            }
-
             public int OccupationLevel {
                 get { return _occupationLevel; }
                 set { 
                     _occupationLevel = value;
+
+                    if (_occupationLevel <= -5) {
+                        _occupationLevel = -5;
+                        _occupied = Master.OccupiedEnum.RED;
+                    } else if (_occupationLevel >= 5) {
+                        _occupationLevel = 5;
+                        _occupied = Master.OccupiedEnum.BLUE;
+                    } else {
+                        _occupied = Master.OccupiedEnum.NO;
+                        _lastAttackStartTime = DateTime.Now;
+
+                        Application.Current.Dispatcher.Invoke(() => {
+                            _baseStatusManager.ResetTimeTextBox.IsEnabled = true;
+                        });
+                    }
+
+                    string pointText = "N/A";
+                    if (_occupationLevel == 0) {
+                        _occupationLevelBarColor = Master.HPBarColorEnum.WHITE;
+                    } else if (_occupationLevel < 0) {
+                        _occupationLevelBarColor = Master.HPBarColorEnum.RED;
+                        pointText = "R" + Math.Abs(_occupationLevel).ToString();
+                    } else {
+                        _occupationLevelBarColor = Master.HPBarColorEnum.BLUE;
+                        pointText = "B" + Math.Abs(_occupationLevel).ToString();
+                    }
+
                     Application.Current.Dispatcher.Invoke(() => {
-                        if (_teamColor.Contains("Red"))
-                            _baseStatusManager.OccupationLevelBar.Value = 5 + _occupationLevel;
-                        else
-                            _baseStatusManager.OccupationLevelBar.Value = 5 - _occupationLevel;
+                        _baseStatusManager.OccupationLevelBar.Value = 5 + _occupationLevel;
+                        _baseStatusManager.PointTextBox.Text = pointText;
                     });
                 }
             }
 
-            public static Master.OccupiedEnum Occupied { set; get; } = Master.OccupiedEnum.NO;
-
-            public bool LeftDPInvulnerable {
-                get { return _dpLIsInvulnerable; }
-                set {  _dpLIsInvulnerable = value; }
+            public Master.OccupiedEnum Occupied {
+                get { return _occupied; }
+                set { _occupied = value; }
             }
 
-            public bool CenterDPInvulnerable {
-                get { return _dpCIsInvulnerable; }
-                set { _dpCIsInvulnerable = value; }
+            public DateTime LastAttackStartTime {
+                get { return _lastAttackStartTime; }
+                set { _lastAttackStartTime = value; }
             }
 
-            public bool RightDPInvulnerable {
-                get { return _dpRIsInvulnerable;}
-                set { _dpRIsInvulnerable = value; }
+            public TimeSpan LastAttackRemainingTime {
+                get { return _lastAttackRemaingTime; }
+                set {
+                    _lastAttackRemaingTime = value;
+
+                    if (_lastAttackRemaingTime.TotalSeconds <= 0) {
+                        OccupationLevel = 0;
+                        Occupied = Master.OccupiedEnum.NO;
+                        
+                        Application.Current.Dispatcher.Invoke(() => {
+                            _baseStatusManager.ResetTimeTextBox.Text = "";
+                            _baseStatusManager.ResetTimeTextBox.IsEnabled = false;
+                        });
+                        return;
+                    }
+
+                    Application.Current.Dispatcher.Invoke(() => {
+                        _baseStatusManager.ResetTimeTextBox.Text = $"{_lastAttackRemaingTime.Seconds:00} sec.";
+                    });
+                }
             }
 
-            public DateTime LeftDPInvulnerableStartTime {
-                get { return _dpLInvulnerableStartTime; }
-                set { _dpLInvulnerableStartTime = value; }
+            public bool LeftRDPInvulnerable {
+                get { return _dpIsInvulnerable[(int)DamagePanelPosition.LeftRDP]; }
+                set { 
+                    _dpIsInvulnerable[(int)DamagePanelPosition.LeftRDP] = value;
+
+                    Application.Current.Dispatcher.Invoke(() => {
+                        if (value) {
+                            _baseStatusManager.DamagePanelRL.Opacity = 0.5;
+                        } else {
+                            _baseStatusManager.DamagePanelRL.Opacity = 1.0;
+                        }
+                    });
+                }
             }
 
+            public bool CenterRDPInvulnerable {
+                get { return _dpIsInvulnerable[(int)DamagePanelPosition.CenterRDP]; }
+                set { 
+                    _dpIsInvulnerable[(int)DamagePanelPosition.CenterRDP] = value;
 
-            public DateTime CenterDPInvulnerableStartTime {
-                get { return _dpCInvulnerableStartTime; }
-                set { _dpCInvulnerableStartTime = value;}
+                    Application.Current.Dispatcher.Invoke(() => {
+                        if (value) {
+                            _baseStatusManager.DamagePanelRL.Opacity = 0.5;
+                        } else {
+                            _baseStatusManager.DamagePanelRL.Opacity = 1.0;
+                        }
+                    });
+                }
             }
 
-            public DateTime RightDPInvulnerableStartTime {
-                get { return _dpRInvulnerableStartTime; }
-                set { _dpRInvulnerableStartTime = value; }
+            public bool RightRDPInvulnerable {
+                get { return _dpIsInvulnerable[(int)DamagePanelPosition.RightRDP]; }
+                set { 
+                    _dpIsInvulnerable[(int)DamagePanelPosition.RightRDP] = value;
+
+                    Application.Current.Dispatcher.Invoke(() => {
+                        if (value) {
+                            _baseStatusManager.DamagePanelRL.Opacity = 0.5;
+                        } else {
+                            _baseStatusManager.DamagePanelRL.Opacity = 1.0;
+                        }
+                    });
+                }
             }
 
+            public bool LeftBDPInvulnerable {
+                get { return _dpIsInvulnerable[(int)DamagePanelPosition.LeftBDP]; }
+                set { 
+                    _dpIsInvulnerable[(int)DamagePanelPosition.LeftBDP] = value;
+
+                    Application.Current.Dispatcher.Invoke(() => {
+                        if (value) {
+                            _baseStatusManager.DamagePanelRL.Opacity = 0.5;
+                        } else {
+                            _baseStatusManager.DamagePanelRL.Opacity = 1.0;
+                        }
+                    });
+                }
+            }
+
+            public bool CenterBDPInvulnerable { 
+                get { return _dpIsInvulnerable[(int)DamagePanelPosition.CenterBDP]; }
+                set { 
+                    _dpIsInvulnerable[(int)DamagePanelPosition.CenterBDP] = value;
+
+                    Application.Current.Dispatcher.Invoke(() => {
+                        if (value) {
+                            _baseStatusManager.DamagePanelRL.Opacity = 0.5;
+                        } else {
+                            _baseStatusManager.DamagePanelRL.Opacity = 1.0;
+                        }
+                    });
+                }
+            }
+
+            public bool RightBDPInvulnerable {
+                get { return _dpIsInvulnerable[(int)DamagePanelPosition.RightBDP]; }
+                set { 
+                    _dpIsInvulnerable[(int)DamagePanelPosition.RightBDP] = value;
+
+                    Application.Current.Dispatcher.Invoke(() => {
+                        if (value) {
+                            _baseStatusManager.DamagePanelRL.Opacity = 0.5;
+                        } else {
+                            _baseStatusManager.DamagePanelRL.Opacity = 1.0;
+                        }
+                    });
+                }
+            }
+            public DateTime LeftRDPInvulnerableStartTime {
+                get { return _dpInvulnerableStartTime[(int)DamagePanelPosition.LeftRDP]; }
+                set { 
+                    _dpInvulnerableStartTime[(int)DamagePanelPosition.LeftRDP] = value;
+                }
+            }
+
+            public TimeSpan LeftRDPInvulnerableRemainigTime {
+                get { return _dpInvulnerableRemainingTime[(int)DamagePanelPosition.LeftRDP]; }
+                set {
+                    _dpInvulnerableRemainingTime[(int)DamagePanelPosition.LeftRDP] = value;
+
+                    if (_dpInvulnerableRemainingTime[(int)DamagePanelPosition.LeftRDP].TotalSeconds <= 0) {
+                        LeftRDPInvulnerable = false;
+
+                        Application.Current.Dispatcher.Invoke(() => {
+                            _baseStatusManager.InvincibleTimeTextBoxRL.Text = "";
+                            _baseStatusManager.InvincibleTimeTextBoxRL.IsEnabled = false;
+                        });
+                        return;
+                    }
+
+                    Application.Current.Dispatcher.Invoke(() => {
+                        _baseStatusManager.InvincibleTimeTextBoxRL.Text = $"{_dpInvulnerableRemainingTime[(int)DamagePanelPosition.LeftRDP].Seconds:00} sec.";
+                    });
+                }
+            }
+
+            public DateTime CenterRDPInvulnerableStartTime {
+                get { return _dpInvulnerableStartTime[(int)DamagePanelPosition.CenterRDP]; }
+                set { 
+                    _dpInvulnerableStartTime[(int)DamagePanelPosition.CenterRDP] = value;
+                }
+            }
+
+            public TimeSpan CenterRDPInvulnerableRemainigTime {
+                get { return _dpInvulnerableRemainingTime[(int)DamagePanelPosition.CenterRDP]; }
+                set {
+                    _dpInvulnerableRemainingTime[(int)DamagePanelPosition.CenterRDP] = value;
+
+                    if (_dpInvulnerableRemainingTime[(int)DamagePanelPosition.CenterRDP].TotalSeconds <= 0) {
+                        CenterRDPInvulnerable = false;
+
+                        Application.Current.Dispatcher.Invoke(() => {
+                            _baseStatusManager.InvincibleTimeTextBoxRL.Text = "";
+                            _baseStatusManager.InvincibleTimeTextBoxRL.IsEnabled = false;
+                        });
+                        return;
+                    }
+
+                    Application.Current.Dispatcher.Invoke(() => {
+                        _baseStatusManager.InvincibleTimeTextBoxRL.Text = $"{_dpInvulnerableRemainingTime[(int)DamagePanelPosition.CenterRDP].Seconds:00} sec.";
+                    });
+                }
+            }
+
+            public DateTime RightRDPInvulnerableStartTime {
+                get { return _dpInvulnerableStartTime[(int)DamagePanelPosition.RightRDP]; }
+                set { 
+                    _dpInvulnerableStartTime[(int)DamagePanelPosition.RightRDP] = value;
+                }
+            }
+
+            public TimeSpan RightRDPInvulnerableRemainigTime {
+                get { return _dpInvulnerableRemainingTime[(int)DamagePanelPosition.RightRDP]; }
+                set {
+                    _dpInvulnerableRemainingTime[(int)DamagePanelPosition.RightRDP] = value;
+                    
+                    if (_dpInvulnerableRemainingTime[(int)DamagePanelPosition.RightRDP].TotalSeconds <= 0) {
+                        RightRDPInvulnerable = false;
+
+                        Application.Current.Dispatcher.Invoke(() => {
+                            _baseStatusManager.InvincibleTimeTextBoxRL.Text = "";
+                            _baseStatusManager.InvincibleTimeTextBoxRL.IsEnabled = false;
+                        });
+                        return;
+                    }
+
+                    Application.Current.Dispatcher.Invoke(() => {
+                        _baseStatusManager.InvincibleTimeTextBoxRL.Text = $"{_dpInvulnerableRemainingTime[(int)DamagePanelPosition.RightRDP].Seconds:00} sec.";
+                    });
+                }
+            }
+
+            public DateTime LeftBDPInvulnerableStartTime {
+                get { return _dpInvulnerableStartTime[(int)DamagePanelPosition.LeftBDP]; }
+                set { 
+                    _dpInvulnerableStartTime[(int)DamagePanelPosition.LeftBDP] = value;
+                }
+            }
+
+            public TimeSpan LeftBDPInvulnerableRemainigTime {
+                get { return _dpInvulnerableRemainingTime[(int)DamagePanelPosition.LeftBDP]; }
+                set {
+                    _dpInvulnerableRemainingTime[(int)DamagePanelPosition.LeftBDP] = value;
+                    
+                    if (_dpInvulnerableRemainingTime[(int)DamagePanelPosition.LeftBDP].TotalSeconds <= 0) {
+                        LeftBDPInvulnerable = false;
+
+                        Application.Current.Dispatcher.Invoke(() => {
+                            _baseStatusManager.InvincibleTimeTextBoxRL.Text = "";
+                            _baseStatusManager.InvincibleTimeTextBoxRL.IsEnabled = false;
+                        });
+                        return;
+                    }
+
+                    Application.Current.Dispatcher.Invoke(() => {
+                        _baseStatusManager.InvincibleTimeTextBoxRL.Text = $"{_dpInvulnerableRemainingTime[(int)DamagePanelPosition.LeftBDP].Seconds:00} sec.";
+                    });
+                }
+            }
+
+            public DateTime CenterBDPInvulnerableStartTime {
+                get { return _dpInvulnerableStartTime[(int)DamagePanelPosition.CenterBDP]; }
+                set { 
+                    _dpInvulnerableStartTime[(int)DamagePanelPosition.CenterBDP] = value;
+                }
+            }
+
+            public TimeSpan CenterBDPInvulnerableRemainigTime {
+                get { return _dpInvulnerableRemainingTime[(int)DamagePanelPosition.CenterBDP]; }
+                set {
+                    _dpInvulnerableRemainingTime[(int)DamagePanelPosition.CenterBDP] = value;
+                    
+                    if (_dpInvulnerableRemainingTime[(int)DamagePanelPosition.CenterBDP].TotalSeconds <= 0) {
+                        CenterBDPInvulnerable = false;
+
+                        Application.Current.Dispatcher.Invoke(() => {
+                            _baseStatusManager.InvincibleTimeTextBoxRL.Text = "";
+                            _baseStatusManager.InvincibleTimeTextBoxRL.IsEnabled = false;
+                        });
+                        return;
+                    }
+
+                    Application.Current.Dispatcher.Invoke(() => {
+                        _baseStatusManager.InvincibleTimeTextBoxRL.Text = $"{_dpInvulnerableRemainingTime[(int)DamagePanelPosition.CenterBDP].Seconds:00} sec.";
+                    });
+                }
+            }
+
+            public DateTime RightBDPInvulnerableStartTime {
+                get { return _dpInvulnerableStartTime[(int)DamagePanelPosition.RightBDP]; }
+                set { 
+                    _dpInvulnerableStartTime[(int)DamagePanelPosition.RightBDP] = value;
+                }
+            }
+
+            public TimeSpan RightBDPInvulnerableRemainigTime {
+                get { return _dpInvulnerableRemainingTime[(int)DamagePanelPosition.RightBDP]; }
+                set {
+                    _dpInvulnerableRemainingTime[(int)DamagePanelPosition.RightBDP] = value;
+
+                    if (_dpInvulnerableRemainingTime[(int)DamagePanelPosition.RightBDP].TotalSeconds <= 0) {
+                        RightBDPInvulnerable = false;
+
+                        Application.Current.Dispatcher.Invoke(() => {
+                            _baseStatusManager.InvincibleTimeTextBoxRL.Text = "";
+                            _baseStatusManager.InvincibleTimeTextBoxRL.IsEnabled = false;
+                        });
+                        return;
+                    }
+
+                    Application.Current.Dispatcher.Invoke(() => {
+                        _baseStatusManager.InvincibleTimeTextBoxRL.Text = $"{_dpInvulnerableRemainingTime[(int)DamagePanelPosition.RightBDP].Seconds:00} sec.";
+                    });
+                }
+            }
             // ログ
             public List<string> Log {
                 get { return _log; }
                 set { _log = value; }
+            }
+
+            public void AddRobotLog(string text) {
+                _log.Add($"[{Master.Instance.CurrentTime.Minutes:00}:{Master.Instance.CurrentTime.Seconds:00}:{Master.Instance.CurrentTime.Milliseconds:000}]" + text + "\r\n");
+                Application.Current.Dispatcher.Invoke(() => {
+                     _baseStatusManager.RobotLogTextBox.AppendText(_log[_log.Count - 1]);
+                     _baseStatusManager.RobotLogTextBox.ScrollToEnd();
+                });
             }
         };
         #endregion
@@ -141,62 +440,63 @@ namespace CoRE1_AutoRefereeSystem_Host
         #endregion
 
         /* インスタンス ****************************************************************************************************************************************/
-        private BaseStatus _redBaseStatus;
-        private BaseStatus _blueBaseStatus;
-        public BaseStatus RedBaseStatus {
-            private set { _redBaseStatus = value; }
-            get { return _redBaseStatus; }
-        }
-        public BaseStatus BlueBaseStatus {
-            private set { _blueBaseStatus = value; }
-            get { return _blueBaseStatus; }
-        }
-
+        private BaseStatus _baseStatus;
 
         // タイマー
         private System.Timers.Timer _invulnerableTimer;
+        private System.Timers.Timer _lastAttackTimer;
 
         /* 各種通信で使用する変数 ****************************************************************************************************************************************/
-        private readonly SerialPort _serialPort;
-        private int _isCommunicating = 0; // interlock用
-        private string _lastCommTeam = "Blue";
+        // Arduinoサーバー
+        private IPEndPoint? serverIPEndPoint = null;
+
+        private TcpClient? client = null;
+        private NetworkStream? stream = null;
+
+        private int _isBusy = 0; // interlock用
         private List<string> _sendData = new List<string>();
 
-        //public Master.CommunicationSeqEnum commSeq = Master.CommunicationSeqEnum.NONE;
+        private bool _isWatching = false;
+        public Master.ARSSequenceEnum arsSequence = Master.ARSSequenceEnum.NONE;
+
+        private int numSoftwareReset = 0;
+        private int numTimeout = 0;
+        private bool statusChanged = false;
+        private bool logClear = false;
+
+        // ARSの更新タイマー
+        private System.Timers.Timer _updateTimer;
+        private System.Timers.Timer _logClearTimer;
 
         public BaseStatusManager() {
             InitializeComponent();
-
-            #region シリアルポートの設定
-            _serialPort = new SerialPort {
-                BaudRate = 115200,
-                DataBits = 8,
-                Parity = Parity.None,
-                StopBits = StopBits.One,
-                Handshake = Handshake.None,
-                Encoding = System.Text.Encoding.ASCII,
-                NewLine = "\r\n",
-                ReadTimeout = 3000,
-            };
-
-            //StartWatchingReceiveData();
-            //COMPortWatcher.Instance.PortsUpdated += UpdateCOMPortsList;
-            //UpdateCOMPortsList();
-            #endregion
-
-            RedBaseStatus = new BaseStatus(this);
-            RedBaseStatus.TeamColor = "Red";
-            BlueBaseStatus = new BaseStatus(this);
-            BlueBaseStatus.TeamColor = "Blue";
+            _baseStatus = new BaseStatus(this);
 
             _invulnerableTimer = new System.Timers.Timer();
             _invulnerableTimer.Interval = 50;
             _invulnerableTimer.Elapsed += OnInvulnerableTimedEvent;
+            _invulnerableTimer.Start();
 
-            //Master.Instance.UpdateEvent += UpdateBaseStatus;
-            //Master.Instance.GameStartEvent += StopWatchingReceivedData;
-            //Master.Instance.GameStartEvent += StartInvulnerableTimer;
-            //Master.Instance.ClearDataEvent += Reset;
+            _lastAttackTimer = new System.Timers.Timer();
+            _lastAttackTimer.Interval = 50;
+            _lastAttackTimer.Elapsed += OnLastAttackTimedEvent;
+            _lastAttackTimer.Start();
+
+
+            // それぞれ個別のタイマーを使用する
+            // Master.Instance.UpdateEvent += UpdateRobotStatus;
+
+            _updateTimer = new System.Timers.Timer();
+            _updateTimer.Interval = 500;
+            _updateTimer.Elapsed += UpdateBaseStatus;
+            _updateTimer.Start();
+
+            StartWatchingReceiveData();
+
+            _logClearTimer = new System.Timers.Timer();
+            _logClearTimer.Interval = 10 * 60 * 1000;
+            _logClearTimer.Elapsed += ClearLog;
+            _logClearTimer.Start();
         }
 
         /* ロード時のイベント ****************************************************************************************************************************************/
@@ -212,9 +512,8 @@ namespace CoRE1_AutoRefereeSystem_Host
         private void UserControl_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e) {
             if (this.IsEnabled) {
                 OccupationLevelBar.Opacity = 1;
-                RedBaseStatus.NodeNo = Master.Instance.BaseNodeNo[this.Name].Split(" ")[0];
-                BlueBaseStatus.NodeNo = Master.Instance.BaseNodeNo[this.Name].Split(" ")[1];
-
+                RedBaseDPPanel.Opacity = 1;
+                BlueBaseDPPanel.Opacity = 1;
             } else {
                 OccupationLevelBar.Opacity = 0.5;
                 RedBaseDPPanel.Opacity = 0.5;
@@ -223,379 +522,655 @@ namespace CoRE1_AutoRefereeSystem_Host
         }
         #endregion
 
-        /* イベント ****************************************************************************************************************************************/
+        private void UpdateBaseStatus(object sender, EventArgs args) {
+            // 1つ前のイベントがまだ終了していない（別スレッドで実行中）場合はスキップ
+            if (Interlocked.CompareExchange(ref _isBusy, 1, 0) != 0) return;
 
-        /*private void UpdateBaseStatus() {
-            // ホスト基盤と接続していなければスキップ
-            if (!_serialPort.IsOpen) return;
+            if (logClear) {
+                Dispatcher.Invoke(() => {
+                    HostStatusTextBox.Clear();
+                    LinkTextBox.Clear();
+                    logClear = false;
+                });
+            }
 
-            // RedBaseとの通信が接続されていなければスキップ
-            if (RedBaseStatus.Connection != Master.BaseConnectionEnum.CONNECTED) return;
-
-            // BlueBaseとの通信が接続されていなければスキップ
-            if (BlueBaseStatus.Connection != Master.BaseConnectionEnum.CONNECTED) return;
-
-            if (!Master.Instance.IsUpdatingStatus) return;
-
-            // 1つ前のイベントがクライアント基板からの応答が遅くてまだ終了していない（別スレッドで実行中）場合はスキップ
-            if (Interlocked.CompareExchange(ref _isCommunicating, 1, 0) != 0) return;
-
-            try {
-                // クライアントに送信する情報
-                var baseStatus = RedBaseStatus;
-                var baseStatusInv = BlueBaseStatus;
-                var nodeNum = RedBaseStatus.NodeNo;
-                if (_lastCommTeam == "Red") {
-                    baseStatus = BlueBaseStatus;
-                    baseStatusInv = RedBaseStatus;
-                    nodeNum = BlueBaseStatus.NodeNo;
-                }
-
-                int dpColor = (int)baseStatus.DamagePanelColor;
-                // デフォルトは占拠レベル0
-                int occupationLevelBarColor = (int)Master.HPBarColorEnum.WHITE;
-                int occupationLevelPercent = 100;
-
-                if (RedBaseStatus.OccupationLevel > 0) {
-                    occupationLevelBarColor = (int)Master.HPBarColorEnum.RED;
-                    occupationLevelPercent = RedBaseStatus.OccupationLevel * 20;
-                } else if (BlueBaseStatus.OccupationLevel > 0) {
-                    occupationLevelBarColor = (int)Master.HPBarColorEnum.BLUE;
-                    occupationLevelPercent = BlueBaseStatus.OccupationLevel * 20;
-                }
-
-                // 送信データを規定のプロトコルに基づいて作成
-                _sendData.Clear();
-
-                // 宛先の機能No (03はClient)
-                _sendData.Add("03");
-
-                // [b0:パワーリレー出力,b1:撃破フラグ]
-                _sendData.Add(
-                    (BitShift(1, 0) | BitShift(0, 1)).ToString("X2")
-                );
-
-                // [b0..3:HPバーのカラー,b4..7:ダメージプレートのカラー]
-                _sendData.Add(
-                    (BitShift(occupationLevelBarColor, 0) | BitShift(dpColor, 4)).ToString("X2")
-                 );
-
-                // HP% 0x00 ~ 0x64 (100)
-                _sendData.Add(occupationLevelPercent.ToString("X2"));
-
-                // 未使用
-                _sendData.Add("00");
-                _sendData.Add("00");
-
-                // コンフィグコマンド
-                _sendData.Add("00");
-
-                // コンフィグパラメータ
-                _sendData.Add("00");
-
-                // データを送信
-                _serialPort.DiscardInBuffer();
-                string command = $"send {nodeNum} " + String.Join(",", _sendData);
-                SendTextToHostPCB(command);
-
-                // クライアント基板からの応答待機
+            if (arsSequence != Master.ARSSequenceEnum.UPDATING) {
                 try {
-                    string receivedDataString = ReadSendCommandResponse(command);
+                    if (arsSequence == Master.ARSSequenceEnum.OPENED) {
+                        ;
+                    } else if (arsSequence == Master.ARSSequenceEnum.RECONNECTING) {
+                        Debug.WriteLine(serverIPEndPoint);
+                        client = new TcpClient();
+                        client.Connect(serverIPEndPoint);
+                        stream = client.GetStream();
 
+                        // タイムアウトの設定
+                        stream.ReadTimeout = 2000;
+                        stream.WriteTimeout = 2000;
+
+                        string command = "boot autoturret";
+                        SendTextToArduino(command);
+                        Dispatcher.Invoke(() => {
+                            HostStatusTextBox.Text = "Reconnecting succeeded";
+                        });
+
+                        arsSequence = Master.ARSSequenceEnum.BOOTING;
+                    } else if (arsSequence == Master.ARSSequenceEnum.BOOTING) {
+                        string data = ReadTo(">");
+                        Dispatcher.Invoke(() => {
+                            LinkTextBox.AppendText(data + ">");
+
+                            if (data.Contains("[OK]")) {
+                                HostStatusTextBox.Text = "Boot succeeded";
+                                HostStatusTextBox.IsEnabled = true;
+
+                                ConnectButton.IsEnabled = false;
+                                PingButton1.IsEnabled = false;
+
+                                //stream.ReadTimeout = Master.Instance.ARSTimeoutRandom.Next(
+                                //    Master.Instance.TimeoutMin, Master.Instance.TimeoutMax
+                                //);
+                                statusChanged = true;
+                                _baseStatus.Connection = Master.BaseConnectionEnum.CONNECTED;
+                                arsSequence = Master.ARSSequenceEnum.UPDATING;
+                            } else {
+                                HostStatusTextBox.Text = "Boot failed";
+                                arsSequence = Master.ARSSequenceEnum.OPENED;
+                                StartWatchingReceiveData();
+                            }
+                        });
+                    } else if (arsSequence == Master.ARSSequenceEnum.SHUTING_DOWN) {
+                        var converter = new System.Windows.Media.BrushConverter();
+                        Dispatcher.Invoke(() => {
+                            HostStatusTextBox.Text = "Shutting down";
+                            //HostStatusTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#00FFFFFF");
+                        });
+
+                        Thread.Sleep(3000);
+                        string command = "shutdown";
+                        SendTextToArduino(command);
+                        // string data = _serialPort.ReadTo(">");
+                        // HACK
+                        string data = "OK";
+                        if (data.Contains("OK")) {
+                            Dispatcher.Invoke(() => {
+                                HostStatusTextBox.Text = "ARS shutdown";
+                                HostStatusTextBox.IsEnabled = false;
+
+                                LinkTextBox.AppendText(data + ">");
+                                LinkTextBox.ScrollToEnd();
+
+                                BootButton.Content = "Boot";
+                                ConnectButton.IsEnabled = true;
+                                BootButton.IsEnabled = true;
+                                PingButton1.IsEnabled = true;
+                            });
+
+                            numSoftwareReset = 0;
+                            numTimeout = 0;
+                            _baseStatus.Connection = Master.BaseConnectionEnum.ENABLED;
+                            arsSequence = Master.ARSSequenceEnum.OPENED;
+
+                            // shutdownコマンドは時間がかかるので，cpuResetは無し
+                            // Thread.Sleep(1000);
+                            // command = "cpuReset";
+                            // SendTextToHostPCB(command, false);
+                            StartWatchingReceiveData();
+                        }
+                    }
+                    //else if (arsSequence == Master.ARSSequenceEnum.SOFTWARE_RESET) {
+                    //    ;
+                    //}
+                } catch (Exception ex) when (ex is IOException || ex is TimeoutException) {
+                    statusChanged = true;
+                    SystemSounds.Exclamation.Play();
+
+                    var converter = new System.Windows.Media.BrushConverter();
                     Dispatcher.Invoke(() => {
-                        ReceivedDataTextBox1.AppendText(
-                            $"[{baseStatus.TeamColor}][{Master.Instance.CurrentTime.Minutes:00}:{Master.Instance.CurrentTime.Seconds:00}:{Master.Instance.CurrentTime.Milliseconds:000}]\""
-                            + receivedDataString + "\r\n");
-                        ReceivedDataTextBox1.ScrollToEnd();
+                        LinkTextBox.AppendText($"[{DateTime.Now.ToString("HH:mm:ss.ff")}] Disconnected \r\n" +
+                            $"[{DateTime.Now.ToString("HH:mm:ss.ff")}] Retry to start ARS\r\n"
+                        );
+                        LinkTextBox.ScrollToEnd();
+
+                        HostStatusTextBox.Text = "Restarting: Openning HostPCB";
+                        HostStatusTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#66F5E98B");
                     });
 
-                    if (receivedDataString.Contains("error")) {
-                        Thread.Sleep(500);
-                    }
+                    numSoftwareReset++;
+                    if (!client.Connected) client.Close();
+                    stream.Close();
+                    Thread.Sleep(2000);
+                    arsSequence = Master.ARSSequenceEnum.RECONNECTING;
+                } catch (Exception ex) {
+                    Debug.WriteLine(ex.Message);
+                    return;
+                } finally {
+                    Interlocked.Exchange(ref _isBusy, 0);
+                }
+                return;
+            } else { // arsSequence == Master.ARSSequenceEnum.UPDATING
+                if (_isWatching) StopWatchingReceivedData();
 
-                    Debug.WriteLine(receivedDataString);
+                try {
+                    // Arduinoに送信する情報
+                    var status = _baseStatus;
+                    var baseRecivedTextBox = ReceivedDataTextBox1;
 
-                    // 受信データの複号
-                    // IM920が自動で付与するヘッダを除去
-                    receivedDataString = receivedDataString.Split(":")[1];
 
-                    // 文字列を,で分割し，それぞれの16進数の文字をint型に変換
-                    int[] info = receivedDataString.Split(',').Select(part => Convert.ToInt32(part, 16)).ToArray();
+                    bool activeFlag = status.IsActive;
+                    bool defeatedFlag = false; // dummy
 
-                    bool[] invulnerable = { baseStatus.LeftDPInvulnerable, 
-                                            baseStatus.CenterDPInvulnerable, 
-                                            baseStatus.RightDPInvulnerable 
-                    };
+                    int hpBarColor = (int)status.OccupationLevelBarColor;
+                    int dpColor = hpBarColor; // dummy
+                    int occupationLevelPercent = Math.Abs(status.OccupationLevel) * 10;
 
-                    // ダメージパネルのヒット情報から計算
-                    if (baseStatus.IsActive) {
-                        for (int i = 0; i < 3; i++) {
-                            if (BitHigh(info[4], i) && !invulnerable[i]) {
-                                baseStatus.OccupationLevel++;
-                                baseStatusInv.OccupationLevel--;
-                                invulnerable[i] = true;
-                                // baseStatus.AddLog()
+                    // 送信データを規定のプロトコルに基づいて作成
+                    _sendData.Clear();
+
+                    // 宛先の機能No (09は共通陣地)
+                    _sendData.Add("09");
+
+                    // [b0: アクティブフラグ, b1: 撃破フラグ]
+                    _sendData.Add(
+                        (BitShift(activeFlag, 0) | BitShift(defeatedFlag, 1)).ToString("X2")
+                    );
+
+                    // [b0..3:HPバーのカラー,b4..7:ダメージプレートのカラー]
+                    _sendData.Add(
+                        (BitShift(hpBarColor, 0) | BitShift(dpColor, 4)).ToString("X2")
+                    );
+
+                    // [b0~b5: DP無敵フラグ] 陣地のみで使用
+                    _sendData.Add((
+                            BitShift(status.LeftRDPInvulnerable, 0) | BitShift(status.CenterRDPInvulnerable, 1) | BitShift(status.RightRDPInvulnerable, 2) 
+                            | BitShift(status.LeftBDPInvulnerable, 3) | BitShift(status.CenterBDPInvulnerable, 4) | BitShift(status.RightBDPInvulnerable, 5)
+                        ).ToString("X2")
+                    );
+
+                    // HP% 0x00 ~ 0x64 (100)
+                    _sendData.Add(occupationLevelPercent.ToString("X2"));
+
+                    // 未使用
+                    _sendData.Add("00");
+
+                    // コンフィグコマンド
+                    _sendData.Add("00");
+
+                    // コンフィグパラメータ
+                    _sendData.Add("00");
+
+                    // Arduinoからの応答待機
+                    try {
+                        // データを送信
+                        Dispatcher.Invoke(() => {
+                            LinkTextBox.AppendText($"[{DateTime.Now.ToString("HH:mm:ss.ff")}] Requesting... \r\n");
+                            // LinkTextBox.ScrollToEnd();
+                        });
+                        string command = "send " + status.NodeNo + " "
+                                         + String.Join(",", _sendData);
+                        SendTextToArduino(command);
+
+                        string receivedDataString = ReadSendCommandResponse(command);
+
+                        if (receivedDataString.Contains("error")) {
+                            Dispatcher.Invoke(() => {
+                                LinkTextBox.AppendText($"[{DateTime.Now.ToString("HH:mm:ss:ff")}] ERR, Sleep 100ms... \r\n");
+                                LinkTextBox.AppendText("--------- \r\n");
+                                LinkTextBox.ScrollToEnd();
+                            });
+                            Thread.Sleep(100);
+                            return;
+                        } else {
+                            Dispatcher.Invoke(() => {
+                                baseRecivedTextBox.AppendText(
+                                $"[{Master.Instance.CurrentTime.Minutes:00}:{Master.Instance.CurrentTime.Seconds:00}:{Master.Instance.CurrentTime.Milliseconds:000}]\""
+                                + receivedDataString + "\r\n");
+                                baseRecivedTextBox.ScrollToEnd();
+                            });
+
+                            Dispatcher.Invoke(() => {
+                                LinkTextBox.AppendText($"[{DateTime.Now.ToString("HH:mm:ss.ff")}] Response succeeded \r\n");
+                                LinkTextBox.AppendText("--------- \r\n");
+                                LinkTextBox.ScrollToEnd();
+                            });
+                        }
+
+                        // 受信データの複号
+                        // 文字列を,で分割し，それぞれの16進数の文字をint型に変換
+                        int[] info = receivedDataString.Split(',').Select(part => Convert.ToInt32(part, 16)).ToArray();
+
+                        if (Master.Instance.DuringGame && !status.IsActive) {
+                            // ダメージパネルのヒット情報から占拠レベルを計算
+
+                            // 青
+                            if (status.Occupied != Master.OccupiedEnum.BLUE) {
+                                int attackBuff = Master.Instance.BlueAttackBuff;
+                                if (!status.LeftRDPInvulnerable && BitHigh(info[5], (int)BaseStatus.DamagePanelPosition.LeftRDP)) {
+                                    int diff = 1 * attackBuff;
+                                    status.OccupationLevel += diff;
+
+                                    status.LeftRDPInvulnerable = true;
+                                    status.LeftRDPInvulnerableStartTime = DateTime.Now;
+                                    status.AddRobotLog($"Hit Left RDP. -{diff}, now: {status.OccupationLevel}");
+                                }
+                                if (!status.CenterRDPInvulnerable && BitHigh(info[5], (int)BaseStatus.DamagePanelPosition.CenterRDP)) {
+                                    int diff = 2 * attackBuff; // 2倍ダメージ
+                                    status.OccupationLevel += diff;
+
+                                    status.CenterRDPInvulnerable = true;
+                                    status.CenterRDPInvulnerableStartTime = DateTime.Now;
+                                    status.AddRobotLog($"Hit Center RDP. -{diff}, now: {status.OccupationLevel}");
+                                }
+                                if (!status.RightRDPInvulnerable && BitHigh(info[5], (int)BaseStatus.DamagePanelPosition.RightRDP)) {
+                                    int diff = 1 * attackBuff;
+                                    status.OccupationLevel += diff;
+
+                                    status.RightRDPInvulnerable = true;
+                                    status.RightRDPInvulnerableStartTime = DateTime.Now;
+                                    status.AddRobotLog($"Hit Right RDP. -{diff}, now: {status.OccupationLevel}");
+                                }
+                            }
+
+                            // 赤
+                            if (status.Occupied != Master.OccupiedEnum.RED) {
+                                var attackBuff = Master.Instance.RedAttackBuff;
+                                if (!status.LeftBDPInvulnerable && BitHigh(info[5], (int)BaseStatus.DamagePanelPosition.LeftBDP)) {
+                                    int diff = 1 * attackBuff;
+                                    status.OccupationLevel -= diff;
+
+                                    status.LeftBDPInvulnerable = true;
+                                    status.LeftBDPInvulnerableStartTime = DateTime.Now;
+                                    status.AddRobotLog($"Hit Left BDP. -{diff}, now: {status.OccupationLevel}");
+                                }
+                                if (!status.CenterBDPInvulnerable && BitHigh(info[5], (int)BaseStatus.DamagePanelPosition.CenterBDP)) {
+                                    int diff = 2 * attackBuff; // 2倍ダメージ
+                                    status.OccupationLevel -= diff;
+
+                                    status.CenterBDPInvulnerable = true;
+                                    status.CenterBDPInvulnerableStartTime = DateTime.Now;
+                                    status.AddRobotLog($"Hit Center BDP. -{diff}, now: {status.OccupationLevel}");
+                                }
+                                if (!status.RightBDPInvulnerable && BitHigh(info[5], (int)BaseStatus.DamagePanelPosition.RightBDP)) {
+                                    int diff = 1 * attackBuff;
+                                    status.OccupationLevel -= diff;
+
+                                    status.RightBDPInvulnerable = true;
+                                    status.RightBDPInvulnerableStartTime = DateTime.Now;
+                                    status.AddRobotLog($"Hit Right BDP. -{diff}, now: {status.OccupationLevel}");
+                                }
                             }
                         }
-                    }
 
-                    if (baseStatus.OccupationLevel >= 5) {
-                        baseStatus.OccupationLevel = 5;
-                        baseStatusInv.OccupationLevel = -5;
-                        
-                        if (baseStatus.TeamColor.Contains("Red")) {
-                            BaseStatus.Occupied = Master.OccupiedEnum.RED;
-                        } else {
-                            BaseStatus.Occupied = Master.OccupiedEnum.BLUE;
+                        if (status.Occupied != Master.OccupiedEnum.NO) {
+                            string teamColor = status.Occupied == Master.OccupiedEnum.RED ? "Red" : "Blue";
+                            status.AddRobotLog($"Occupied by {teamColor} team");
                         }
 
-                        //baseStatus.AddLog()
+                        if (statusChanged) {
+                            var converter = new System.Windows.Media.BrushConverter();
+                            Dispatcher.Invoke(() => {
+                                HostStatusTextBox.IsEnabled = true;
+                                HostStatusTextBox.Text = $"ARS: OK, SR: {numSoftwareReset}";
+                                HostStatusTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
+                            });
+                            statusChanged = false;
+                        }
+                        //numTimeout = 0;
+                    } catch (Exception ex) when (ex is IOException || ex is TimeoutException) {
+                        statusChanged = true;
+                        SystemSounds.Exclamation.Play();
+
+                        var converter = new System.Windows.Media.BrushConverter();
+                        Dispatcher.Invoke(() => {
+                            LinkTextBox.AppendText($"[{DateTime.Now.ToString("HH:mm:ss.ff")}] Disconnected \r\n" +
+                                $"[{DateTime.Now.ToString("HH:mm:ss.ff")}] Retry to start ARS\r\n"
+                            );
+                            LinkTextBox.ScrollToEnd();
+
+                            HostStatusTextBox.Text = "Restarting: Openning HostPCB";
+                            HostStatusTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#66F5E98B");
+                        });
+
+                        numSoftwareReset++;
+                        if (!client.Connected) client.Close();
+                        stream.Close();
+                        Thread.Sleep(2000);
+                        arsSequence = Master.ARSSequenceEnum.RECONNECTING;
+                    } catch (Exception ex) {
+                        Debug.WriteLine(ex);
                     }
 
-                    if (_lastCommTeam == "Red") _lastCommTeam = "Blue";
-                    else _lastCommTeam = "Red";
-
-                } catch (TimeoutException e) {
-                    Debug.WriteLine(e.ToString());
-                    Dispatcher.Invoke(() => {
-                        ReceivedDataTextBox1.AppendText("Response timeout \r\n");
-                    });
-                    Thread.Sleep(1000);
-                } catch (Exception e) {
-                    _serialPort.DiscardInBuffer();
-                    Debug.WriteLine(e.ToString());
-                    Dispatcher.Invoke(() => {
-                        ReceivedDataTextBox1.AppendText("Error \r\n");
-                        ReceivedDataTextBox1.ScrollToEnd();
-                    });
-                    Thread.Sleep(100);
+                } finally {
+                    Interlocked.Exchange(ref _isBusy, 0);
                 }
-
-            } finally {
-                Interlocked.Exchange(ref _isCommunicating, 0);
             }
+        }
+
+        private void OnLastAttackTimedEvent(object source, ElapsedEventArgs e) {
+            if (!Master.Instance.DuringGame) return;
+            if (_baseStatus.Occupied != Master.OccupiedEnum.NO) return;
+            if (_baseStatus.OccupationLevel == 0) return;
+
+            var timePassed = DateTime.Now - _baseStatus.LastAttackStartTime;
+            _baseStatus.LastAttackRemainingTime = TimeSpan.FromSeconds(Master.Instance.BaseNeutralPointTime) - timePassed;
+        }
+
+        private void OnInvulnerableTimedEvent(object source, ElapsedEventArgs e) {
+            if (!Master.Instance.DuringGame) return;
+
+            if (_baseStatus.LeftRDPInvulnerable) {
+                var timePassed = DateTime.Now - _baseStatus.LeftRDPInvulnerableStartTime;
+                _baseStatus.LeftBDPInvulnerableRemainigTime = TimeSpan.FromSeconds(Master.Instance.BaseInvulnerableTime) - timePassed;
+            }
+
+            if (_baseStatus.CenterRDPInvulnerable) {
+                var timePassed = DateTime.Now - _baseStatus.CenterRDPInvulnerableStartTime;
+                _baseStatus.CenterBDPInvulnerableRemainigTime = TimeSpan.FromSeconds(Master.Instance.BaseInvulnerableTime) - timePassed;
+            }
+
+            if (_baseStatus.RightRDPInvulnerable) {
+                var timePassed = DateTime.Now - _baseStatus.RightRDPInvulnerableStartTime;
+                _baseStatus.RightBDPInvulnerableRemainigTime = TimeSpan.FromSeconds(Master.Instance.BaseInvulnerableTime) - timePassed;
+            }
+            
+            if (_baseStatus.LeftBDPInvulnerable) {
+                var timePassed = DateTime.Now - _baseStatus.LeftBDPInvulnerableStartTime;
+                _baseStatus.LeftBDPInvulnerableRemainigTime = TimeSpan.FromSeconds(Master.Instance.BaseInvulnerableTime) - timePassed;
+            }
+            
+            if (_baseStatus.CenterBDPInvulnerable) {
+                var timePassed = DateTime.Now - _baseStatus.CenterBDPInvulnerableStartTime;
+                _baseStatus.CenterBDPInvulnerableRemainigTime = TimeSpan.FromSeconds(Master.Instance.BaseInvulnerableTime) - timePassed;
+            }
+            
+            if (_baseStatus.RightBDPInvulnerable) {
+                var timePassed = DateTime.Now - _baseStatus.RightBDPInvulnerableStartTime;
+                _baseStatus.RightBDPInvulnerableRemainigTime = TimeSpan.FromSeconds(Master.Instance.BaseInvulnerableTime) - timePassed;
+            }
+        }
+
+
+        private void ClearLog(object sender, EventArgs args) {
+            logClear = true;
         }
 
         private void StartWatchingReceiveData() {
-            _serialPort.DataReceived += WatchReceivedData;
+            _isWatching = true;
+            _updateTimer.Elapsed += WatchReceivedData;
+        }
+
+        private void StopWatchingReceivedData() {
+            _isWatching = false;
+            _updateTimer.Elapsed -= WatchReceivedData;
         }
 
         // 試合中以外ではこの関数で常時受信データを監視する
-        private void WatchReceivedData(object sender, SerialDataReceivedEventArgs e) {
-            string data = _serialPort.ReadExisting();
-            Dispatcher.Invoke(() => {
-                ReceivedDataTextBox1.AppendText(data);
-                ReceivedDataTextBox1.ScrollToEnd();
-            });
-        }
-
-
-        private void StopWatchingReceivedData() {
-            _serialPort.DataReceived -= WatchReceivedData;
-        }
-
-        private void Reset() {
-            ReceivedDataTextBox1.Clear();
-
-            _serialPort.Close();
-            StartWatchingReceiveData();
-            commSeq = Master.CommunicationSeqEnum.NONE;
-        }
-
-        private void UpdateCOMPortsList() {
-            Dispatcher.Invoke(() => {
-                ComPortSelectionComboBox.Items.Clear();
-                foreach (string port in COMPortWatcher.Instance.GetAvailablePorts())
-                    ComPortSelectionComboBox.Items.Add(port);
-            });
-        }*/
-
-        /* ボタン等のイベント ****************************************************************************************************************************************/
-        public void RedLevelButton_Click(object sender, RoutedEventArgs e) {
-            if (this.Name == "BaseL") {
-                if (Master.Instance.BaseLOccupationLevel > -5) {
-                    Master.Instance.BaseLOccupationLevel--;
-                }
-                OccupationLevelBar.Value = 5 - Master.Instance.BaseLOccupationLevel;
-
-            } else if (this.Name == "BaseC") {
-                if (Master.Instance.BaseCOccupationLevel > -5) {
-                    Master.Instance.BaseCOccupationLevel--;
-                }
-                OccupationLevelBar.Value = 5 - Master.Instance.BaseCOccupationLevel;
-            } else {
-                if (Master.Instance.BaseROccupationLevel > -5) {
-                    Master.Instance.BaseROccupationLevel--;
-                }
-                OccupationLevelBar.Value = 5 - Master.Instance.BaseROccupationLevel;
+        private async void WatchReceivedData(object sender, EventArgs args) {
+            if (stream is null) {
+                Debug.WriteLine("stream is null");
+                return;
             }
-        }
 
-        public void NeurtralButton_Click(object sender, RoutedEventArgs e) {
-            if (this.Name == "BaseL") {
-                Master.Instance.BaseLOccupationLevel = 0;
-                OccupationLevelBar.Value = 5;
-            } else if (this.Name == "BaseC") {
-                Master.Instance.BaseCOccupationLevel = 0;
-                OccupationLevelBar.Value = 5;
-            } else {
-                Master.Instance.BaseROccupationLevel = 0;
-                OccupationLevelBar.Value = 5;
-            }
-        }
-
-        public void BlueLevelButton_Click(object sender, RoutedEventArgs e) {
-            if (this.Name == "BaseL") {
-                if (Master.Instance.BaseLOccupationLevel < 5) {
-                    Master.Instance.BaseLOccupationLevel++;
-                }
-                OccupationLevelBar.Value = 5 - Master.Instance.BaseLOccupationLevel;
-            } else if (this.Name == "BaseC") {
-                if (Master.Instance.BaseCOccupationLevel < 5) {
-                    Master.Instance.BaseCOccupationLevel++;
-                }
-                OccupationLevelBar.Value = 5 - Master.Instance.BaseCOccupationLevel;
-            } else {
-                if (Master.Instance.BaseROccupationLevel < 5) {
-                    Master.Instance.BaseROccupationLevel++;
-                }
-                OccupationLevelBar.Value = 5 - Master.Instance.BaseROccupationLevel;
-            }
-        }
-
-
-        /*private void ConnectButton_Click(object sender, RoutedEventArgs e) {
-            if (!_serialPort.IsOpen) {
-                if (ComPortSelectionComboBox.SelectedItem == null) {
-                    MessageBox.Show("You must select COM port", "Warning",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                _serialPort.PortName = ComPortSelectionComboBox.SelectedItem.ToString();
-                try {
-                    // ホスト基板と接続
-                    _serialPort.Open();
-                    HostStatusTextBox.Text = "Connected HostPCB";
-                    ConnectButton.Content = "Disconn.";
-                    RedPingButton.IsEnabled = true;
-                    BluePingButton.IsEnabled = true;
-                    BootButton.IsEnabled = true;
-                    SendButton.IsEnabled = true;
-                } catch (Exception ex) {
-                    MessageBox.Show($"{this.Name}: Failed to connect to HostPCB\n" +
-                        $"\nProbably, selected COM port has already been connnected by another.",
-                        "Connection failure", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            } else {
-                _serialPort.Close();
-                ConnectButton.Content = "Connect";
-                RedPingButton.IsEnabled = false;
-                BluePingButton.IsEnabled = false;
-                SendButton.IsEnabled = false;
-            }
-        }
-
-        private void BootButton_Click(object sender, RoutedEventArgs e) {
-            if (BootButton.Content.ToString() == "Boot") {
-                StopWatchingReceivedData();
-                _serialPort.DiscardInBuffer();
-                string command = $"boot {Master.Instance.HostCH[this.Name]} {Master.Instance.BaseNodeNo[this.Name]}";
-                SendTextToHostPCB(command);
-
-                try {
-                    string data = _serialPort.ReadTo(">");
-                    ReceivedDataTextBox1.AppendText(data + ">");
-
-                    RedBaseStatus.Connection = Master.BaseConnectionEnum.CONNECTED;
-                    BlueBaseStatus.Connection = Master.BaseConnectionEnum.CONNECTED;
-
-                    BootButton.Content = "Stdn";
-                    var converter = new System.Windows.Media.BrushConverter();
-                    BootButton.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#FFB7403A");
-                    BootButton.BorderBrush = BootButton.Background;
-
-                    RedPingButton.IsEnabled = true;
-                    BluePingButton.IsEnabled = true;
-                } catch (Exception ex) {
-                    ;
-                }
-                
-            } else {
-                if (Master.Instance.IsUpdatingStatus) return;
-
-                _serialPort.DiscardInBuffer();
-                string command = "shutdown";
-                SendTextToHostPCB(command);
-
-                try {
-                    string data = _serialPort.ReadTo(">");
-                    ReceivedDataTextBox1.AppendText(data + ">");
-
-                    RedBaseStatus.Connection = Master.BaseConnectionEnum.DISCONNECTED;
-                    BlueBaseStatus.Connection = Master.BaseConnectionEnum.DISCONNECTED;
-
-                    BootButton.Content = "Boot";
-                    var converter = new System.Windows.Media.BrushConverter();
-                    BootButton.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#FF44B73A");
-                    BootButton.BorderBrush = BootButton.Background;
-                } catch (Exception ex) {
-                    ;
-                }
-                
-            }
-        }
-
-        private void RedPingButton_Click(object sender, RoutedEventArgs e) {
-            string command = $"ping {Master.Instance.BaseNodeNo[this.Name].Split(" ")[0]}";
-            SendTextToHostPCB(command);
-        }
-
-        private void BluePingButton_Click(Object sender, RoutedEventArgs e) {
-            string command = $"ping {Master.Instance.BaseNodeNo[this.Name].Split(" ")[1]}";
-            SendTextToHostPCB(command);
-        }
-
-        private void SendButton_Click(object obj, RoutedEventArgs e) {
-            if (!_serialPort.IsOpen) return;
-            SendTextToHostPCB(SendDataTextBox.Text);
-            SendDataTextBox.Clear();
-        }
-
-        private void SendDataTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e) {
-            if (e.Key == System.Windows.Input.Key.Enter) {
-                SendButton_Click(this, new RoutedEventArgs());
-            }
-        }*/
-
-
-
-        /* 各種使用する関数 ****************************************************************************************************************************************/
-        private void SendTextToHostPCB(string text) {
-            byte[] data = System.Text.Encoding.ASCII.GetBytes(text + "\r\n");
-            foreach (byte b in data) {
-                _serialPort.Write(new byte[] { b }, 0, 1);
-
-                // 1文字毎に少しだけスリープしないと，上手く基板側が処理できない
-                // これは，基板側に受信バッファがないためである
-                Thread.Sleep(3);
+            if (stream.DataAvailable) {
+                byte[] buffer = new byte[256];
+                int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+                string data = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                Dispatcher.Invoke(() => {
+                    LinkTextBox.AppendText(data);
+                    LinkTextBox.ScrollToEnd();
+                });
             }
         }
 
         private string ReadSendCommandResponse(string command) {
             // 始めにこちらから送信したcommandがそのままホスト基板から返ってくる
-            string data1 = _serialPort.ReadLine();
-            if (!data1.Contains(command)) return "send error";
+            string data1 = ReadLine();
+            if (!data1.Contains(command)) {
+                ReadTo(">");
+                return "send error";
+            }
 
             // 次に所望のデータあるいは[NG]が返ってくる
-            string data2 = _serialPort.ReadLine();
-            if (data2.Contains("[NG]")) return "comm error";
+            string data2 = ReadLine();
+            Dispatcher.Invoke(() => {
+                LinkTextBox.AppendText($"|--> {data2}\r\n");
+            });
+            if (data2.Contains("ERR") || data2.Contains("[NG]")) {
+                ReadTo(">");
+                return "comm error";
+            }
 
             // 最後に[NG]ではない場合は[OK]が返ってくる
-            string data3 = _serialPort.ReadLine();
-            if (data3.Contains("[OK]")) return data2;
-
+            string data3 = ReadLine();
+            Dispatcher.Invoke(() => {
+                LinkTextBox.AppendText($"|-->{data3}\r\n");
+            });
+            if (data3.Contains("[OK]")) {
+                ReadTo(">");
+                return data2;
+            }
             return "receive error";
+        }
+
+        private string ReadTo(string value, int timeoutMilliseconds = 2000) {
+            if (stream == null) return "error";
+
+            StringBuilder sb = new StringBuilder();
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+            while (stopwatch.ElapsedMilliseconds < timeoutMilliseconds) {
+                if (stream.DataAvailable) {
+                    int b = stream.ReadByte();
+                    string receivedChar = Convert.ToChar(b).ToString();
+                    //string receivedChar = System.Text.Encoding.ASCII.GetString(new byte[] { b })
+                    //string receivedChar = b.ToString()
+                    sb.Append(receivedChar);
+                    Debug.Write(receivedChar);
+                    if (receivedChar == value) return sb.ToString();
+                }
+            }
+            throw new TimeoutException("read timeout");
+        }
+
+        private string ReadLine() {
+            string data1 = ReadTo("\r");
+            string data2 = ReadTo("\n");
+
+            return data1.Substring(0, data1.Length - 1); // \r\nは除外
+        }
+
+        public void RedLevelButton_Click(object sender, RoutedEventArgs e) {
+            _baseStatus.OccupationLevel -= 1;
+        }
+
+        public void NeurtralButton_Click(object sender, RoutedEventArgs e) {
+            _baseStatus.OccupationLevel = 0;
+        }
+
+        public void BlueLevelButton_Click(object sender, RoutedEventArgs e) {
+            _baseStatus.OccupationLevel += 1;
+            //if (this.Name == "BaseL") {
+            //    if (Master.Instance.BaseLOccupationLevel < 5) {
+            //        Master.Instance.BaseLOccupationLevel++;
+            //    }
+            //    OccupationLevelBar.Value = 5 - Master.Instance.BaseLOccupationLevel;
+            //} else if (this.Name == "BaseC") {
+            //    if (Master.Instance.BaseCOccupationLevel < 5) {
+            //        Master.Instance.BaseCOccupationLevel++;
+            //    }
+            //    OccupationLevelBar.Value = 5 - Master.Instance.BaseCOccupationLevel;
+            //} else {
+            //    if (Master.Instance.BaseROccupationLevel < 5) {
+            //        Master.Instance.BaseROccupationLevel++;
+            //    }
+            //    OccupationLevelBar.Value = 5 - Master.Instance.BaseROccupationLevel;
+            //}
+        }
+
+        private void ConnectButton_Click(object sender, RoutedEventArgs e) {
+            if (client is null || !client.Connected) {
+                if (serverIPEndPoint is null) {
+                    Debug.WriteLine("stream is null");
+                    return;
+                }
+                try {
+                    client = new TcpClient();
+                    client.Connect(serverIPEndPoint);
+                    stream = client.GetStream();
+
+                    // タイムアウトの設定
+                    stream.ReadTimeout = 2000;
+                    stream.WriteTimeout = 2000;
+
+                    arsSequence = Master.ARSSequenceEnum.OPENED;
+                    HostStatusTextBox.Text = "Arduino server connected";
+                    ConnectButton.Content = "Close";
+                    PingButton1.IsEnabled = true;
+                    BootButton.IsEnabled = true;
+                    SendButton.IsEnabled = true;
+                } catch (Exception ex) {
+                    MessageBox.Show($"{this.Name}: Failed to connect to Arduino server\n" +
+                         $"\nProbably, selected IP has already been connnected by another.",
+                         "Connection failure", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            } else {
+                StopWatchingReceivedData();
+                Thread.Sleep(1000);
+
+                if (stream is not null) {
+                    stream.Close();
+                }
+                client.Close();
+                arsSequence = Master.ARSSequenceEnum.NONE;
+                HostStatusTextBox.Text = "Arduino server closed";
+                ConnectButton.Content = "Open";
+                ConnectButton.IsEnabled = true;
+                PingButton1.IsEnabled = false;
+                BootButton.IsEnabled = false;
+                SendButton.IsEnabled = false;
+            }
+        }
+
+        private void SendButton_Click(object obj, RoutedEventArgs e) {
+            if (stream is null) {
+                Debug.WriteLine("stream is null");
+                return;
+            }
+
+            SendTextToArduino(SendDataTextBox.Text);
+            LinkTextBox.AppendText($"|--> ");
+            SendDataTextBox.Clear();
+        }
+
+
+        private void SendDataTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e) {
+            if (e.Key == System.Windows.Input.Key.Enter) {
+                SendButton_Click(this, new RoutedEventArgs());
+            }
+        }
+
+        private void BootButton_Click(object sender, RoutedEventArgs e) {
+            if (stream is null) {
+                Debug.WriteLine("stream is null");
+                return;
+            }
+            if (arsSequence == Master.ARSSequenceEnum.OPENED) {
+                StopWatchingReceivedData();
+                try {
+                    HostStatusTextBox.Text = "Booting ARS...";
+                    string command = "boot commonbase";
+                    SendTextToArduino(command);
+
+                    BootButton.Content = "Shtdwn";
+                    arsSequence = Master.ARSSequenceEnum.BOOTING;
+
+                } catch (Exception ex) {
+                    ;
+                }
+            } else if (arsSequence == Master.ARSSequenceEnum.UPDATING) {
+                arsSequence = Master.ARSSequenceEnum.SHUTING_DOWN;
+            }
+        }
+
+        private void PingButton_Click(Object sender, RoutedEventArgs e) {
+            if (stream is null) {
+                Debug.WriteLine("stream is null");
+                return;
+            }
+            if (arsSequence != Master.ARSSequenceEnum.OPENED) return;
+
+            string command = "ping autoturret";
+            SendTextToArduino(command);
+        }
+
+        private void SendTextToArduino(string text, bool verbose = true) {
+            if (stream is null) {
+                Debug.WriteLine("stream is null");
+                return;
+            }
+
+            byte[] data = System.Text.Encoding.ASCII.GetBytes(text + "\r\n");
+            //foreach (byte b in data) {
+            //    stream.Write(new byte[] { b }, 0, 1);
+            //    Thread.Sleep(2);
+            //}
+
+            stream.Write(data, 0, data.Length);
+
+            if (verbose) {
+                Dispatcher.Invoke(() => {
+                    // LinkTextBox.AppendText($"[{DateTime.Now.ToString("HH:mm:ss.ff")}] {text}\r\n");
+                    LinkTextBox.AppendText($"|-${text}\r\n");
+                    LinkTextBox.ScrollToEnd();
+                });
+            }
+        }
+
+        private void EndPointTextBox_TextChanged(object sender, TextChangedEventArgs e) {
+            var converter = new System.Windows.Media.BrushConverter();
+            EndPointTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#30FF0000");
+        }
+
+        private void EndPointTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e) {
+            if (e.Key == System.Windows.Input.Key.Enter) {
+                string input = EndPointTextBox.Text;
+                if (TryParseIpPort(input, out IPEndPoint? tmpIPEndPoint)) {
+                    Keyboard.ClearFocus();
+                    e.Handled = true;
+
+                    serverIPEndPoint = tmpIPEndPoint;
+                    Debug.WriteLine(serverIPEndPoint);
+                    var converter = new System.Windows.Media.BrushConverter();
+                    EndPointTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
+                } else {
+                    MessageBox.Show($"Invalid endpoint: {EndPointTextBox.Text}.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        static bool TryParseIpPort(string input, out IPEndPoint? endPoint) {
+            endPoint = null;
+
+            // ":"が含まれていない場合は無効
+            if (!input.Contains(":"))
+                return false;
+
+            // ":"で分割
+            string[] parts = input.Split(':');
+            if (parts.Length != 2)
+                return false;
+
+            // IPアドレスのチェック
+            if (!IPAddress.TryParse(parts[0], out IPAddress? ipAddress))
+                return false;
+
+            // ポート番号のチェック（1～65535）
+            if (!int.TryParse(parts[1], out int port) || port < 1 || port > 65535)
+                return false;
+
+            // IPEndPointを作成
+            endPoint = new IPEndPoint(ipAddress, port);
+            return true;
         }
 
         private bool BitHigh(int data, int i) {
@@ -609,92 +1184,6 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         private int BitShift(int data, int shift) {
             return data << shift;
-        }
-
-        private void OnInvulnerableTimedEvent(object? sender, ElapsedEventArgs e) {
-            Dispatcher.Invoke(() => {
-                if (RedBaseStatus.LeftDPInvulnerable) {
-                    var timePassed = DateTime.Now - RedBaseStatus.LeftDPInvulnerableStartTime;
-                    var remainingTime = TimeSpan.FromSeconds(Master.Instance.InvincibleTime) - timePassed;
-                    if (remainingTime.TotalSeconds <= 0) {
-                        RedBaseStatus.LeftDPInvulnerable = false;
-                        DamagePanelRL.Opacity = 1.0;
-                        InvincibleTimeTextBoxRL.Text = "Active";
-                    } else {
-                        DamagePanelRL.Opacity = 0.5;
-                        InvincibleTimeTextBoxRL.Text = $"{remainingTime.TotalSeconds:00} sec..";
-                    }
-                }
-
-                if (RedBaseStatus.CenterDPInvulnerable) {
-                    var timePassed = DateTime.Now - RedBaseStatus.CenterDPInvulnerableStartTime;
-                    var remainingTime = TimeSpan.FromSeconds(Master.Instance.InvincibleTime) - timePassed;
-                    if (remainingTime.TotalSeconds <= 0) {
-                        RedBaseStatus.CenterDPInvulnerable = false;
-                        DamagePanelRC.Opacity = 1.0;
-                        InvincibleTimeTextBoxRC.Text = "Active";
-                    } else {
-                        DamagePanelRC.Opacity = 0.5;
-                        InvincibleTimeTextBoxRC.Text = $"{remainingTime.TotalSeconds:00} sec..";
-                    }
-                }
-
-                if (RedBaseStatus.RightDPInvulnerable) {
-                    var timePassed = DateTime.Now - RedBaseStatus.RightDPInvulnerableStartTime;
-                    var remainingTime = TimeSpan.FromSeconds(Master.Instance.InvincibleTime) - timePassed;
-                    if (remainingTime.TotalSeconds <= 0) {
-                        RedBaseStatus.RightDPInvulnerable = false;
-                        DamagePanelRR.Opacity = 1.0;
-                        InvincibleTimeTextBoxRR.Text = "Active";
-                    } else {
-                        DamagePanelRR.Opacity = 0.5;
-                        InvincibleTimeTextBoxRR.Text = $"{remainingTime.TotalSeconds:00} sec..";
-                    }
-                }
-
-                if (BlueBaseStatus.LeftDPInvulnerable) {
-                    var timePassed = DateTime.Now - BlueBaseStatus.LeftDPInvulnerableStartTime;
-                    var remainingTime = TimeSpan.FromSeconds(Master.Instance.InvincibleTime) - timePassed;
-                    if (remainingTime.TotalSeconds <= 0) {
-                        BlueBaseStatus.LeftDPInvulnerable = false;
-                        DamagePanelBL.Opacity = 1.0;
-                        InvincibleTimeTextBoxBL.Text = "Active";
-                    } else {
-                        DamagePanelBL.Opacity = 0.5;
-                        InvincibleTimeTextBoxBL.Text = $"{remainingTime.TotalSeconds:00} sec..";
-                    }
-                }
-
-                if (BlueBaseStatus.CenterDPInvulnerable) {
-                    var timePassed = DateTime.Now - BlueBaseStatus.CenterDPInvulnerableStartTime;
-                    var remainingTime = TimeSpan.FromSeconds(Master.Instance.InvincibleTime) - timePassed;
-                    if (remainingTime.TotalSeconds <= 0) {
-                        BlueBaseStatus.CenterDPInvulnerable = false;
-                        DamagePanelBC.Opacity = 1.0;
-                        InvincibleTimeTextBoxBC.Text = "Active";
-                    } else {
-                        DamagePanelBC.Opacity = 0.5;
-                        InvincibleTimeTextBoxBC.Text = $"{remainingTime.TotalSeconds:00} sec..";
-                    }
-                }
-
-                if (BlueBaseStatus.RightDPInvulnerable) {
-                    var timePassed = DateTime.Now - BlueBaseStatus.RightDPInvulnerableStartTime;
-                    var remainingTime = TimeSpan.FromSeconds(Master.Instance.InvincibleTime) - timePassed;
-                    if (remainingTime.TotalSeconds <= 0) {
-                        BlueBaseStatus.RightDPInvulnerable = false;
-                        DamagePanelBR.Opacity = 1.0;
-                        InvincibleTimeTextBoxBR.Text = "Active";
-                    } else {
-                        DamagePanelBR.Opacity = 0.5;
-                        InvincibleTimeTextBoxBR.Text = $"{remainingTime.TotalSeconds:00} sec..";
-                    }
-                }
-            });
-        }
-
-        private void StartInvulnerableTimer() {
-            _invulnerableTimer.Start();
         }
     }
 }

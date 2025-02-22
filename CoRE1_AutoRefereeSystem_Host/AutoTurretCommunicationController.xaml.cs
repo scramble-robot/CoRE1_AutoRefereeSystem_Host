@@ -337,7 +337,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         //        attackBuff = Master.Instance.RedAttackBuff;
 
                         //    for (int i = 0; i < 4; i++) {
-                        //        if (BitHigh(info[4], i)) {
+                        //        if (BitHigh(info[5], i)) {
                         //            robotStatus.HP -= attackBuff * Master.Instance.HitDamage;
                         //            robotStatus.DamageTaken += attackBuff * Master.Instance.HitDamage;
                         //            robotStatus.AddRobotLog($"Hit DP{i}. -{attackBuff * Master.Instance.HitDamage}, now: {robotStatus.HP}/{robotStatus.MaxHP}");

@@ -115,6 +115,9 @@ namespace CoRE1_AutoRefereeSystem_Host
         public int RespawnHP { private set; get; } = 30;
         public int InvincibleTime { private set; get; } = 5;
 
+        public int BaseNeutralPointTime { private set; get; } = 30;
+        public int BaseInvulnerableTime { private set; get; } = 5;
+
 
         /***** 各種フラグ *******************************************************************************************************/
         public bool AutoConnect { set; get; } = false;
@@ -134,8 +137,10 @@ namespace CoRE1_AutoRefereeSystem_Host
         }
 
         public enum BaseConnectionEnum {
+            DISABLED,
+            ENABLED,
             CONNECTED,
-            DISCONNECTED
+            // DISCONNECTED,
         }
 
         public enum TeamColorEnum {

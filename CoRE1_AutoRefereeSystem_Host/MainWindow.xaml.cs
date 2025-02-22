@@ -142,9 +142,9 @@ namespace CoRE1_AutoRefereeSystem_Host
             Red34.CommEnabledToggleButton2.IsEnabled= true;
             Red34.CommEnabledToggleButton2.IsChecked= true;
 
-            BaseL.IsEnabled = true;
+            //BaseL.IsEnabled = true;
             BaseC.IsEnabled = true;
-            BaseR.IsEnabled = true;
+            //BaseR.IsEnabled = true;
 
             Blue12.IsEnabled = true;
             Blue12.Robot1.IsEnabled = true; 
@@ -213,9 +213,9 @@ namespace CoRE1_AutoRefereeSystem_Host
             Red5.CommEnabledToggleButton1.IsEnabled = true;
             Red5.CommEnabledToggleButton1.IsChecked = true;
 
-            BaseL.IsEnabled = true;
+            //BaseL.IsEnabled = true;
             BaseC.IsEnabled = true;
-            BaseR.IsEnabled = true;
+            //BaseR.IsEnabled = true;
 
             Blue12.IsEnabled = true;
             Blue12.Robot1.IsEnabled = true;
@@ -287,14 +287,14 @@ namespace CoRE1_AutoRefereeSystem_Host
             Red5.CommEnabledToggleButton1.IsEnabled = false;
             Red5.CommEnabledToggleButton1.IsChecked= false;
 
-            // BaseL
-            BaseL.IsEnabled = false;
+            //// BaseL
+            //BaseL.IsEnabled = false;
 
-            // BaseC
+            //// BaseC
             BaseC.IsEnabled = false;
 
-            // BaseR
-            BaseR.IsEnabled = false;
+            //// BaseR
+            //BaseR.IsEnabled = false;
 
             // Blue12
             Blue12.IsEnabled = false;
@@ -449,28 +449,6 @@ namespace CoRE1_AutoRefereeSystem_Host
 
             else if (e.Key == Key.D0)
                 Blue5.Robot1.PunishButton_Click(sender, new RoutedEventArgs());
-
-            // 陣地
-            if (e.Key == Key.A)
-                BaseL.RedLevelButton_Click(sender, new RoutedEventArgs());
-            else if (e.Key == Key.S)
-                BaseL.NeurtralButton_Click(sender, new RoutedEventArgs());
-            else if (e.Key == Key.D)
-                BaseL.BlueLevelButton_Click(sender, new RoutedEventArgs());
-
-            if (e.Key == Key.F)
-                BaseC.RedLevelButton_Click(sender, new RoutedEventArgs());
-            else if (e.Key == Key.G)
-                BaseC.NeurtralButton_Click(sender, new RoutedEventArgs());
-            else if (e.Key == Key.H)
-                BaseC.BlueLevelButton_Click(sender, new RoutedEventArgs());
-
-            if (e.Key == Key.J)
-                BaseR.RedLevelButton_Click(sender, new RoutedEventArgs());
-            else if (e.Key == Key.K)
-                BaseR.NeurtralButton_Click(sender, new RoutedEventArgs());
-            else if (e.Key == Key.L)
-                BaseR.BlueLevelButton_Click(sender, new RoutedEventArgs());
         }
     }
 }
