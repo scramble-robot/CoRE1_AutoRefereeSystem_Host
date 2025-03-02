@@ -1,20 +1,20 @@
-﻿<UserControl
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+﻿<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:CoRE1_AutoRefereeSystem_Host"
-             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" x:Class="CoRE1_AutoRefereeSystem_Host.CommonBaseStatusManager"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" 
+             x:Class="CoRE1_AutoRefereeSystem_Host.CommonBaseStatusManager"
              mc:Ignorable="d"
              d:DesignHeight="460"
              d:Background="White"
              Loaded="UserControl_Loaded"
              IsEnabledChanged="UserControl_IsEnabledChanged">
-    <Grid>
+    <Grid Background="{Binding CommonBaseColor, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
         <StackPanel Orientation="Horizontal">
             <StackPanel>
                 <StackPanel Orientation="Horizontal">
-                    <Label Content="{Binding BasePanelLabel, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+                    <Label Content="{Binding CommonBaseLabel, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
                            d:Content="Base-C"
                            Margin="10,10,5,10"
                            FontSize="24"

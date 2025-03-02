@@ -389,16 +389,19 @@ namespace CoRE1_AutoRefereeSystem_Host
                         if (Master.Instance.DuringGame && !robotStatus.DefeatedFlag && !robotStatus.InvincibilityFlag) {
                             // ダメージパネルのヒット情報からHPを計算
                             int attackBuff = 1;
-                            if (robotStatus.TeamColor.Contains("Red"))
+                            if (robotStatus.TeamColor.Contains("Red")) {
                                 attackBuff = Master.Instance.BlueAttackBuff;
-                            else
+                                if (Master.Instance.RedInvinsible) attackBuff = 0;
+                            } else {
                                 attackBuff = Master.Instance.RedAttackBuff;
+                                if (Master.Instance.BlueInvinsible) attackBuff = 0;
+                            }
 
                             for (int i = 0; i < 4; i++) {
                                 if (BitHigh(info[4], i)) {
                                     robotStatus.HP -= attackBuff * Master.Instance.HitDamage;
                                     robotStatus.DamageTaken += attackBuff * Master.Instance.HitDamage;
-                                    robotStatus.AddRobotLog($"Hit DP{i}. HP decereased by {attackBuff * Master.Instance.HitDamage}, now at {robotStatus.HP}/{robotStatus.MaxHP}");
+                                    robotStatus.AddRobotLog($"Hit DP{i}. -{attackBuff * Master.Instance.HitDamage}, now at {robotStatus.HP}/{robotStatus.MaxHP}");
                                 }
                             }
                         }

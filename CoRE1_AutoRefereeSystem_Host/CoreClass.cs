@@ -15,8 +15,8 @@ namespace CoRE1_AutoRefereeSystem_Host
         public int BlueReceivedDamage { get; set; } = 0;    //青が受けたダメージ(赤が与えたダメージ)
 
         // スポット
-        public int[] RedSpot { get; set; } = { 0, 0, 0 };    //[0],[2]:攻撃力バフ，[1]:回復
-        public int[] BlueSpot { get; set; } = { 0, 0, 0 };
+        public int[] RedSpot { get; set; } = { 0, 0, 0, 0, 0 };    //[0],[2]:攻撃力バフ，[1]:回復
+        public int[] BlueSpot { get; set; } = { 0, 0, 0, 0, 0 };
 
         //陣地
         public int RedArea { get; set; } = 5;      //0～4:赤，5：中立，6～10：青
@@ -100,8 +100,8 @@ namespace CoRE1_AutoRefereeSystem_Host
 
 
         // スポット
-        public int[] RedSpot { get; set; } = { 0, 0, 0 };    //[0],[2]:攻撃力バフ(バフ中のみ)，[1]:回復
-        public int[] BlueSpot { get; set; } = { 0, 0, 0 };
+        public int[] RedSpot { get; set; } = { 0, 0, 0, 0, 0 };
+        public int[] BlueSpot { get; set; } = { 0, 0, 0, 0, 0 };
 
         //陣地
         public int RedArea { get; set; } = 5;      //0～4:赤，5：中立，6～10：青

@@ -22,72 +22,34 @@ namespace CoRE1_AutoRefereeSystem_Host
         public static Master Instance => _instance.Value;
 
         // 出場チーム
-        public string[] TeamName = {    "",
-                                        "2001",
-                                        "2002",
-                                        "2003",
-                                        "2004",
-                                        "2005",
-                                        "[AGSR]AGA'star.",
-                                        "[KSHH]機襲藩",
-                                        "[AVNT]AVANT",
-                                        "[RISN]雷閃",
-                                        "[KDSH]近大シューターズ",
-                                        "[GRSL]豊田ジラソーレ",
-                                        "[VRTX]大阪ヴェルテックス",
-                                        "[FRNT]精華フレンテ",
-                                        "[RTUS]Ro.T.U.S.",
-                                        "[TSTM]チーム薩摩",
-                                        "[TRK]TRK",
-                                        "[TKG]TKG",
-                                        "[DRBS]大ロボーズ",
-                                        "[MKNG]MA-KING",
-                                        "[TMC]Tactical Majestic Creators",
-                                        "[SEC]SETAGAYA Eclipse",
-                                        "[DTB]でんとつーとビーバー",
-                                        "[SCAT]StrayedCats"
-        };
+        public string[] TeamName = {   "",
+                                "[VXGA]VERTEX-Gamma",
+                                "[VXZE]VERTEX-Zeta",
+                                "[FRCI]FRENTE-Cielo",
+                                "[FRRO]FRENTE-Rosa",
+                                "[YKHK]YOOKATORE-Hakata",
+                                "[KTTM]KT-tokitama",
+                                "[JKK]jkk女坂",
+                                "[KMOK]KmoKHS-CoRE",
+                                "[RKGR]洛北ギアーズ"};
 
         public Dictionary<string, int> TeamNodeNo = new Dictionary<string, int> {
-            {"", 2000},
-            {"2001", 2001},
-            {"2002", 2002},
-            {"2003", 2003},
-            {"2004", 2004},
-            {"2005", 2005},
-            {"[AGSR]AGA'star.", 2603},
-            {"[KSHH]機襲藩", 2703},
-            {"[AVNT]AVANT", 2803},
-            {"[RISN]雷閃", 2903},
-            {"[KDSH]近大シューターズ", 3403},
-            {"[GRSL]豊田ジラソーレ", 3203},
-            {"[VRTX]大阪ヴェルテックス", 3903},
-            {"[FRNT]精華フレンテ", 3803},
-            {"[RTUS]Ro.T.U.S.", 2403},
-            {"[TSTM]チーム薩摩", 2103},
-            {"[TRK]TRK", 3303},
-            {"[TKG]TKG", 3003},
-            {"[DRBS]大ロボーズ", 3103},
-            {"[MKNG]MA-KING", 3503},
-            {"[TMC]Tactical Majestic Creators", 2503},
-            {"[SEC]SETAGAYA Eclipse", 2203},
-            {"[DTB]でんとつーとビーバー", 2303},
-            {"[SCAT]StrayedCats", 1},
-        };
-
-        public Dictionary<string, string> BaseNodeNo = new Dictionary<string, string> {
-            {"BaseL", "2001 2002"},
-            {"BaseC", "2003 2004"},
-            {"BaseR", "2005 2006"},
+            {"", 9999},
+            {"[VXGA]VERTEX-Gamma", 9999},
+            {"[VXZE]VERTEX-Zeta", 9999},
+            {"[FRCI]FRENTE-Cielo", 9999},
+            {"[FRRO]FRENTE-Rosa", 9999},
+            {"[YKHK]YOOKATORE-Hakata", 9999},
+            {"[KTTM]KT-tokitama", 9999},
+            {"[JKK]jkk女坂", 9999},
+            {"[KMOK]KmoKHS-CoRE", 9999},
+            {"[RKGR]洛北ギアーズ", 9999},
         };
 
         public Dictionary<string, int> HostCH = new Dictionary<string, int> {
             {"Red12", 1},
             {"Red34", 2},
             {"Red5", 3},
-            {"BaseL", 4},
-            {"BaseC", 7},
-            {"BaseR", 6},
             {"Blue12", 5},
             {"Blue34", 8},
             {"Blue5", 9}
@@ -108,7 +70,13 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         public int HitDamage { private set; get; } = 10;
 
-        public int AttackBuffTime { private set; get; } = 30;
+        public int AttackBuff12Time { private set; get; } = 40;
+
+        public int AttackBuff45Time { private set; get; } = 60;
+
+        public int Zone1ShieldBuffTime { private set; get; } = 30;
+
+        public int Zone2ShieldBuffTime { private set; get; } = 45;
 
         public int PenaltyDamage { private set; get; } = 10;
         public int RespawnTime { private set; get; } = 60;
@@ -120,12 +88,8 @@ namespace CoRE1_AutoRefereeSystem_Host
 
 
         /***** 各種フラグ *******************************************************************************************************/
-        public bool AutoConnect { set; get; } = false;
         public bool GameEndFlag { set; get; } = false;
         public bool DuringGame { private set; get; } = false;
-
-        public bool Added3min { private set; get; } = false;
-
 
         /***** enum定義 *******************************************************************************************************/
         #region
@@ -225,6 +189,14 @@ namespace CoRE1_AutoRefereeSystem_Host
             BLUE,
         };
 
+        public enum StriderBuffStatusEnum {
+            NONE,
+            ZONE1_ACTIVE,
+            ZONE1_EXPIRED,
+            ZONE2_ACTIVE,
+            ZONE2_EXPIRED
+        }
+
         #endregion
 
         /***** 各種設定 *******************************************************************************************************/
@@ -233,8 +205,6 @@ namespace CoRE1_AutoRefereeSystem_Host
         public SettingStatusEnum SettingStatus { set; get; } = SettingStatusEnum.NONE;
 
         public bool IsUpdatingStatus { set; get; } = false;
-
-        private static bool _addedTimeout = false;
 
         public Settings SettingsJson { set; get; }
 
@@ -258,9 +228,11 @@ namespace CoRE1_AutoRefereeSystem_Host
             private set {; }
             get {
                 int num = 0;
-                if (Instance.BaseLOccupationLevel == -5) num++;
-                if (Instance.BaseCOccupationLevel == -5) num++;
-                if (Instance.BaseROccupationLevel == -5) num++;
+                Application.Current.Dispatcher.Invoke(() => {
+                    var window = GetMainWindow();
+                    if (window.CommonBase.Status.Occupied == OccupiedEnum.RED) num++;
+                    if (window.RedBase.Status.Occupied == OccupiedEnum.RED) num++;
+                });
                 return num;
             }
         }
@@ -269,9 +241,11 @@ namespace CoRE1_AutoRefereeSystem_Host
             private set {;}
             get {
                 int num = 0;
-                if (Instance.BaseLOccupationLevel == 5) num++;
-                if (Instance.BaseCOccupationLevel == 5) num++;
-                if (Instance.BaseROccupationLevel == 5) num++;
+                Application.Current.Dispatcher.Invoke(() => {
+                    var window = GetMainWindow();
+                    if (window.CommonBase.Status.Occupied == OccupiedEnum.BLUE) num++;
+                    if (window.BlueBase.Status.Occupied == OccupiedEnum.BLUE) num++;
+                });
                 return num;
             }
         }
@@ -283,7 +257,10 @@ namespace CoRE1_AutoRefereeSystem_Host
                 Application.Current.Dispatcher.Invoke(() => {
                     var window = GetMainWindow();
                     if (!window.RedEMSpot1Button.IsEnabled) num++;
+                    if (!window.RedEMSpot2Button.IsEnabled) num++;
                     if (!window.RedEMSpot3Button.IsEnabled) num++;
+                    if (!window.RedEMSpot4Button.IsEnabled) num++;
+                    if (!window.RedEMSpot5Button.IsEnabled) num++;
                 });
                 return num;
             }
@@ -296,7 +273,10 @@ namespace CoRE1_AutoRefereeSystem_Host
                 Application.Current.Dispatcher.Invoke(() => {
                     var window = GetMainWindow();
                     if (!window.BlueEMSpot1Button.IsEnabled) num++;
+                    if (!window.BlueEMSpot2Button.IsEnabled) num++;
                     if (!window.BlueEMSpot3Button.IsEnabled) num++;
+                    if (!window.BlueEMSpot4Button.IsEnabled) num++;
+                    if (!window.BlueEMSpot5Button.IsEnabled) num++;
                 });
                 return num;
             }
@@ -304,28 +284,31 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         public int RedAttackBuff { set; get; } = 1;
         public bool IsRedAttackBuff1Active { set; get; } = false;
-        public bool IsRedAttackBuff3Active { set; get; } = false;
+        public bool IsRedAttackBuff2Active { set; get; } = false;
+
+        public bool IsRedAttackBuff4Active { set; get; } = false;
+        public bool IsRedAttackBuff5Active { set; get; } = false;
 
         public int BlueAttackBuff { set; get; } = 1;
         public bool IsBlueAttackBuff1Active { set; get; } = false;
-        public bool IsBlueAttackBuff3Active { set; get; } = false;
+        public bool IsBlueAttackBuff2Active { set; get; } = false;
+        public bool IsBlueAttackBuff4Active { set; get; } = false;
+        public bool IsBlueAttackBuff5Active { set; get; } = false;
 
         public bool RedHealing {  set; get; } = false;
         public bool BlueHealing { set; get; } = false;
 
-        public bool RedFirstBloodAchieved { set; get; } = false;
-        public bool BlueFirstBloodAchieved { set; get; } = false;
+        public bool RedInvinsible { set; get; } = false;
+        public bool IsRedZone1ShieldBuffActive { set; get; } = false;
+        public bool IsRedZone2ShieldBuffActiveWaiting { set; get; } = false;
+        public bool IsRedZone2ShieldBuffActive { set; get; } = false;
 
-        // -5 ~ -1: Red
-        // 1 ~ 5: Blue
-        public int BaseLOccupationLevel { set; get; } = 0;
-        public int BaseCOccupationLevel { set; get; } = 0;
-        public int BaseROccupationLevel { set; get; } = 0;
+        public bool BlueInvinsible { set; get; } = false;
+        public bool IsBlueZone1ShieldBuffActive { set; get; } = false;
+        public bool IsBlueZone2ShieldBuffActiveWaiting { set; get; } = false;
+        public bool IsBlueZone2ShieldBuffActive { set; get; } = false;
 
         public WinnerEnum Winner { set; get; } = WinnerEnum.NONE;
-
-        public RobotStatusManager.RobotStatus[] RedRobot { set; get; }
-        public RobotStatusManager.RobotStatus[] BlueRobot { set; get; }
 
         // 操縦画面用プログラムに送信するためのクラス
         public CoreClass Msgs = new CoreClass();
@@ -345,15 +328,29 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         // 強化素材による攻撃バフの時間の測定用
         public DateTime _redAttackBuff1StartTime;
-        public DateTime _redAttackBuff3StartTime;
+        public DateTime _redAttackBuff2StartTime;
+        public DateTime _redAttackBuff4StartTime;
+        public DateTime _redAttackBuff5StartTime;
         public DateTime _blueAttackBuff1StartTime;
-        public DateTime _blueAttackBuff3StartTime;
+        public DateTime _blueAttackBuff2StartTime;
+        public DateTime _blueAttackBuff4StartTime;
+        public DateTime _blueAttackBuff5StartTime;
+
+        // ストライダーのゾーン踏破によるバフの時間測定用
+        public DateTime _redZone1ShieldBuffStartTime;
+        public DateTime _redZone2ShieldBuffStartTime;
+        public DateTime _blueZone1ShieldBuffStartTime;
+        public DateTime _blueZone2ShieldBuffStartTime;
+
 
         // 試合時間のタイマー関係
         private static System.Timers.Timer _countDownTimer;
         private static DateTime _startTime;
         private static TimeSpan _remainingTime;
         private static bool _isPaused = false;
+
+        // Settingsのタイマー
+        public static System.Timers.Timer _settingsTimer;
 
         // UDPのタイマー
         public readonly DispatcherTimer _udpTimer;
@@ -362,6 +359,7 @@ namespace CoRE1_AutoRefereeSystem_Host
             _updateTimer = new System.Timers.Timer();
             _updateTimer.Interval = 100;
             _updateTimer.Elapsed += UpdateAttackBuff;
+            _updateTimer.Elapsed += UpdateStriderBuff;
             _updateTimer.Elapsed += OnEventArrived;
             _updateTimer.Elapsed += AggregateDamage;
             _updateTimer.Elapsed += CheckGameEnd;
@@ -371,9 +369,15 @@ namespace CoRE1_AutoRefereeSystem_Host
             _countDownTimer.Interval = 50;
             _countDownTimer.Elapsed += OnCountDownTimedEvent;
 
+            _settingsTimer = new System.Timers.Timer();
+            _settingsTimer.Interval = 1000;
+            _settingsTimer.Elapsed += SaveSettings;
+            _settingsTimer.Start();
+
             _udpTimer = new DispatcherTimer();
             _udpTimer.Interval = new TimeSpan(0, 0, 0, 0, 50);
             _udpTimer.Tick += new EventHandler(SendMsgsToOperatorScreen);
+            _udpTimer.Start();
         }
 
         private void OnEventArrived(object sender, EventArgs e) {
@@ -390,6 +394,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                     + window.Red34.Robot1.Status.DamageTaken
                     + window.Red34.Robot2.Status.DamageTaken
                     + window.Red5.Robot1.Status.DamageTaken
+                    + window.Red6.Robot1.Status.DamageTaken
                 );
 
                 Instance.TotalBlueDamageTaken = (
@@ -398,6 +403,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                     + window.Blue34.Robot1.Status.DamageTaken
                     + window.Blue34.Robot2.Status.DamageTaken
                     + window.Blue5.Robot1.Status.DamageTaken
+                    + window.Blue6.Robot1.Status.DamageTaken
                 );
 
                 Instance.TotalRedDefeated = (
@@ -406,6 +412,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                     + window.Red34.Robot1.Status.DefeatedNum
                     + window.Red34.Robot2.Status.DefeatedNum
                     + window.Red5.Robot1.Status.DefeatedNum
+                    //+ window.Red6.Robot1.Status.DefeatedNum オートタレットは対象外
                 );
 
                 Instance.TotalBlueDefeated = (
@@ -414,10 +421,8 @@ namespace CoRE1_AutoRefereeSystem_Host
                     + window.Blue34.Robot1.Status.DefeatedNum
                     + window.Blue34.Robot2.Status.DefeatedNum
                     + window.Blue5.Robot1.Status.DefeatedNum
+                    //+ window.Blue6.Robot1.Status.DefeatedNum オートタレットは対象外
                 );
-
-                Instance.RedFirstBloodAchieved = Instance.TotalBlueDefeated >= 1;
-                Instance.BlueFirstBloodAchieved = Instance.TotalRedDefeated >= 1;
 
                 window.RedDamageTakenTextBlock.Text = $"{Instance.TotalRedDamageTaken:0000}";
                 window.BlueDamageTakenTextBlock.Text = $"{Instance.TotalBlueDamageTaken:0000}";
@@ -426,16 +431,6 @@ namespace CoRE1_AutoRefereeSystem_Host
 
                 window.RedAttackBuffTextBlock.Text = $"x{Instance.RedAttackBuff:0}";
                 window.BlueAttackBuffTextBlock.Text = $"x{Instance.BlueAttackBuff:0}";
-
-                if (Instance.RedFirstBloodAchieved) 
-                    window.RedFirstBloodTextBlock.Text = "yes";
-                else 
-                    window.RedFirstBloodTextBlock.Text = "no";
-
-                if (Instance.BlueFirstBloodAchieved)
-                    window.BlueFirstBloodTextBlock.Text = "yes";
-                else
-                    window.BlueFirstBloodTextBlock.Text = "no";
             }));
         }
 
@@ -447,10 +442,10 @@ namespace CoRE1_AutoRefereeSystem_Host
                 Instance.RedAttackBuff = 1;
                 if (Instance.IsRedAttackBuff1Active) {
                     var timePassed = DateTime.Now - Instance._redAttackBuff1StartTime;
-                    var remainingTime = TimeSpan.FromSeconds(Instance.AttackBuffTime) - timePassed;
+                    var remainingTime = TimeSpan.FromSeconds(Instance.AttackBuff12Time) - timePassed;
                     if (remainingTime.TotalSeconds <= 0) {
                         Instance.IsRedAttackBuff1Active = false;
-                        window.RedAttackbuff1TimeTextBlock.Text = "30 sec..";
+                        window.RedAttackbuff1TimeTextBlock.Text = "";
                         window.RedAttackbuff1TimeTextBlock.IsEnabled = false;
                     } else {
                         Instance.RedAttackBuff *= 2;
@@ -458,26 +453,52 @@ namespace CoRE1_AutoRefereeSystem_Host
                     }
                 }
 
-                if (Instance.IsRedAttackBuff3Active) {
-                    var timePassed = DateTime.Now - Instance._redAttackBuff3StartTime;
-                    var remainingTime = TimeSpan.FromSeconds(Instance.AttackBuffTime) - timePassed;
+                if (Instance.IsRedAttackBuff2Active) {
+                    var timePassed = DateTime.Now - Instance._redAttackBuff2StartTime;
+                    var remainingTime = TimeSpan.FromSeconds(Instance.AttackBuff12Time) - timePassed;
                     if (remainingTime.TotalSeconds <= 0) {
-                        Instance.IsRedAttackBuff3Active = false;
-                        window.RedAttackbuff3TimeTextBlock.Text = "30 sec..";
-                        window.RedAttackbuff3TimeTextBlock.IsEnabled = false;
+                        Instance.IsRedAttackBuff2Active = false;
+                        window.RedAttackbuff2TimeTextBlock.Text = "";
+                        window.RedAttackbuff2TimeTextBlock.IsEnabled = false;
                     } else {
                         Instance.RedAttackBuff *= 2;
-                        window.RedAttackbuff3TimeTextBlock.Text = $"{remainingTime.TotalSeconds:00} sec..";
+                        window.RedAttackbuff2TimeTextBlock.Text = $"{remainingTime.TotalSeconds:00} sec..";
+                    }
+                }
+
+                if (Instance.IsRedAttackBuff4Active) {
+                    var timePassed = DateTime.Now - Instance._redAttackBuff4StartTime;
+                    var remainingTime = TimeSpan.FromSeconds(Instance.AttackBuff45Time) - timePassed;
+                    if (remainingTime.TotalSeconds <= 0) {
+                        Instance.IsRedAttackBuff4Active = false;
+                        window.RedAttackbuff4TimeTextBlock.Text = "";
+                        window.RedAttackbuff4TimeTextBlock.IsEnabled = false;
+                    } else {
+                        Instance.RedAttackBuff *= 2;
+                        window.RedAttackbuff4TimeTextBlock.Text = $"{remainingTime.TotalSeconds:00} sec..";
+                    }
+                }
+
+                if (Instance.IsRedAttackBuff5Active) {
+                    var timePassed = DateTime.Now - Instance._redAttackBuff5StartTime;
+                    var remainingTime = TimeSpan.FromSeconds(Instance.AttackBuff45Time) - timePassed;
+                    if (remainingTime.TotalSeconds <= 0) {
+                        Instance.IsRedAttackBuff5Active = false;
+                        window.RedAttackbuff5TimeTextBlock.Text = "";
+                        window.RedAttackbuff5TimeTextBlock.IsEnabled = false;
+                    } else {
+                        Instance.RedAttackBuff *= 2;
+                        window.RedAttackbuff5TimeTextBlock.Text = $"{remainingTime.TotalSeconds:00} sec..";
                     }
                 }
 
                 Instance.BlueAttackBuff = 1;
                 if (Instance.IsBlueAttackBuff1Active) {
                     var timePassed = DateTime.Now - Instance._blueAttackBuff1StartTime;
-                    var remainingTime = TimeSpan.FromSeconds(Instance.AttackBuffTime) - timePassed;
+                    var remainingTime = TimeSpan.FromSeconds(Instance.AttackBuff12Time) - timePassed;
                     if (remainingTime.TotalSeconds <= 0) {
                         Instance.IsBlueAttackBuff1Active = false;
-                        window.BlueAttackbuff1TimeTextBlock.Text = "30 sec..";
+                        window.BlueAttackbuff1TimeTextBlock.Text = "";
                         window.BlueAttackbuff1TimeTextBlock.IsEnabled = false;
                     } else {
                         Instance.BlueAttackBuff *= 2;
@@ -485,20 +506,128 @@ namespace CoRE1_AutoRefereeSystem_Host
                     }
                 }
 
-                if (Instance.IsBlueAttackBuff3Active) {
-                    var timePassed = DateTime.Now - Instance._blueAttackBuff3StartTime;
-                    var remainingTime = TimeSpan.FromSeconds(Instance.AttackBuffTime) - timePassed;
+                if (Instance.IsBlueAttackBuff2Active) {
+                    var timePassed = DateTime.Now - Instance._blueAttackBuff2StartTime;
+                    var remainingTime = TimeSpan.FromSeconds(Instance.AttackBuff12Time) - timePassed;
                     if (remainingTime.TotalSeconds <= 0) {
-                        Instance.IsBlueAttackBuff3Active = false;
-                        window.BlueAttackbuff3TimeTextBlock.Text = "30 sec..";
-                        window.BlueAttackbuff3TimeTextBlock.IsEnabled = false;
+                        Instance.IsBlueAttackBuff2Active = false;
+                        window.BlueAttackbuff2TimeTextBlock.Text = "";
+                        window.BlueAttackbuff2TimeTextBlock.IsEnabled = false;
                     } else {
                         Instance.BlueAttackBuff *= 2;
-                        window.BlueAttackbuff3TimeTextBlock.Text = $"{remainingTime.TotalSeconds:00} sec..";
+                        window.BlueAttackbuff2TimeTextBlock.Text = $"{remainingTime.TotalSeconds:00} sec..";
                     }
                 }
+
+                if (Instance.IsBlueAttackBuff4Active) {
+                    var timePassed = DateTime.Now - Instance._blueAttackBuff4StartTime;
+                    var remainingTime = TimeSpan.FromSeconds(Instance.AttackBuff45Time) - timePassed;
+                    if (remainingTime.TotalSeconds <= 0) {
+                        Instance.IsBlueAttackBuff4Active = false;
+                        window.BlueAttackbuff4TimeTextBlock.Text = "";
+                        window.BlueAttackbuff4TimeTextBlock.IsEnabled = false;
+                    } else {
+                        Instance.BlueAttackBuff *= 2;
+                        window.BlueAttackbuff4TimeTextBlock.Text = $"{remainingTime.TotalSeconds:00} sec..";
+                    }
+                }
+
+                if (Instance.IsBlueAttackBuff5Active) {
+                    var timePassed = DateTime.Now - Instance._blueAttackBuff5StartTime;
+                    var remainingTime = TimeSpan.FromSeconds(Instance.AttackBuff45Time) - timePassed;
+                    if (remainingTime.TotalSeconds <= 0) {
+                        Instance.IsBlueAttackBuff5Active = false;
+                        window.BlueAttackbuff5TimeTextBlock.Text = "";
+                        window.BlueAttackbuff5TimeTextBlock.IsEnabled = false;
+                    } else {
+                        Instance.BlueAttackBuff *= 2;
+                        window.BlueAttackbuff5TimeTextBlock.Text = $"{remainingTime.TotalSeconds:00} sec..";
+                    }
+                }
+                
                 window.RedAttackBuffTextBlock.Text = $"x{Instance.RedAttackBuff:0}";
                 window.BlueAttackBuffTextBlock.Text = $"x{Instance.BlueAttackBuff:0}";
+            });
+        }
+
+        private void UpdateStriderBuff(object sender, EventArgs e) {
+            if (Instance.GameFormat == GameFormatEnum.PRELIMINALY) return;
+
+            Application.Current.Dispatcher.Invoke(() => {
+                var window = GetMainWindow();
+                if (Instance.IsRedZone1ShieldBuffActive) {
+                    var timePassed = DateTime.Now - Instance._redZone1ShieldBuffStartTime;
+                    var remainingTime = TimeSpan.FromSeconds(Instance.Zone1ShieldBuffTime) - timePassed;
+                    if (remainingTime.TotalSeconds <= 0) {
+                        Instance.IsRedZone1ShieldBuffActive = false;
+                        window.RedZone1TimeTextBlock.Text = "";
+                        window.RedZone1TimeTextBlock.IsEnabled = false;
+                    } else {
+                        Instance.RedInvinsible = true;
+                        window.RedZone1TimeTextBlock.Text = $"{remainingTime.TotalSeconds:00} sec..";
+                    }
+                }
+
+                if (Instance.IsRedZone2ShieldBuffActiveWaiting) {
+                    if (!Instance.IsRedZone1ShieldBuffActive) {
+                        Instance.IsRedZone2ShieldBuffActiveWaiting = false;
+
+                        Instance.IsRedZone2ShieldBuffActive = true;
+                        Instance._redZone2ShieldBuffStartTime = DateTime.Now;
+                    } else {
+                        window.RedZone1TimeTextBlock.Text = $"waiting...";
+                    }
+                }
+
+                if (Instance.IsRedZone2ShieldBuffActive) {
+                    var timePassed = DateTime.Now - Instance._redZone2ShieldBuffStartTime;
+                    var remainingTime = TimeSpan.FromSeconds(Instance.Zone2ShieldBuffTime) - timePassed;
+                    if (remainingTime.TotalSeconds <= 0) {
+                        Instance.IsRedZone2ShieldBuffActive = false;
+                        window.RedZone2TimeTextBlock.Text = "";
+                        window.RedZone2TimeTextBlock.IsEnabled = false;
+                    } else {
+                        Instance.RedInvinsible = true;
+                        window.RedZone2TimeTextBlock.Text = $"{remainingTime.TotalSeconds:00} sec..";
+                    }
+                }
+
+                if (Instance.IsBlueZone1ShieldBuffActive) {
+                    var timePassed = DateTime.Now - Instance._blueZone1ShieldBuffStartTime;
+                    var remainingTime = TimeSpan.FromSeconds(Instance.Zone1ShieldBuffTime) - timePassed;
+                    if (remainingTime.TotalSeconds <= 0) {
+                        Instance.IsBlueZone1ShieldBuffActive = false;
+                        window.BlueZone1TimeTextBlock.Text = "";
+                        window.BlueZone1TimeTextBlock.IsEnabled = false;
+                    } else {
+                        Instance.BlueInvinsible = true;
+                        window.BlueZone1TimeTextBlock.Text = $"{remainingTime.TotalSeconds:00} sec..";
+                    }
+                }
+
+                if (Instance.IsBlueZone2ShieldBuffActiveWaiting) {
+                    if (!Instance.IsBlueZone1ShieldBuffActive) {
+                        Instance.IsBlueZone2ShieldBuffActiveWaiting = false;
+
+                        Instance.IsBlueZone2ShieldBuffActive = true;
+                        Instance._blueZone2ShieldBuffStartTime = DateTime.Now;
+                    } else {
+                        window.BlueZone1TimeTextBlock.Text = $"waiting...";
+                    }
+                }
+
+                if (Instance.IsBlueZone2ShieldBuffActive) {
+                    var timePassed = DateTime.Now - Instance._blueZone2ShieldBuffStartTime;
+                    var remainingTime = TimeSpan.FromSeconds(Instance.Zone2ShieldBuffTime) - timePassed;
+                    if (remainingTime.TotalSeconds <= 0) {
+                        Instance.IsBlueZone2ShieldBuffActive = false;
+                        window.BlueZone2TimeTextBlock.Text = "";
+                        window.BlueZone2TimeTextBlock.IsEnabled = false;
+                    } else {
+                        Instance.BlueInvinsible = true;
+                        window.BlueZone2TimeTextBlock.Text = $"{remainingTime.TotalSeconds:00} sec..";
+                    }
+                }
             });
         }
 
@@ -507,7 +636,7 @@ namespace CoRE1_AutoRefereeSystem_Host
         //private void CheckGameEnd() {
             if (!Instance.DuringGame) return;
 
-            // 予選の勝敗条件
+            // 予選の終了条件
             // 攻撃サイドのロボットが撃破される
             // 迎撃サイドのすべてのロボットが撃破される
             // 上記2条件に当てはまらず、2分間が経過する
@@ -532,97 +661,29 @@ namespace CoRE1_AutoRefereeSystem_Host
                     }
                 }
 
-                // 準決勝・決勝の勝敗条件
-                // 3つの陣地すべてを同時刻に占拠状態とした同盟の勝利
-                // 相手操縦ロボットすべてを同時刻に撃破状態とした同盟の勝利
-                //相手操縦ロボットを撃破した回数が多い同盟の勝利
-                //5分経過時に陣地を多く占拠している同盟の勝利
-                //5分経過時にスポットをより多く獲得した同盟の勝利
-                //相手同盟への与ダメージが多い同盟の勝利
-                //以上の条件で決定できない場合、引き分けとなり当該ラウンドは再試合となる
+                // 準決勝・決勝の勝敗条件（ここでは条件1のみ確認）
+                // 1. 共通陣地および相手陣地の両方を同時刻に占拠状態とした同盟の勝利
+                // 2. 相手アタッカーおよびビルダーを撃破した回数が多い同盟の勝利
+                // 3. 5分経過時に陣地を多く占拠している同盟の勝利
+                // 4. 5分経過時にスポットをより多く獲得した同盟の勝利
+                // 5. 相手同盟への与ダメージが多い同盟の勝利
+                // 6. 以上の条件で決定できない場合、引き分けとなり当該ラウンドは再試合となる
 
-                else if (Instance.GameFormat == GameFormatEnum.SEMIFINALS) {
-                    // 条件１
-                    if (Instance.BaseLOccupationLevel == -5
-                        && Instance.BaseCOccupationLevel == -5
-                        && Instance.BaseROccupationLevel == -5) { // 赤が占拠
-                        Instance.GameEndFlag = true;
-                        Instance.Winner = WinnerEnum.RED;
-                        window.TimerLabel.Text = "RED WINS!!!";
-                        Instance.DuringGame = false;
-                        Instance.GameStatus = GameStatusEnum.POSTGAME;
-                    }
-                    else if (Instance.BaseLOccupationLevel == 5
-                        && Instance.BaseCOccupationLevel == 5
-                        && Instance.BaseROccupationLevel == 5) { // 青が占拠
-                        Instance.GameEndFlag = true;
-                        Instance.Winner = WinnerEnum.BLUE;
-                        window.TimerLabel.Text = "BLUE WINS!!!";
-                        Instance.DuringGame = false;
-                        Instance.GameStatus = GameStatusEnum.POSTGAME;
-                    }
-
-                    // 条件２
-                    else if (window.Red12.Robot1.Status.DefeatedFlag &&
-                        window.Red12.Robot2.Status.DefeatedFlag &&
-                        window.Red34.Robot1.Status.DefeatedFlag &&
-                        window.Red34.Robot2.Status.DefeatedFlag) { // 赤同盟がすべて撃破
-                        Instance.GameEndFlag = true;
-                        Instance.Winner = WinnerEnum.BLUE;
-                        window.TimerLabel.Text = "BLUE WINS!!!";
-                        Instance.DuringGame = false;
-                        Instance.GameStatus = GameStatusEnum.POSTGAME;
-                    } 
-                    else if (window.Blue12.Robot1.Status.DefeatedFlag &&
-                               window.Blue12.Robot2.Status.DefeatedFlag &&
-                               window.Blue34.Robot1.Status.DefeatedFlag &&
-                               window.Blue34.Robot2.Status.DefeatedFlag) { // 青同盟がすべて撃破
-                        Instance.GameEndFlag = true;
-                        Instance.Winner = WinnerEnum.RED;
-                        window.TimerLabel.Text = "RED WINS!!!";
-                        Instance.DuringGame = false;
-                        Instance.GameStatus = GameStatusEnum.POSTGAME;
-                    }
-                }                
                 else {
                     // 条件１
-                    if (Instance.BaseLOccupationLevel == -5
-                        && Instance.BaseCOccupationLevel == -5
-                        && Instance.BaseROccupationLevel == -5) { // 赤が占拠
-                        Instance.GameEndFlag = true;
-                        Instance.Winner = WinnerEnum.RED;
-                        window.TimerLabel.Text = "RED WINS!!!";
-                        Instance.DuringGame = false;
-                        Instance.GameStatus = GameStatusEnum.POSTGAME;
-                    } else if (Instance.BaseLOccupationLevel == 5
-                          && Instance.BaseCOccupationLevel == 5
-                          && Instance.BaseROccupationLevel == 5) { // 青が占拠
+                    if (window.CommonBase.Status.Occupied == OccupiedEnum.RED
+                        && window.RedBase.Status.Occupied == OccupiedEnum.RED) { // 赤が占拠
                         Instance.GameEndFlag = true;
                         Instance.Winner = WinnerEnum.RED;
                         window.TimerLabel.Text = "RED WINS!!!";
                         Instance.DuringGame = false;
                         Instance.GameStatus = GameStatusEnum.POSTGAME;
                     }
-
-                    // 条件２
-                    if (window.Red12.Robot1.Status.DefeatedFlag &&
-                        window.Red12.Robot2.Status.DefeatedFlag &&
-                        window.Red34.Robot1.Status.DefeatedFlag &&
-                        window.Red34.Robot2.Status.DefeatedFlag &&
-                        window.Red5.Robot1.Status.DefeatedFlag) { // 赤同盟がすべて撃破
+                    else if (window.CommonBase.Status.Occupied == OccupiedEnum.BLUE
+                             && window.BlueBase.Status.Occupied == OccupiedEnum.BLUE) { // 青が占拠
                         Instance.GameEndFlag = true;
                         Instance.Winner = WinnerEnum.BLUE;
                         window.TimerLabel.Text = "BLUE WINS!!!";
-                        Instance.DuringGame = false;
-                        Instance.GameStatus = GameStatusEnum.POSTGAME;
-                    } else if (window.Blue12.Robot1.Status.DefeatedFlag &&
-                               window.Blue12.Robot2.Status.DefeatedFlag &&
-                               window.Blue34.Robot1.Status.DefeatedFlag &&
-                               window.Blue34.Robot2.Status.DefeatedFlag &&
-                               window.Red5.Robot1.Status.DefeatedFlag) { // 赤同盟がすべて撃破
-                        Instance.GameEndFlag = true;
-                        Instance.Winner = WinnerEnum.RED;
-                        window.TimerLabel.Text = "RED WINS!!!";
                         Instance.DuringGame = false;
                         Instance.GameStatus = GameStatusEnum.POSTGAME;
                     }
@@ -667,95 +728,10 @@ namespace CoRE1_AutoRefereeSystem_Host
             AllocateButton();
         }
 
-        public void Add3minSetting() {
-            Added3min = true;
-        }
-
-        public void SettingTimeStart() {
-            GetMainWindow().TimerLabel.Text = "SETTING TIME";
-            Instance.GameStatus = GameStatusEnum.SETTING;
-            Instance.SettingStatus= SettingStatusEnum.RUNNING;
-            int settingTime = Added3min ? Instance.AllianceMtgTimeMin + Instance.SettingTimeMin : Instance.SettingTimeMin;
-            if (Instance.GameFormat == GameFormatEnum.PRELIMINALY)
-                settingTime = Instance.PreSettingTimeMin;
-            StartTimer(settingTime * 60);
-            AllocateButton();
-        }
-
-        public void ResetSettingTime() {
-            GetMainWindow().TimerLabel.Text = "SETTING READY?";
-            Instance.GameStatus = GameStatusEnum.NONE;
-            Instance.SettingStatus = SettingStatusEnum.NONE;
-            int settingTime = Instance.AllianceMtgTimeMin + Instance.SettingTimeMin;
-            if (Instance.GameFormat == GameFormatEnum.PRELIMINALY)
-                settingTime = Instance.PreSettingTimeMin;
-            Added3min = false;
-            ResetTimer(settingTime * 60);
-            AllocateButton();
-        }
-
-        public void ResumeSettingTime() {
-            GetMainWindow().TimerLabel.Text = "SETTING TIME";
-            Instance.SettingStatus = SettingStatusEnum.RUNNING;
-            ResumeTimer();
-            AllocateButton();
-        }
-
-        public void SkipSettingTime() {
-            GetMainWindow().TimerLabel.Text = "GAME READY?";
-            Instance.GameStatus = GameStatusEnum.PREGAME;
-            Instance.SettingStatus = SettingStatusEnum.SKIP;
-
-            int gameTime = Instance.GameTimeMin;
-            if (Instance.GameFormat == GameFormatEnum.PRELIMINALY)
-                gameTime = Instance.PreGameTimeMin;
-            Added3min = false;
-            ResetTimer(gameTime * 60);
-            AllocateButton();
-        }
-
-        public void Timeout() {
-            if (!_addedTimeout) {
-                _remainingTime += TimeSpan.FromSeconds(2 * 60);
-                _addedTimeout = true;
-            }
-            AllocateButton();
-        }
-        public void TechnicalTimeout() {
-            GetMainWindow().TimerLabel.Text = "TECH. TIMEOUT";
-            Instance.SettingStatus = SettingStatusEnum.TECH_TIMEOUT;
-            PauseTimer();
-            AllocateButton();
-        }
-        public event Action ClearDataEvent;
-        public void ClearData() {
-            Instance.DuringGame = false;
-            Instance.GameEndFlag = false;
-            Added3min = false;
-            _addedTimeout = false;
-            ClearDataEvent?.Invoke();
-        }
-
-
         private static void StartTimer(double timeSec) {
             _remainingTime = TimeSpan.FromSeconds(timeSec);
             _startTime = DateTime.Now;
             _countDownTimer.Start();
-        }
-
-        private static void PauseTimer() {
-            if (_isPaused) return;
-
-            _countDownTimer.Stop();
-            _remainingTime -= DateTime.Now - _startTime;
-            _isPaused = true;
-        }
-
-        private static void ResumeTimer() {
-            if (!_isPaused) return;
-            _startTime = DateTime.Now;
-            _countDownTimer.Start();
-            _isPaused = false;
         }
 
         private static void ResetTimer(int timeSec = 0) {
@@ -778,8 +754,8 @@ namespace CoRE1_AutoRefereeSystem_Host
                 if (Instance.GameStatus == GameStatusEnum.POSTGAME
                     && Instance.GameFormat != GameFormatEnum.PRELIMINALY) {
 
-                    // 決勝トーナメントにおけるラウンドの勝敗条件3以降
-                    // 条件3 相手操縦ロボットを撃破した回数が多い同盟の勝利
+                    // 決勝トーナメントにおけるラウンドの勝敗条件2以降
+                    // 条件2 相手アタッカーおよびビルダーを撃破した回数が多い同盟の勝利
                     if (Instance.TotalRedDefeated != Instance.TotalBlueDefeated) {
                         if (Instance.TotalRedDefeated > Instance.TotalBlueDefeated) {
                             Instance.Winner = WinnerEnum.BLUE;
@@ -796,7 +772,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         }
                     }
 
-                    // 条件4 5分経過時に陣地を多く占拠している同盟の勝利
+                    // 条件3 5分経過時に陣地を多く占拠している同盟の勝利
                     else if (Instance.TotalRedOccupatedBase != Instance.TotalBlueOccupatedBase) {
                         if (Instance.TotalRedOccupatedBase > Instance.TotalBlueOccupatedBase) {
                             Instance.Winner = WinnerEnum.RED;
@@ -813,7 +789,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         }
                     }
 
-                    // 条件５ 5分経過時にスポットをより多く獲得した同盟の勝利
+                    // 条件4 5分経過時にスポットをより多く獲得した同盟の勝利
                     else if (Instance.TotalRedEMs != Instance.TotalBlueEMs) {
                         if (Instance.TotalRedEMs > Instance.TotalBlueEMs) {
                             Instance.Winner = WinnerEnum.RED;
@@ -830,7 +806,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         }
                     }
 
-                    // 条件６ 相手同盟への与ダメージが多い同盟の勝利
+                    // 条件5 相手同盟への与ダメージが多い同盟の勝利
                     else if (Instance.TotalRedDamageTaken != Instance.TotalBlueDamageTaken) {
                         if (Instance.TotalRedDamageTaken > Instance.TotalBlueDamageTaken) {
                             Instance.Winner = WinnerEnum.BLUE;
@@ -846,7 +822,6 @@ namespace CoRE1_AutoRefereeSystem_Host
                             Instance.DuringGame = false;
                         }
                     }
-
 
                     // 勝敗条件を満たさない
                     else {
@@ -877,58 +852,79 @@ namespace CoRE1_AutoRefereeSystem_Host
                 if (Instance.GameStatus == GameStatusEnum.NONE
                     || Instance.GameStatus == GameStatusEnum.POSTGAME) {
                     window.PreliminaryRadioButton.IsEnabled = true;
-                    window.SettingStartButton.IsEnabled = true;
-                    window.SettingResetButton.IsEnabled = false;
-                    window.TimeoutButton.IsEnabled = false;
-                    window.TechnicalTimeOutButton.IsEnabled = false;
-                    window.SettingResumeButton.IsEnabled = false;
-                    window.SettingSkipButton.IsEnabled = false;
                     window.GameStartButton.IsEnabled = true;
                     window.GameResetButton.IsEnabled = false;
                 } else if (Instance.GameStatus == GameStatusEnum.SETTING) {
                     if (Instance.SettingStatus == SettingStatusEnum.RUNNING) {
                         window.PreliminaryRadioButton.IsEnabled = false;
-                        window.SettingStartButton.IsEnabled = false;
-                        window.SettingResetButton.IsEnabled = true;
-                        window.TimeoutButton.IsEnabled = Instance.GameFormat == GameFormatEnum.PRELIMINALY ? false : !_addedTimeout;
-                        window.TechnicalTimeOutButton.IsEnabled = true;
-                        window.SettingResumeButton.IsEnabled = false;
-                        window.SettingSkipButton.IsEnabled = true;
                         window.GameStartButton.IsEnabled = false;
                         window.GameResetButton.IsEnabled = false;
                     } else if (Instance.SettingStatus == SettingStatusEnum.TECH_TIMEOUT) {
                         window.PreliminaryRadioButton.IsEnabled = false;
-                        window.SettingStartButton.IsEnabled = false;
-                        window.SettingResetButton.IsEnabled = false;
-                        window.TimeoutButton.IsEnabled = false;
-                        window.TechnicalTimeOutButton.IsEnabled = false;
-                        window.SettingResumeButton.IsEnabled = true;
-                        window.SettingSkipButton.IsEnabled = false;
                         window.GameStartButton.IsEnabled = false;
                         window.GameResetButton.IsEnabled = false;
                     }
                 } else if (Instance.GameStatus == GameStatusEnum.PREGAME) {
                     window.PreliminaryRadioButton.IsEnabled = false;
-                    window.SettingStartButton.IsEnabled = true;
-                    window.SettingResetButton.IsEnabled = false;
-                    window.TimeoutButton.IsEnabled = false;
-                    window.TechnicalTimeOutButton.IsEnabled = false;
-                    window.SettingResumeButton.IsEnabled = false;
-                    window.SettingSkipButton.IsEnabled = false;
                     window.GameStartButton.IsEnabled = true;
-                    window.GameResetButton.IsEnabled = false;      
+                    window.GameResetButton.IsEnabled = false;
                 } else if (Instance.GameStatus == GameStatusEnum.GAME) {
                     window.PreliminaryRadioButton.IsEnabled = false;
-                    window.SettingStartButton.IsEnabled = false;
-                    window.SettingResetButton.IsEnabled = false;
-                    window.TimeoutButton.IsEnabled = false;
-                    window.TechnicalTimeOutButton.IsEnabled = false;
-                    window.SettingResumeButton.IsEnabled = false;
-                    window.SettingSkipButton.IsEnabled = false;
                     window.GameStartButton.IsEnabled = false;
                     window.GameResetButton.IsEnabled = true;
-                 }
+                }
             }));
+        }
+
+
+        private static void SaveSettings(object sender, EventArgs e) {
+            if (!Instance.SettingsChanged) return;
+
+            Settings settings = new Settings();
+            settings.GameFormat = Instance.GameFormat;
+
+            // HACK
+            if (Instance.SettingsJson is null) {
+                settings.NumRedWins = 0;
+                settings.NumBlueWins = 0;
+            } else {
+                settings.NumRedWins = Instance.SettingsJson.NumRedWins;
+                settings.NumBlueWins = Instance.SettingsJson.NumBlueWins;
+            }
+
+            Application.Current.Dispatcher.Invoke((Delegate)(() => {
+                var window = GetMainWindow();
+                settings.Red1TeamName = window.Red12.Robot1.Status.TeamName;
+                settings.Red2TeamName = window.Red12.Robot2.Status.TeamName;
+                settings.Red3TeamName = window.Red34.Robot1.Status.TeamName;
+                settings.Red4TeamName = window.Red34.Robot2.Status.TeamName;
+                settings.Red5TeamName = window.Red5.Robot1.Status.TeamName;
+                settings.Red6TeamName = window.Red6.Robot1.Status.TeamName;
+
+                settings.Blue1TeamName = window.Blue12.Robot1.Status.TeamName;
+                settings.Blue2TeamName = window.Blue12.Robot2.Status.TeamName;
+                settings.Blue3TeamName = window.Blue34.Robot1.Status.TeamName;
+                settings.Blue4TeamName = window.Blue34.Robot2.Status.TeamName;
+                settings.Blue5TeamName = window.Blue5.Robot1.Status.TeamName;
+                settings.Blue6TeamName = window.Blue6.Robot1.Status.TeamName;
+
+                settings.Red12ComPort = window.Red12.ComPortSelectionComboBox.SelectedItem;
+                settings.Red34ComPort = window.Red34.ComPortSelectionComboBox.SelectedItem;
+                settings.Red5ComPort = window.Red5.ComPortSelectionComboBox.SelectedItem;
+                settings.Blue12ComPort = window.Blue12.ComPortSelectionComboBox.SelectedItem;
+                settings.Blue34ComPort = window.Blue34.ComPortSelectionComboBox.SelectedItem;
+                settings.Blue5ComPort = window.Blue5.ComPortSelectionComboBox.SelectedItem;
+            }));
+
+            try {
+                SettingsManager.Instance.SaveSettings(settings);
+            } catch (BusyException ex) {
+                ;
+            } catch (Exception ex) {
+                ;
+            }
+
+            Instance.SettingsChanged = false;
         }
 
 
@@ -946,18 +942,22 @@ namespace CoRE1_AutoRefereeSystem_Host
 
             // 強化素材
             Msgs.RedSpot[0] = Bool2Int(Instance.IsRedAttackBuff1Active);
-            Msgs.RedSpot[1] = Bool2Int(Instance.RedHealing);
-            Msgs.RedSpot[2] = Bool2Int(Instance.IsRedAttackBuff3Active);
+            Msgs.RedSpot[1] = Bool2Int(Instance.IsRedAttackBuff2Active);
+            Msgs.RedSpot[2] = Bool2Int(Instance.RedHealing);
+            Msgs.RedSpot[3] = Bool2Int(Instance.IsRedAttackBuff4Active);
+            Msgs.RedSpot[4] = Bool2Int(Instance.IsRedAttackBuff5Active);
 
             Msgs.BlueSpot[0] = Bool2Int(Instance.IsBlueAttackBuff1Active);
-            Msgs.BlueSpot[1] = Bool2Int(Instance.BlueHealing);
-            Msgs.BlueSpot[2] = Bool2Int(Instance.IsBlueAttackBuff3Active);
-
+            Msgs.BlueSpot[1] = Bool2Int(Instance.IsBlueAttackBuff2Active);
+            Msgs.BlueSpot[2] = Bool2Int(Instance.BlueHealing);
+            Msgs.BlueSpot[3] = Bool2Int(Instance.IsBlueAttackBuff4Active);
+            Msgs.BlueSpot[4] = Bool2Int(Instance.IsBlueAttackBuff5Active);
 
             // 陣地
-            Msgs.RedArea = 10 - (Master.Instance.BaseLOccupationLevel + 5);
-            Msgs.CenterArea = 10 - (Master.Instance.BaseCOccupationLevel + 5);
-            Msgs.BlueArea = 10 - (Master.Instance.BaseROccupationLevel + 5);
+            var window = GetMainWindow();
+            Msgs.RedArea = 10 - (window.RedBase.Status.OccupationLevel + 5);
+            Msgs.CenterArea = window.CommonBase.Status.OccupationLevel;
+            Msgs.BlueArea = 10 - (window.BlueBase.Status.OccupationLevel + 5);
 
             // 試合結果
             Msgs.RedWin = 0;
@@ -965,7 +965,6 @@ namespace CoRE1_AutoRefereeSystem_Host
             Msgs.Winner = (uint)Instance.Winner;
 
             // Robot
-            var window = GetMainWindow();
             RobotClass redAutoRobot = new RobotClass();
             RobotClass blueAutoRobot = new RobotClass();
             redAutoRobot.TeamColor = "Red6";  redAutoRobot.TeamID = 18;

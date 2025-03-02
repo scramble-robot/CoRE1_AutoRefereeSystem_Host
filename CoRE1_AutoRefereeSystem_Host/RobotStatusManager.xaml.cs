@@ -268,8 +268,6 @@ namespace CoRE1_AutoRefereeSystem_Host
             _invincibilityTimer = new System.Timers.Timer();
             _invincibilityTimer.Interval = 50;
             _invincibilityTimer.Elapsed += OnInvincibilityTimedEvent;
-
-            Master.Instance.ClearDataEvent += Reset;
         }
 
         /* ロード時のイベント ****************************************************************************************************************************************/
@@ -312,19 +310,6 @@ namespace CoRE1_AutoRefereeSystem_Host
             Status.MaxHP = maxHp;
         }
 
-        private void Reset() {
-            Status.HP = Status.MaxHP;
-            Status.DefeatedFlag = false;
-            Status.PowerOnFlag = true;
-            Status.InvincibilityFlag = false;
-            Status.RespawnTime = TimeSpan.Zero;
-            Status.DamageTaken = 0;
-            Status.DefeatedNum = 0;
-            Status.Log.Clear();
-
-            _respawnTimer.Stop();
-            _invincibilityTimer.Stop();
-        }
         #endregion
 
         /* ボタン等のイベント ****************************************************************************************************************************************/
@@ -374,7 +359,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                 Status.DefeatedNum++;
                 Status.AddRobotLog("Defeated");
 
-                if (Master.Instance.GameFormat != Master.GameFormatEnum.PRELIMINALY)
+                if (Master.Instance.GameFormat != Master.GameFormatEnum.PRELIMINALY && !Status.TeamColor.Contains("6"))
                     StartRespawnTimer();
             }
         }

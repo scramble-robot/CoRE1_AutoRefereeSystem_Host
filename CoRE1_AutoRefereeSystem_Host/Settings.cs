@@ -19,12 +19,13 @@ namespace CoRE1_AutoRefereeSystem_Host
         public string Red3TeamName { get; set; } = "";
         public string Red4TeamName { get; set; } = "";
         public string Red5TeamName { get; set; } = "";
+        public string Red6TeamName { get; set; } = ""; // オートタレット
         public string Blue1TeamName { get; set; } = "";
         public string Blue2TeamName { get; set; } = "";
         public string Blue3TeamName { get; set; } = "";
         public string Blue4TeamName { get; set; } = "";
         public string Blue5TeamName { get; set; } = "";
-
+        public string Blue6TeamName { get; set; } = ""; // オートタレット
         public object Red12ComPort { get; set; } = "";
         public object Red34ComPort { get; set; } = "";
         public object Red5ComPort { get; set; } = "";

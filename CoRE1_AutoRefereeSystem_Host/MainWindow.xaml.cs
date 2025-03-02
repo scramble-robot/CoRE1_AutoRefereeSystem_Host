@@ -17,29 +17,59 @@ namespace CoRE1_AutoRefereeSystem_Host
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e) {
-            PlayerScreenToggleButton.IsChecked = true;
-            UpdateStatusToggleButton.IsChecked = false;
             GameStartButton.IsEnabled = false;
+            Settings settings = SettingsManager.Instance.LoadSettings();
+
+            if (settings.GameFormat == Master.GameFormatEnum.PRELIMINALY)
+                PreliminaryRadioButton.IsChecked = true;
+            else if (settings.GameFormat == Master.GameFormatEnum.SEMIFINALS)
+                SemifinalsRadioButton.IsChecked = true;
+            else
+                FinalsRadioButton.IsChecked = true;
+
+            Red12.Robot1.TeamNameComboBox.SelectedItem = settings.Red1TeamName;
+            Red12.Robot2.TeamNameComboBox.SelectedItem = settings.Red2TeamName;
+            Red34.Robot1.TeamNameComboBox.SelectedItem = settings.Red3TeamName;
+            Red34.Robot2.TeamNameComboBox.SelectedItem = settings.Red4TeamName;
+            Red5.Robot1.TeamNameComboBox.SelectedItem = settings.Red5TeamName;
+            Red6.Robot1.TeamNameComboBox.SelectedItem = settings.Red6TeamName;
+            Blue12.Robot1.TeamNameComboBox.SelectedItem = settings.Blue1TeamName;
+            Blue12.Robot2.TeamNameComboBox.SelectedItem = settings.Blue2TeamName;
+            Blue34.Robot1.TeamNameComboBox.SelectedItem = settings.Blue3TeamName;
+            Blue34.Robot2.TeamNameComboBox.SelectedItem = settings.Blue4TeamName;
+            Blue5.Robot1.TeamNameComboBox.SelectedItem = settings.Blue5TeamName;
+            Blue6.Robot1.TeamNameComboBox.SelectedItem = settings.Blue6TeamName;
+
+            Red12.ComPortSelectionComboBox.SelectedItem = settings.Red12ComPort;
+            Red34.ComPortSelectionComboBox.SelectedItem = settings.Red34ComPort;
+            Red5.ComPortSelectionComboBox.SelectedItem = settings.Red5ComPort;
+            Blue12.ComPortSelectionComboBox.SelectedItem = settings.Blue12ComPort;
+            Blue34.ComPortSelectionComboBox.SelectedItem = settings.Blue34ComPort;
+            Blue5.ComPortSelectionComboBox.SelectedItem = settings.Blue5ComPort;
+
+            Master.Instance.SettingsJson = settings;
+
+            NnChSettings nnChSettings = NnChSettingsManager.Instance.LoadSettings();
+            NnChSettingsManager.Instance.SaveSettings(nnChSettings);
+            Master.Instance.TeamNodeNo = nnChSettings.TeamNodeNo;
+            Master.Instance.HostCH = nnChSettings.HostCH;
         }
 
         protected override void OnClosing(CancelEventArgs e) {
             base.OnClosing(e);
 
             bool allHostShutdown = (
-                !Red12.ShutdownButton.IsEnabled
-                && !Red34.ShutdownButton.IsEnabled
-                && !Red5.ShutdownButton.IsEnabled
-                && !Blue12.ShutdownButton.IsEnabled
-                && !Blue34.ShutdownButton.IsEnabled
-                && !Blue5.ShutdownButton.IsEnabled
-                //&& BaseL.BootButton.Content.ToString() == "Boot"
-                //&& BaseC.BootButton.Content.ToString() == "Boot"
-                //&& BaseR.BootButton.Content.ToString() == "Boot"
-            );
+                 !Red12.ShutdownButton.IsEnabled
+                 && !Red34.ShutdownButton.IsEnabled
+                 && !Red5.ShutdownButton.IsEnabled
+                 && !Blue12.ShutdownButton.IsEnabled
+                 && !Blue34.ShutdownButton.IsEnabled
+                 && !Blue5.ShutdownButton.IsEnabled
+             );
 
             if (!allHostShutdown) {
                 MessageBox.Show("You must excecute 'shutdown' command on all booted HostPCBs.",
-                    "Failed to terminate CoRE-1: 2025 Host program", MessageBoxButton.OK, MessageBoxImage.Error);
+                    "Failed to terminate CoRE-2 2024 Host program", MessageBoxButton.OK, MessageBoxImage.Error);
                 e.Cancel = true;
             }
         }
@@ -52,69 +82,41 @@ namespace CoRE1_AutoRefereeSystem_Host
             Master.Instance.GameReset();
         }
 
-
-        private void SettingStartButton_Click(object sender, RoutedEventArgs e) {
-            Master.Instance.SettingTimeStart();
-        }
-
-        private void TimeoutButton_Click(object sender, RoutedEventArgs e) {
-            Master.Instance.Timeout();
-            TimeoutButton.IsEnabled = false;
-        }
-
-        private void TechnicalTimeOutButton_Click(object sender, RoutedEventArgs e) {
-            Master.Instance.TechnicalTimeout();
-        }
-
-        private void SettingResumeButton_Click(object sender, RoutedEventArgs e) {
-            Master.Instance.ResumeSettingTime();
-        }
-
-        private void SettingResetButton_Click(object sender, RoutedEventArgs e) {
-            Master.Instance.ResetSettingTime();
-        }
-        private void SettingSkipButton_Click(object sender, RoutedEventArgs e) {
-            Master.Instance.SkipSettingTime();
-        }
-
         private void PreliminaryRadioButton_Checked(object sender, RoutedEventArgs e) {
             Master.Instance.GameFormat = Master.GameFormatEnum.PRELIMINALY;
+            Master.Instance.SettingsChanged = true;
 
             AllControlPanelDisabled();
 
             Red12.IsEnabled = true;
-            Red12.Robot1.IsEnabled = true; 
+            Red12.Robot1.IsEnabled = true;
             Red12.CommEnabledToggleButton1.IsEnabled = true;
             Red12.CommEnabledToggleButton1.IsChecked = true;
 
             Blue12.IsEnabled = true;
-            Blue12.Robot1.IsEnabled = true; 
+            Blue12.Robot1.IsEnabled = true;
             Blue12.CommEnabledToggleButton1.IsEnabled = true;
             Blue12.CommEnabledToggleButton1.IsChecked = true;
-            Blue12.Robot2.IsEnabled = true; 
+
+            Blue12.Robot2.IsEnabled = true;
             Blue12.CommEnabledToggleButton2.IsEnabled = true;
             Blue12.CommEnabledToggleButton2.IsChecked = true;
 
             Blue34.IsEnabled = true;
-            Blue34.Robot1.IsEnabled = true; 
+            Blue34.Robot1.IsEnabled = true;
             Blue34.CommEnabledToggleButton1.IsEnabled = true;
             Blue34.CommEnabledToggleButton1.IsChecked = true;
 
             RedTeamEMStackPanel.IsEnabled = false;
             BlueTeamEMStackPanel.IsEnabled = false;
+            SheildbuffStackPanel.IsEnabled = false;
 
             PreliminaryRadioButton.IsEnabled = true;
-            SettingStartButton.IsEnabled = true;
-            SettingResetButton.IsEnabled = false;
-            TimeoutButton.IsEnabled = false;
-            TechnicalTimeOutButton.IsEnabled = false;
-            SettingResumeButton.IsEnabled = false;
-            SettingSkipButton.IsEnabled = false;
             GameStartButton.IsEnabled = true;
             GameResetButton.IsEnabled = false;
 
-            Master.Instance.GameStatus = Master.GameStatusEnum.NONE;
-            int time = Master.Instance.PreSettingTimeMin;
+            Master.Instance.GameStatus = Master.GameStatusEnum.PREGAME;
+            int time = Master.Instance.PreGameTimeMin;
             string timeText = $"{time:D2}:00";
             GameCountDown.Text = timeText;
             Master.Instance.GameTime = timeText;
@@ -123,63 +125,69 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         private void SemifinalsRadioButton_Checked(object sender, RoutedEventArgs e) {
             Master.Instance.GameFormat = Master.GameFormatEnum.SEMIFINALS;
+            Master.Instance.SettingsChanged = true;
 
             AllControlPanelDisabled();
 
             Red12.IsEnabled = true;
-            Red12.Robot1.IsEnabled = true; 
+            Red12.Robot1.IsEnabled = true;
             Red12.CommEnabledToggleButton1.IsEnabled = true;
             Red12.CommEnabledToggleButton1.IsChecked = true;
-            Red12.Robot2.IsEnabled = true; 
+
+            Red12.Robot2.IsEnabled = true;
             Red12.CommEnabledToggleButton2.IsEnabled = true;
             Red12.CommEnabledToggleButton2.IsChecked = true;
 
-            Red34.IsEnabled = true; 
-            Red34.Robot1.IsEnabled = true; 
-            Red34.CommEnabledToggleButton1.IsEnabled= true;
+            Red34.IsEnabled = true;
+            Red34.Robot1.IsEnabled = true;
+            Red34.CommEnabledToggleButton1.IsEnabled = true;
             Red34.CommEnabledToggleButton1.IsChecked = true;
-            Red34.Robot2.IsEnabled = true; 
-            Red34.CommEnabledToggleButton2.IsEnabled= true;
-            Red34.CommEnabledToggleButton2.IsChecked= true;
 
-            //BaseL.IsEnabled = true;
-            BaseC.IsEnabled = true;
-            //BaseR.IsEnabled = true;
+            Red34.Robot2.IsEnabled = true;
+            Red34.CommEnabledToggleButton2.IsEnabled = true;
+            Red34.CommEnabledToggleButton2.IsChecked = true;
+
+            Red6.IsEnabled = true;
+            Red6.Robot1.IsEnabled = true;
+            Red6.CommEnabledToggleButton1.IsEnabled= true;
+            Red6.CommEnabledToggleButton1.IsChecked= true;
 
             Blue12.IsEnabled = true;
-            Blue12.Robot1.IsEnabled = true; 
+            Blue12.Robot1.IsEnabled = true;
             Blue12.CommEnabledToggleButton1.IsEnabled = true;
-            Blue12.CommEnabledToggleButton1.IsChecked= true;
-            Blue12.Robot2.IsEnabled = true; 
+            Blue12.CommEnabledToggleButton1.IsChecked = true;
+
+            Blue12.Robot2.IsEnabled = true;
             Blue12.CommEnabledToggleButton2.IsEnabled = true;
             Blue12.CommEnabledToggleButton2.IsChecked = true;
 
             Blue34.IsEnabled = true;
-            Blue34.Robot1.IsEnabled = true; 
+            Blue34.Robot1.IsEnabled = true;
             Blue34.CommEnabledToggleButton1.IsEnabled = true;
             Blue34.CommEnabledToggleButton1.IsChecked = true;
-            Blue34.Robot2.IsEnabled = true; 
+
+            Blue34.Robot2.IsEnabled = true;
             Blue34.CommEnabledToggleButton2.IsEnabled = true;
             Blue34.CommEnabledToggleButton2.IsChecked = true;
 
+            Blue6.IsEnabled = true;
+            Blue6.Robot1.IsEnabled = true;
+            Blue6.CommEnabledToggleButton1.IsEnabled = true;
+            Blue6.CommEnabledToggleButton1.IsChecked = true;
+
+            RedBase.IsEnabled = true;
+            CommonBase.IsEnabled = true;
+            BlueBase.IsEnabled = true;
+
             RedTeamEMStackPanel.IsEnabled = true;
             BlueTeamEMStackPanel.IsEnabled = true;
+            SheildbuffStackPanel.IsEnabled = true;
 
             PreliminaryRadioButton.IsEnabled = true;
-            SettingStartButton.IsEnabled = true;
-            SettingResetButton.IsEnabled = false;
-            TimeoutButton.IsEnabled = false;
-            TechnicalTimeOutButton.IsEnabled = false;
-            SettingResumeButton.IsEnabled = false;
-            SettingSkipButton.IsEnabled = false;
             GameStartButton.IsEnabled = true;
             GameResetButton.IsEnabled = false;
 
             Master.Instance.GameStatus = Master.GameStatusEnum.PREGAME;
-            /*int time = Master.Instance.SettingTimeMin;
-            if (Master.Instance.Added3min) time += Master.Instance.AllianceMtgTimeMin;
-
-            string timeText = $"{time:D2}:00";*/
             int time = Master.Instance.GameTimeMin;
             string timeText = $"{time:D2}:00";
             GameCountDown.Text = timeText;
@@ -213,9 +221,10 @@ namespace CoRE1_AutoRefereeSystem_Host
             Red5.CommEnabledToggleButton1.IsEnabled = true;
             Red5.CommEnabledToggleButton1.IsChecked = true;
 
-            //BaseL.IsEnabled = true;
-            BaseC.IsEnabled = true;
-            //BaseR.IsEnabled = true;
+            Red6.IsEnabled = true;
+            Red6.Robot1.IsEnabled = true;
+            Red6.CommEnabledToggleButton1.IsEnabled = true;
+            Red6.CommEnabledToggleButton1.IsChecked = true;
 
             Blue12.IsEnabled = true;
             Blue12.Robot1.IsEnabled = true;
@@ -238,16 +247,20 @@ namespace CoRE1_AutoRefereeSystem_Host
             Blue5.CommEnabledToggleButton1.IsEnabled = true;
             Blue5.CommEnabledToggleButton1.IsChecked= true;
 
+            Blue6.IsEnabled = true;
+            Blue6.Robot1.IsEnabled = true;
+            Blue6.CommEnabledToggleButton1.IsEnabled = true;
+            Blue6.CommEnabledToggleButton1.IsChecked = true;
+
+            RedBase.IsEnabled = true;
+            CommonBase.IsEnabled = true;
+            BlueBase.IsEnabled = true;
+
             RedTeamEMStackPanel.IsEnabled = true;
             BlueTeamEMStackPanel.IsEnabled = true;
+            SheildbuffStackPanel.IsEnabled = true;
 
             PreliminaryRadioButton.IsEnabled = true;
-            SettingStartButton.IsEnabled = true;
-            SettingResetButton.IsEnabled = false;
-            TimeoutButton.IsEnabled = false;
-            TechnicalTimeOutButton.IsEnabled = false;
-            SettingResumeButton.IsEnabled = false;
-            SettingSkipButton.IsEnabled = false;
             GameStartButton.IsEnabled = true;
             GameResetButton.IsEnabled = false;
 
@@ -287,14 +300,11 @@ namespace CoRE1_AutoRefereeSystem_Host
             Red5.CommEnabledToggleButton1.IsEnabled = false;
             Red5.CommEnabledToggleButton1.IsChecked= false;
 
-            //// BaseL
-            //BaseL.IsEnabled = false;
-
-            //// BaseC
-            BaseC.IsEnabled = false;
-
-            //// BaseR
-            //BaseR.IsEnabled = false;
+            // Red6
+            Red6.IsEnabled = false;
+            Red6.Robot1.IsEnabled = false; 
+            Red6.CommEnabledToggleButton1.IsEnabled = false;
+            Red6.CommEnabledToggleButton1.IsChecked = false;
 
             // Blue12
             Blue12.IsEnabled = false;
@@ -320,46 +330,23 @@ namespace CoRE1_AutoRefereeSystem_Host
             Blue5.CommEnabledToggleButton1.IsEnabled = false;
             Blue5.CommEnabledToggleButton1.IsChecked = false;
 
+            // Blue6
+            Blue6.IsEnabled = false;
+            Blue6.Robot1.IsEnabled = false; 
+            Blue6.CommEnabledToggleButton1.IsEnabled = false;
+            Blue6.CommEnabledToggleButton1.IsChecked = false;
+
+            // RedBase
+            RedBase.IsEnabled = false;
+
+            // CommonBase
+            CommonBase.IsEnabled = false;
+
+            // BlueBase
+            BlueBase.IsEnabled = false;
         }
 
-        private void PlayerScreenToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
-            if (PlayerScreenToggleButton.IsChecked == true) {
-                Master.Instance._udpTimer.Start();
-            } else {
-                Master.Instance._udpTimer.Stop();
-            }
-        }
-
-        private void UpdateStatusToggleButton_Checked(object sender, RoutedEventArgs e) {
-            if (UpdateStatusToggleButton.IsChecked == true) {
-                Master.Instance.IsUpdatingStatus = true;
-                GameStartButton.IsEnabled = true;
-            } else {
-                Master.Instance.IsUpdatingStatus = false;
-                GameStartButton.IsEnabled = false;
-            }
-        }
-
-        private void AllClearButton_Click(object sender, RoutedEventArgs e) {
-            Master.Instance.ClearData();
-            TimerLabel.Text = "SETTING READY?";
-            int time = Master.Instance.AllianceMtgTimeMin + Master.Instance.SettingTimeMin;
-            string timeText = $"{time:D2}:00";
-            GameCountDown.Text = timeText;
-            Master.Instance.GameTime = timeText;
-            Master.Instance.SettingTime = timeText;
-        }
-
-        private void Add3MinButton_Click(object sender, RoutedEventArgs e) {
-            Master.Instance.Add3minSetting();
-            int time = Master.Instance.AllianceMtgTimeMin + Master.Instance.SettingTimeMin;
-            string timeText = $"{time:D2}:00";
-            GameCountDown.Text = timeText;
-            Master.Instance.GameTime = timeText;
-            Master.Instance.SettingTime = timeText;
-        }
-
-
+        /***** 強化素材によるバフ効果 *******************************************************************************************************/
         private void RedEMSpot1Button_Click(object sender, RoutedEventArgs e) {
             Master.Instance.IsRedAttackBuff1Active = true;
             Master.Instance._redAttackBuff1StartTime = DateTime.Now;
@@ -368,6 +355,13 @@ namespace CoRE1_AutoRefereeSystem_Host
         }
 
         private void RedEMSpot2Button_Click(object sender, RoutedEventArgs e) {
+            Master.Instance.IsRedAttackBuff2Active = true;
+            Master.Instance._redAttackBuff2StartTime = DateTime.Now;
+            RedAttackbuff2TimeTextBlock.IsEnabled = true;
+            RedEMSpot2Button.IsEnabled = false;
+        }
+
+        private void RedEMSpot3Button_Click(object sender, RoutedEventArgs e) {
             Master.Instance.RedHealing = true;
             if (!Red12.Robot1.Status.DefeatedFlag) Red12.Robot1.Status.HP = Master.Instance.MaxHP;
             if (!Red12.Robot2.Status.DefeatedFlag) Red12.Robot2.Status.HP = Master.Instance.MaxHP;
@@ -378,14 +372,21 @@ namespace CoRE1_AutoRefereeSystem_Host
                 && !Red5.Robot1.Status.DefeatedFlag)
                 Red5.Robot1.Status.HP = Master.Instance.MaxHP;
 
-            RedEMSpot2Button.IsEnabled = false;
+            RedEMSpot3Button.IsEnabled = false;
         }
 
-        private void RedEMSpot3Button_Click(object sender, RoutedEventArgs e) {
-            Master.Instance.IsRedAttackBuff3Active = true;
-            Master.Instance._redAttackBuff3StartTime = DateTime.Now;
-            RedAttackbuff3TimeTextBlock.IsEnabled = true;
-            RedEMSpot3Button.IsEnabled = false;
+        private void RedEMSpot4Button_Click(object sender, RoutedEventArgs e) {
+            Master.Instance.IsRedAttackBuff4Active = true;
+            Master.Instance._redAttackBuff4StartTime = DateTime.Now;
+            RedAttackbuff4TimeTextBlock.IsEnabled = true;
+            RedEMSpot4Button.IsEnabled = false;
+        }
+
+        private void RedEMSpot5Button_Click(object sender, RoutedEventArgs e) {
+            Master.Instance.IsRedAttackBuff5Active = true;
+            Master.Instance._redAttackBuff5StartTime = DateTime.Now;
+            RedAttackbuff5TimeTextBlock.IsEnabled = true;
+            RedEMSpot5Button.IsEnabled = false;
         }
 
         private void BlueEMSpot1Button_Click(object sender, RoutedEventArgs e) {
@@ -396,6 +397,13 @@ namespace CoRE1_AutoRefereeSystem_Host
         }
 
         private void BlueEMSpot2Button_Click(object sender, RoutedEventArgs e) {
+            Master.Instance.IsBlueAttackBuff2Active = true;
+            Master.Instance._blueAttackBuff2StartTime = DateTime.Now;
+            BlueAttackbuff2TimeTextBlock.IsEnabled = true;
+            BlueEMSpot2Button.IsEnabled = false;
+        }
+
+        private void BlueEMSpot3Button_Click(object sender, RoutedEventArgs e) {
             Master.Instance.BlueHealing = true;
             if (!Blue12.Robot1.Status.DefeatedFlag) Blue12.Robot1.Status.HP = Master.Instance.MaxHP;
             if (!Blue12.Robot2.Status.DefeatedFlag) Blue12.Robot2.Status.HP = Master.Instance.MaxHP;
@@ -406,16 +414,120 @@ namespace CoRE1_AutoRefereeSystem_Host
                 && !Blue5.Robot1.Status.DefeatedFlag)
                 Blue5.Robot1.Status.HP = Master.Instance.MaxHP;
 
-            BlueEMSpot2Button.IsEnabled = false;
-        }
-
-        private void BlueEMSpot3Button_Click(object sender, RoutedEventArgs e) {
-            Master.Instance.IsBlueAttackBuff3Active = true;
-            Master.Instance._blueAttackBuff3StartTime = DateTime.Now;
-            BlueAttackbuff3TimeTextBlock.IsEnabled = true;
             BlueEMSpot3Button.IsEnabled = false;
         }
 
+        private void BlueEMSpot4Button_Click(object sender, RoutedEventArgs e) {
+            Master.Instance.IsBlueAttackBuff4Active = true;
+            Master.Instance._blueAttackBuff4StartTime = DateTime.Now;
+            BlueAttackbuff4TimeTextBlock.IsEnabled = true;
+            BlueEMSpot4Button.IsEnabled = false;
+        }
+
+        private void BlueEMSpot5Button_Click(object sender, RoutedEventArgs e) {
+            Master.Instance.IsBlueAttackBuff5Active = true;
+            Master.Instance._blueAttackBuff5StartTime = DateTime.Now;
+            BlueAttackbuff5TimeTextBlock.IsEnabled = true;
+            BlueEMSpot5Button.IsEnabled = false;
+        }
+
+        /***** ストライダーによるバフ効果 *******************************************************************************************************/
+        private void RedZone1Button_Click(object sender, RoutedEventArgs e) {
+            Master.Instance.IsRedZone1ShieldBuffActive = true;
+            Master.Instance._redZone1ShieldBuffStartTime = DateTime.Now;
+            RedZone1TimeTextBlock.IsEnabled = true;
+
+            RedZone1Button.IsEnabled = false;
+            RedZone2Button.IsEnabled = true;
+        }
+
+        private void RedZone2Button_Click(object sender, RoutedEventArgs e) {
+            if (!Master.Instance.IsRedZone1ShieldBuffActive) { // ゾーン1のバフ効果が継続中
+                Master.Instance.IsRedZone2ShieldBuffActiveWaiting = true;
+            } else {
+                Master.Instance.IsRedZone2ShieldBuffActive = true;
+                Master.Instance._redZone2ShieldBuffStartTime = DateTime.Now;
+            }
+            RedZone2TimeTextBlock.IsEnabled = true;
+            RedZone2Button.IsEnabled = false;
+        }
+
+        private void BlueZone1Button_Click(object sender, RoutedEventArgs e) {
+            Master.Instance.IsBlueZone1ShieldBuffActive = true;
+            Master.Instance._blueZone1ShieldBuffStartTime = DateTime.Now;
+            BlueZone1TimeTextBlock.IsEnabled = true;
+
+            BlueZone1Button.IsEnabled = false;
+            BlueZone2Button.IsEnabled = true;
+        }
+
+        private void BlueZone2Button_Click(object sender, RoutedEventArgs e) {
+            if (!Master.Instance.IsBlueZone1ShieldBuffActive) { // ゾーン1のバフ効果が継続中
+                Master.Instance.IsBlueZone2ShieldBuffActiveWaiting = true;
+            } else {
+                Master.Instance.IsBlueZone2ShieldBuffActive = true;
+                Master.Instance._blueZone2ShieldBuffStartTime = DateTime.Now;
+            }
+            BlueZone2TimeTextBlock.IsEnabled = true;
+            BlueZone2Button.IsEnabled = false;
+        }
+
+        /***** 副審のArduinoからUDPで受信するための設定 *******************************************************************************************************/
+        private void ShieldBuffEndPointTextBox_KeyDown(object sender, KeyEventArgs e) {
+
+        }
+
+        private void ShieldBuffEndPointTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) {
+
+        }
+
+        private void ShieldBuffConnectButton_Click(object sender, RoutedEventArgs e) {
+
+        }
+
+        /***** デバフのcallback *******************************************************************************************************/
+
+        private void ShieldRed1ToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
+
+        }
+
+        private void ShieldRed2ToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
+
+        }
+
+        private void ShieldRed3ToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
+
+        }
+
+        private void ShieldRed4ToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
+
+        }
+
+        private void ShieldRed5ToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
+
+        }
+
+        private void ShieldBlue1ToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
+
+        }
+
+        private void ShieldBlue2ToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
+
+        }
+
+        private void ShieldBlue3ToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
+
+        }
+
+        private void ShieldBlue4ToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
+
+        }
+
+        private void ShieldBlue5ToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
+
+        }
+
+        /***** 手動判定の際のキーボードショートカット *******************************************************************************************************/
         private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e) {
             if (!Master.Instance.DuringGame) return;
 

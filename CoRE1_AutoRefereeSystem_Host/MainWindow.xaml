@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CoRE1_AutoRefereeSystem_Host"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
         Title="CoRE-1: 2025 Host"
         Height="1440"
@@ -13,262 +14,43 @@
         KeyDown="Window_KeyDown">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="700" />
-            <RowDefinition Height="0" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="950" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <StackPanel x:Name="MainStackPanel"
-                    Grid.Row="0"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Center"
-                    >
-            <StackPanel x:Name="LeftStackPanel"
-                        Orientation="Vertical"
-                        Width="1500">
-                <StackPanel x:Name="LeftUpStackPanel"
-                            Orientation="Horizontal"
-                            HorizontalAlignment="Left">
-                    <StackPanel x:Name="GameFormatStackPanel"
-                                Background="#66F5E98B">
-                        <Label Content="GAME FORMAT"
-                               FontSize="28"
-                               FontFamily="ROG Fonts"
-                               HorizontalAlignment="Center" />
-                        <RadioButton x:Name="PreliminaryRadioButton"
-                                     Content="PRELIMINARY"
-                                     FontSize="24"
-                                     FontWeight="Bold"
-                                     Background="{DynamicResource PrimaryHueLightBrush}"
-                                     Checked="PreliminaryRadioButton_Checked"
-                                     Margin="10,3,10,0" />
-                        <RadioButton x:Name="SemifinalsRadioButton"
-                                     Content="SEMIFINALS"
-                                     FontSize="24"
-                                     FontWeight="Bold"
-                                     Background="{DynamicResource PrimaryHueLightBrush}"
-                                     Checked="SemifinalsRadioButton_Checked"
-                                     Margin="10,0,10,0" />
-                        <RadioButton x:Name="FinalsRadioButton"
-                                     Content="FINALS"
-                                     FontSize="24"
-                                     FontWeight="Bold"
-                                     Background="{DynamicResource PrimaryHueLightBrush}"
-                                     Checked="FinalsRadioButton_Checked"
-                                     Margin="10,0,10,5" />
-                    </StackPanel>
-                    <StackPanel x:Name="SettingStackPanel"
-                                Background="#66F5E98B"
-                                Margin="10,0,0,0">
-                        <StackPanel Orientation="Horizontal">
-                            <Label Content="SETTING"
-                                   FontSize="28"
-                                   FontFamily="ROG Fonts" />
-                            <Button x:Name="AddButton"
-                                    Content="Add 3 min."
-                                    Click="Add3MinButton_Click"
-                                    FontSize="24"
-                                    Margin="142,5,10,5"
-                                    Height="40" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <StackPanel>
-                                <Button x:Name="SettingStartButton"
-                                        Content="START"
-                                        IsEnabled="False"
-                                        Click="SettingStartButton_Click"
-                                        FontSize="24"
-                                        Margin="10,10,5,5"
-                                        Height="40" />
-                                <Button x:Name="SettingResumeButton"
-                                        Content="RESUME"
-                                        IsEnabled="False"
-                                        Click="SettingResumeButton_Click"
-                                        FontSize="24"
-                                        Margin="10,10,5,5"
-                                        Height="40" />
-                            </StackPanel>
-                            <StackPanel>
-                                <Button x:Name="TechnicalTimeOutButton"
-                                        Content="TECH. TIMEOUT"
-                                        IsEnabled="False"
-                                        Click="TechnicalTimeOutButton_Click"
-                                        FontSize="24"
-                                        Margin="10,10,10,5"
-                                        Height="40" />
-                                <Button x:Name="TimeoutButton"
-                                        Content="TIMEOUT"
-                                        IsEnabled="False"
-                                        Click="TimeoutButton_Click"
-                                        FontSize="24"
-                                        Margin="10,10,10,5"
-                                        Height="40" />
-                            </StackPanel>
-                            <StackPanel>
-                                <Button x:Name="SettingResetButton"
-                                        Content="RESET"
-                                        IsEnabled="False"
-                                        Click="SettingResetButton_Click"
-                                        FontSize="24"
-                                        Margin="10,10,5,5"
-                                        Height="40" />
-                                <Button x:Name="SettingSkipButton"
-                                        Content="SKIP"
-                                        IsEnabled="False"
-                                        Click="SettingSkipButton_Click"
-                                        FontSize="24"
-                                        Margin="10,10,5,5"
-                                        Height="40" />
-                            </StackPanel>
-                        </StackPanel>
-                    </StackPanel>
-                </StackPanel>
-                <StackPanel x:Name="RedTeamMainStackPanel"
-                            Orientation="Horizontal"
-                            Margin="0,5,0,0">
-                    <StackPanel x:Name="RedTeamStatus"
-                                Background="#20FF0000"
-                                Margin="0,0,10,0">
-                        <Label Content="red team status"
-                               FontSize="26"
-                               FontFamily="ROG Fonts" />
-                        <StackPanel Orientation="Horizontal">
-                            <Label Content="  Total damge taken"
-                                   FontSize="26"
-                                   FontWeight="Bold"
-                                   HorizontalAlignment="Left"
-                                   Margin="0,10,0,5"
-                                   VerticalAlignment="Bottom" />
-                            <TextBox x:Name="RedDamageTakenTextBlock"
-                                     IsReadOnly="True"
-                                     TextWrapping="Wrap"
-                                     d:Text="0000"
-                                     FontFamily="DSEG7 Modern"
-                                     FontSize="20"
-                                     FontWeight="Bold"
-                                     Width="70"
-                                     TextAlignment="Center"
-                                     Margin="5,10,0,10"
-                                     VerticalAlignment="Bottom" />
-                            <Label Content="Attack buff"
-                                   FontSize="26"
-                                   FontWeight="Bold"
-                                   HorizontalAlignment="Left"
-                                   Margin="20,10,0,5"
-                                   VerticalAlignment="Bottom" />
-                            <TextBox x:Name="RedAttackBuffTextBlock"
-                                     IsReadOnly="True"
-                                     TextWrapping="Wrap"
-                                     d:Text="x1"
-                                     FontFamily="ROG Fonts"
-                                     FontSize="20"
-                                     Width="60"
-                                     TextAlignment="Left"
-                                     Margin="10,10,10,10"
-                                     HorizontalAlignment="Left"
-                                     VerticalAlignment="Bottom" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <Label Content="  Total defeated"
-                                   FontSize="26"
-                                   FontWeight="Bold"
-                                   HorizontalAlignment="Left"
-                                   Margin="0,10,0,5"
-                                   VerticalAlignment="Bottom" />
-                            <TextBox x:Name="RedDefeatedTextBlock"
-                                     IsReadOnly="True"
-                                     TextWrapping="Wrap"
-                                     d:Text="0000"
-                                     FontSize="20"
-                                     FontWeight="Bold"
-                                     FontFamily="DSEG7 Modern"
-                                     Width="70"
-                                     TextAlignment="Center"
-                                     Margin="55,10,0,10"
-                                     VerticalAlignment="Bottom" />
-                            <Label Content="First blood"
-                                   FontSize="26"
-                                   FontWeight="Bold"
-                                   HorizontalAlignment="Left"
-                                   Margin="22,10,0,5" />
-                            <TextBox x:Name="RedFirstBloodTextBlock"
-                                     IsReadOnly="True"
-                                     TextWrapping="Wrap"
-                                     d:Text="no"
-                                     FontSize="20"
-                                     FontFamily="ROG Fonts"
-                                     Width="60"
-                                     TextAlignment="Left"
-                                     Margin="16,10,10,10"
-                                     VerticalAlignment="Bottom" />
-                        </StackPanel>
 
-                    </StackPanel>
-                   <StackPanel x:Name="RedTeamEMStackPanel"
-                                Background="#20FF0000"
-                                Margin="0,4,0,0">
+        <Grid x:Name="RobotStackPanel"
+              Grid.Row="0"
+              Margin="0,0,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1500" />
+                <ColumnDefinition Width="440" />
+                <ColumnDefinition Width="1500" />
+            </Grid.ColumnDefinitions>
 
-                        <StackPanel Orientation="Horizontal">
-                            <Button x:Name="RedEMSpot1Button"
-                                    Content="SPOT 1"
-                                    BorderBrush="#FFB7403A"
-                                    Background="#FFB7403A"
-                                    Click="RedEMSpot1Button_Click"
-                                    FontSize="24"
-                                    Margin="10,10,0,5"
-                                    Height="40" />
-                            
-                            <TextBox x:Name="RedAttackbuff1TimeTextBlock"
-                                     IsEnabled="False"
-                                     IsReadOnly="True"
-                                     TextWrapping="Wrap"
-                                     d:Text="30 sec.."
-                                     FontSize="26"
-                                     Margin="5,10,10,10"
-                                     Width="100"
-                                     TextAlignment="Center" />
-                            
-
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <Button x:Name="RedEMSpot3Button"
-                                    Content="SPOT 3"
-                                    BorderBrush="#FFB7403A"
-                                    Background="#FFB7403A"
-                                    Click="RedEMSpot3Button_Click"
-                                    FontSize="24"
-                                    Margin="10,10,0,5"
-                                    Height="40" />
-                          
-                            <TextBox x:Name="RedAttackbuff3TimeTextBlock"
-                                     IsEnabled="False"
-                                     IsReadOnly="True"
-                                     TextWrapping="Wrap"
-                                     d:Text="30 sec.."
-                                     FontSize="26"
-                                     Margin="5,10,10,10"
-                                     Width="100"
-                                     TextAlignment="Center" />
-                        </StackPanel>
-                        <Button x:Name="RedEMSpot2Button"
-                                Content="SPOT 2"
-                                Background="#FF44B73A"
-                                BorderBrush="#FF44B73A"
-                                Click="RedEMSpot2Button_Click"
-                                FontSize="24"
-                                Margin="30,10,5,5"
-                                Height="40" />
-
-                    </StackPanel>
-
-                    <local:AutoTurretCommunicationController x:Name="Red1"
-                                                             AutoTurretLabel="Red 1"
-                                                             AutoTurretColor="#10FF0000"/>
-
-                </StackPanel>
+            <StackPanel x:Name="RedTeamStackPanel"
+                        Grid.Column="0"
+                        Orientation="Horizontal"
+                        Background="White">
+                <local:TwoRobotCommunicationController x:Name="Red12"
+                                                       Robot1Label="Red 1"
+                                                       Robot1Color="#10FF0000"
+                                                       Robot2Label="Red 2"
+                                                       Robot2Color="#10FF0000" />
+                <local:TwoRobotCommunicationController x:Name="Red34"
+                                                       Robot1Label="Red 3"
+                                                       Robot1Color="#10FF0000"
+                                                       Robot2Label="Red 4"
+                                                       Robot2Color="#10FF0000" />
+                <local:OneRobotCommunicationController x:Name="Red5"
+                                                       RobotLabel="Red 5"
+                                                       RobotColor="#10FF0000" />
             </StackPanel>
-            <StackPanel x:Name="CenterStackPanel">
+
+            <StackPanel x:Name="CenterStackPanel"
+                        Grid.Column="1">
                 <StackPanel x:Name="TimerStackPanel"
-                            Height="200">
+                            Height="200"
+                            Background="#66F5E98B">
                     <TextBlock x:Name="TimerLabel"
                                Text="GAME READY?"
                                Width="440"
@@ -290,285 +72,696 @@
                                FontWeight="Bold"
                                Margin="0,10,0,0" />
                 </StackPanel>
-                <!--<Grid x:Name="BaseOccupationGrid">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <TextBox x:Name=""
-                             Background="#200000FF"
-                             Grid.Column="0"
-                             TextWrapping="Wrap"
-                             FontSize="28"
-                             Height="140" />
-                </Grid>-->
-            </StackPanel>
-            <StackPanel x:Name="RightStackPanel"
-                        Width="1500"
-                        Orientation="Vertical">
-                <StackPanel x:Name="RightUpStackPanel"
-                            Orientation="Horizontal"
-                            Height="160">
+                <StackPanel Orientation="Horizontal">
+                    <StackPanel x:Name="GameFormatStackPanel"
+                                Background="#66F5E98B">
+                        <!--<Label Content="FORMAT"
+                               FontSize="28"
+                               FontFamily="ROG Fonts"
+                               HorizontalAlignment="Center" />-->
+                        <RadioButton x:Name="PreliminaryRadioButton"
+                                     Content="PRELIMINARY"
+                                     FontSize="20"
+                                     FontWeight="Bold"
+                                     Checked="PreliminaryRadioButton_Checked"
+                                     Margin="10,3,10,0" />
+                        <RadioButton x:Name="SemifinalsRadioButton"
+                                     Content="SEMIFINALS"
+                                     FontSize="20"
+                                     FontWeight="Bold"
+                                     Background="{DynamicResource PrimaryHueLightBrush}"
+                                     Checked="SemifinalsRadioButton_Checked"
+                                     Margin="10,0,10,0" />
+                        <RadioButton x:Name="FinalsRadioButton"
+                                     Content="FINALS"
+                                     FontSize="20"
+                                     FontWeight="Bold"
+                                     Background="{DynamicResource PrimaryHueLightBrush}"
+                                     Checked="FinalsRadioButton_Checked"
+                                     Margin="10,0,10,5" />
+                    </StackPanel>
                     <StackPanel x:Name="GameStackPanel"
-                                Background="#66F5E98B"
-                                Margin="20,0,0,0">
-                        <Label Content="GAME"
-                               FontSize="24"
-                               FontFamily="ROG Fonts" />
+                                Background="#66F5E98B">
+                        <!--<Label Content="GAME"
+                               FontSize="28"
+                               FontFamily="ROG Fonts" />-->
                         <Button x:Name="GameStartButton"
-                                Content="GAME START"
+                                Content="START"
                                 IsEnabled="False"
                                 Click="GameStartButton_Click"
                                 FontSize="20"
                                 Margin="10,10,10,5" />
                         <Button x:Name="GameResetButton"
-                                Content="GAME RESET"
+                                Content="RESET"
                                 IsEnabled="False"
                                 Click="GameResetButton_Click"
                                 FontSize="20"
                                 Margin="10,10,10,5" />
                     </StackPanel>
-                    <StackPanel x:Name="Options"
-                                Background="#66F5E98B"
-                                Margin="15,0,0,0">
-                        <Label Content="OPTIONS"
-                               FontSize="24"
-                               FontFamily="ROG Fonts" />
-                        <StackPanel Orientation="Horizontal"
-                                    VerticalAlignment="Center"
-                                    HorizontalAlignment="Center">
-                            <ToggleButton x:Name="PlayerScreenToggleButton"
-                                          d:IsChecked="True"
-                                          Style="{StaticResource MaterialDesignSwitchToggleButton}"
-                                          Margin="10,10,5,5"
-                                          Checked="PlayerScreenToggleButton_CheckedChanged"
-                                          Unchecked="PlayerScreenToggleButton_CheckedChanged" />
-                            <Label Content="Display on operator screen"
+                </StackPanel>
+
+                <StackPanel x:Name="StatusStackPanel"
+                            Orientation="Horizontal">
+                    <StackPanel x:Name="RedTeamStatus"
+                                Background="#20FF0000"
+                                Margin="0,0,0,0">
+                        <!--<Label Content="STATUS"
+                               FontSize="28"
+                               Foreground="Black"
+                               FontFamily="ROG Fonts"
+                               Margin="0,5,0,0"
+                               HorizontalAlignment="Left" />-->
+                        <StackPanel Orientation="Horizontal">
+                            <Label Content="Total damge"
                                    FontSize="20"
-                                   FontWeight="UltraBold"
-                                   Margin="10,10,10,5" />
-                            <Button x:Name="AllClearButton"
-                                    Content="CLEAR ALL"
-                                    FontSize="20"
-                                    Margin="20,10,10,5"
-                                    Click="AllClearButton_Click" />
+                                   Foreground="Black"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom"
+                                   Margin="10,0,0,0" />
+                            <TextBox x:Name="RedDamageTakenTextBlock"
+                                     IsReadOnly="True"
+                                     TextWrapping="Wrap"
+                                     d:Text="0000"
+                                     FontFamily="DSEG7 Modern"
+                                     FontSize="16
+                                "
+                                     FontWeight="Bold"
+                                     Width="60"
+                                     TextAlignment="Center"
+                                     Margin="17,5,6,5"
+                                     VerticalAlignment="Bottom" />
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal"
-                                    VerticalAlignment="Center"
-                                    HorizontalAlignment="Left">
-                            <ToggleButton x:Name="UpdateStatusToggleButton"
-                                          d:IsChecked="True"
-                                          Style="{StaticResource MaterialDesignSwitchToggleButton}"
-                                          Margin="10,10,5,5"
-                                          Checked="UpdateStatusToggleButton_Checked"
-                                          Unchecked="UpdateStatusToggleButton_Checked" />
-                            <Label Content="Update Robot and Base status"
+                        <StackPanel Orientation="Horizontal">
+                            <Label Content="Total dafeated"
                                    FontSize="20"
-                                   FontWeight="UltraBold"
-                                   Margin="10,10,10,5" />
+                                   FontWeight="Bold"
+                                   Foreground="Black"
+                                   HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom"
+                                   Margin="10,0,0,0" />
+                            <TextBox x:Name="RedDefeatedTextBlock"
+                                     IsReadOnly="True"
+                                     TextWrapping="Wrap"
+                                     d:Text="0000"
+                                     FontFamily="DSEG7 Modern"
+                                     FontSize="16
+"
+                                     FontWeight="Bold"
+                                     Width="60"
+                                     TextAlignment="Center"
+                                     Margin="0,5,7,5" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Label Content="Attack buff"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="Black"
+                                   HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom"
+                                   Margin="10,0,0,0" />
+                            <TextBox x:Name="RedAttackBuffTextBlock"
+                                     IsReadOnly="True"
+                                     TextWrapping="Wrap"
+                                     d:Text="x1"
+                                     FontFamily="ROG Fonts"
+                                     FontSize="16"
+                                     Width="40"
+                                     TextAlignment="Left"
+                                     Margin="10,0,10,5"
+                                     HorizontalAlignment="Left"
+                                     VerticalAlignment="Bottom" />
+                        </StackPanel>
+
+                        <StackPanel x:Name="RedTeamEMStackPanel">
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="RedEMSpot1Button"
+                                        Content="SPOT 1"
+                                        BorderBrush="#FFB7403A"
+                                        Background="#FFB7403A"
+                                        Click="RedEMSpot1Button_Click"
+                                        FontSize="18"
+                                        Margin="10,10,0,5"
+                                        Width="95" />
+                                <TextBox x:Name="RedAttackbuff1TimeTextBlock"
+                                         IsEnabled="False"
+                                         IsReadOnly="True"
+                                         TextWrapping="Wrap"
+                                         d:Text="40 sec.."
+                                         FontSize="18"
+                                         Margin="5,10,10,10"
+                                         Width="70"
+                                         TextAlignment="Center" />
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="RedEMSpot2Button"
+                                        Content="SPOT 2"
+                                        BorderBrush="#FFB7403A"
+                                        Background="#FFB7403A"
+                                        Click="RedEMSpot2Button_Click"
+                                        FontSize="18"
+                                        Margin="10,5,0,5"
+                                        Height="40"
+                                        Width="95" />
+
+                                <TextBox x:Name="RedAttackbuff2TimeTextBlock"
+                                         IsEnabled="False"
+                                         IsReadOnly="True"
+                                         TextWrapping="Wrap"
+                                         d:Text="40 sec.."
+                                         FontSize="18"
+                                         Margin="5,10,10,10"
+                                         Width="70"
+                                         TextAlignment="Center" />
+                            </StackPanel>
+
+                            <Button x:Name="RedEMSpot3Button"
+                                    Content="SPOT 3"
+                                    Background="#FF44B73A"
+                                    BorderBrush="#FF44B73A"
+                                    Click="RedEMSpot3Button_Click"
+                                    FontSize="18"
+                                    Margin="10,5,5,5"
+                                    Height="40"
+                                    Width="95"
+                                    HorizontalAlignment="Left" />
+
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="RedEMSpot4Button"
+                                        Content="SPOT 4"
+                                        BorderBrush="#FFB7403A"
+                                        Background="#FFB7403A"
+                                        Click="RedEMSpot4Button_Click"
+                                        FontSize="18"
+                                        Margin="10,5,0,5"
+                                        Height="40"
+                                        Width="95" />
+                                <TextBox x:Name="RedAttackbuff4TimeTextBlock"
+                                         IsEnabled="False"
+                                         IsReadOnly="True"
+                                         TextWrapping="Wrap"
+                                         d:Text="60 sec.."
+                                         FontSize="18"
+                                         Margin="5,10,10,10"
+                                         Width="70"
+                                         TextAlignment="Center" />
+
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="RedEMSpot5Button"
+                                        Content="SPOT 5"
+                                        BorderBrush="#FFB7403A"
+                                        Background="#FFB7403A"
+                                        Click="RedEMSpot5Button_Click"
+                                        FontSize="18"
+                                        Margin="10,5,0,5"
+                                        Height="40"
+                                        Width="95" />
+                                <TextBox x:Name="RedAttackbuff5TimeTextBlock"
+                                         IsEnabled="False"
+                                         IsReadOnly="True"
+                                         TextWrapping="Wrap"
+                                         d:Text="60 sec.."
+                                         FontSize="18"
+                                         Margin="5,10,10,10"
+                                         Width="70"
+                                         TextAlignment="Center" />
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="RedZone1Button"
+                                        Content="ZONE 1"
+                                        BorderBrush="#FFB7403A"
+                                        Background="#FFB7403A"
+                                        Click="RedZone1Button_Click"
+                                        FontSize="18"
+                                        Margin="10,5,0,5"
+                                        Height="40"
+                                        Width="95" />
+                                <TextBox x:Name="RedZone1TimeTextBlock"
+                                         IsEnabled="False"
+                                         IsReadOnly="True"
+                                         TextWrapping="Wrap"
+                                         d:Text="30 sec.."
+                                         FontSize="18"
+                                         Margin="5,10,10,10"
+                                         Width="70"
+                                         TextAlignment="Center" />
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="RedZone2Button"
+                                        Content="ZONE 2"
+                                        BorderBrush="#FFB7403A"
+                                        Background="#FFB7403A"
+                                        Click="RedZone2Button_Click"
+                                        FontSize="18"
+                                        Margin="10,5,0,5"
+                                        Height="40"
+                                        Width="95" />
+                                <TextBox x:Name="RedZone2TimeTextBlock"
+                                         IsEnabled="False"
+                                         IsReadOnly="True"
+                                         TextWrapping="Wrap"
+                                         d:Text="30 sec.."
+                                         FontSize="18"
+                                         Margin="5,10,10,10"
+                                         Width="70"
+                                         TextAlignment="Center" />
+                            </StackPanel>
                         </StackPanel>
 
                     </StackPanel>
-                </StackPanel>
-                <StackPanel x:Name="BlueTeamMainStackPanel"
-                            Orientation="Horizontal">
-                    <StackPanel x:Name="BlueTeamStatus1"
+
+                    <StackPanel x:Name="BlueTeamStatus"
                                 Background="#200000FF"
-                                Margin="0,0,10,0">
-                        <Label Content="blue team status"
-                               FontSize="26"
-                               FontFamily="ROG Fonts" />
+                                Margin="0,0,0,0">
+                        <!--<Label Content="STATUS"
+                               FontSize="28"
+                               Foreground="Black"
+                               FontFamily="ROG Fonts"
+                               Margin="0,5,0,0"
+                               HorizontalAlignment="Left" />-->
                         <StackPanel Orientation="Horizontal">
-                            <Label Content="  Total damge taken"
-                                   FontSize="26"
+                            <Label Content="Total damge"
+                                   FontSize="20"
+                                   Foreground="Black"
                                    FontWeight="Bold"
                                    HorizontalAlignment="Left"
-                                   Margin="0,10,0,5"
-                                   VerticalAlignment="Bottom" />
+                                   VerticalAlignment="Bottom"
+                                   Margin="10,0,0,0" />
                             <TextBox x:Name="BlueDamageTakenTextBlock"
                                      IsReadOnly="True"
                                      TextWrapping="Wrap"
                                      d:Text="0000"
                                      FontFamily="DSEG7 Modern"
-                                     FontSize="20"
+                                     FontSize="16"
                                      FontWeight="Bold"
-                                     Width="70"
+                                     Width="60"
                                      TextAlignment="Center"
-                                     Margin="5,10,0,10"
-                                     VerticalAlignment="Bottom"
-                                     HorizontalAlignment="Left" />
-                            <Label Content="Attack buff"
-                                   FontSize="26"
+                                     Margin="17,5,6,5"
+                                     VerticalAlignment="Bottom" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Label Content="Total dafeated"
+                                   FontSize="20"
                                    FontWeight="Bold"
+                                   Foreground="Black"
                                    HorizontalAlignment="Left"
-                                   Margin="20,10,0,5"
-                                   VerticalAlignment="Bottom" />
+                                   VerticalAlignment="Bottom"
+                                   Margin="10,0,0,0" />
+                            <TextBox x:Name="BlueDefeatedTextBlock"
+                                     IsReadOnly="True"
+                                     TextWrapping="Wrap"
+                                     d:Text="0000"
+                                     FontFamily="DSEG7 Modern"
+                                     FontSize="16
+"
+                                     FontWeight="Bold"
+                                     Width="60"
+                                     TextAlignment="Center"
+                                     Margin="0,5,6,5"
+                                     VerticalAlignment="Bottom" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Label Content="Attack buff"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="Black"
+                                   HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom"
+                                   Margin="10,0,0,0" />
                             <TextBox x:Name="BlueAttackBuffTextBlock"
                                      IsReadOnly="True"
                                      TextWrapping="Wrap"
                                      d:Text="x1"
                                      FontFamily="ROG Fonts"
-                                     FontSize="20"
-                                     Width="60"
+                                     FontSize="16"
+                                     Width="40"
                                      TextAlignment="Left"
-                                     Margin="10,10,10,10"
+                                     Margin="10,0,10,5"
                                      HorizontalAlignment="Left"
                                      VerticalAlignment="Bottom" />
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <Label Content="  Total defeated"
-                                   FontSize="26"
-                                   FontWeight="Bold"
-                                   HorizontalAlignment="Left"
-                                   Margin="0,10,0,5"
-                                   VerticalAlignment="Bottom" />
-                            <TextBox x:Name="BlueDefeatedTextBlock"
-                                     IsReadOnly="True"
-                                     TextWrapping="Wrap"
-                                     d:Text="0000"
-                                     FontSize="20"
-                                     FontWeight="Bold"
-                                     FontFamily="DSEG7 Modern"
-                                     Width="70"
-                                     TextAlignment="Center"
-                                     Margin="55,10,0,10"
-                                     VerticalAlignment="Bottom" />
-                            <Label Content="First blood"
-                                   FontSize="26"
-                                   FontWeight="Bold"
-                                   HorizontalAlignment="Left"
-                                   Margin="20,10,0,5" />
-                            <TextBox x:Name="BlueFirstBloodTextBlock"
-                                     IsReadOnly="True"
-                                     TextWrapping="Wrap"
-                                     d:Text="no"
-                                     FontSize="20"
-                                     FontFamily="ROG Fonts"
-                                     Width="60"
-                                     TextAlignment="Left"
-                                     Margin="16,10,10,10"
-                                     VerticalAlignment="Bottom" />
-                        </StackPanel>
 
-                    </StackPanel>
-                    <StackPanel x:Name="BlueTeamEMStackPanel"
-                                Background="#200000FF"
-                                Margin="0,4,0,0">
-                        <Label Content="blue team enhancement materials"
-                               FontSize="26"
-                               FontFamily="ROG Fonts" />
-                        <StackPanel Orientation="Horizontal">
-                            <Button x:Name="BlueEMSpot1Button"
-                                    Content="SPOT 1"
-                                    BorderBrush="#FFB7403A"
-                                    Background="#FFB7403A"
-                                    Click="BlueEMSpot1Button_Click"
-                                    FontSize="24"
-                                    Margin="10,10,0,5"
-                                    Height="40" />
-                            <Label Content=" Attack buff effect remaining time"
-                                   FontSize="26"
-                                   FontWeight="Bold"
-                                   Margin="5,10,5,5"
-                                   VerticalAlignment="Bottom" />
-                            <TextBox x:Name="BlueAttackbuff1TimeTextBlock"
-                                     IsEnabled="False"
-                                     IsReadOnly="True"
-                                     TextWrapping="Wrap"
-                                     d:Text="30 sec.."
-                                     FontSize="26"
-                                     Margin="5,10,10,10"
-                                     Width="100"
-                                     TextAlignment="Center" />
-                            <Button x:Name="BlueEMSpot2Button"
-                                    Content="SPOT 2"
-                                    Background="#FF44B73A"
-                                    BorderBrush="#FF44B73A"
-                                    Click="BlueEMSpot2Button_Click"
-                                    FontSize="24"
-                                    Margin="30,10,5,5"
-                                    Height="40" />
-                            <Label Content="Healing"
-                                   FontSize="26"
-                                   FontWeight="Bold"
-                                   Margin="5,10,0,5"
-                                   VerticalAlignment="Bottom" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal">
+                        <StackPanel x:Name="BlueTeamEMStackPanel">
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="BlueEMSpot1Button"
+                                        Content="SPOT 1"
+                                        BorderBrush="#FFB7403A"
+                                        Background="#FFB7403A"
+                                        Click="BlueEMSpot1Button_Click"
+                                        FontSize="18"
+                                        Margin="10,10,0,5"
+                                        Height="40"
+                                        Width="95" />
+                                <TextBox x:Name="BlueAttackbuff1TimeTextBlock"
+                                         IsEnabled="False"
+                                         IsReadOnly="True"
+                                         TextWrapping="Wrap"
+                                         d:Text="40 sec.."
+                                         FontSize="18"
+                                         Margin="5,10,10,10"
+                                         Width="70"
+                                         TextAlignment="Center" />
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="BlueEMSpot2Button"
+                                        Content="SPOT 2"
+                                        BorderBrush="#FFB7403A"
+                                        Background="#FFB7403A"
+                                        Click="BlueEMSpot2Button_Click"
+                                        FontSize="18"
+                                        Margin="10,5,0,5"
+                                        Height="40"
+                                        Width="95" />
+
+                                <TextBox x:Name="BlueAttackbuff2TimeTextBlock"
+                                         IsEnabled="False"
+                                         IsReadOnly="True"
+                                         TextWrapping="Wrap"
+                                         d:Text="40 sec.."
+                                         FontSize="18"
+                                         Margin="5,10,10,10"
+                                         Width="70"
+                                         TextAlignment="Center" />
+                            </StackPanel>
+
                             <Button x:Name="BlueEMSpot3Button"
                                     Content="SPOT 3"
-                                    BorderBrush="#FFB7403A"
-                                    Background="#FFB7403A"
+                                    Background="#FF44B73A"
+                                    BorderBrush="#FF44B73A"
                                     Click="BlueEMSpot3Button_Click"
-                                    FontSize="24"
-                                    Margin="10,10,0,5"
-                                    Height="40" />
-                            <Label Content=" Attack buff effect remaining time"
-                                   FontSize="26"
-                                   FontWeight="Bold"
-                                   Margin="5,10,5,5"
-                                   VerticalAlignment="Bottom" />
-                            <TextBox x:Name="BlueAttackbuff3TimeTextBlock"
-                                     IsEnabled="False"
-                                     IsReadOnly="True"
-                                     TextWrapping="Wrap"
-                                     d:Text="30 sec.."
-                                     FontSize="26"
-                                     Margin="5,10,10,10"
-                                     Width="100"
-                                     TextAlignment="Center" />
-                        </StackPanel>
+                                    FontSize="18"
+                                    Margin="10,5,5,5"
+                                    Height="40"
+                                    Width="95"
+                                    HorizontalAlignment="Left" />
 
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="BlueEMSpot4Button"
+                                        Content="SPOT 4"
+                                        BorderBrush="#FFB7403A"
+                                        Background="#FFB7403A"
+                                        Click="BlueEMSpot4Button_Click"
+                                        FontSize="18"
+                                        Margin="10,5,0,5"
+                                        Height="40"
+                                        Width="95" />
+                                <TextBox x:Name="BlueAttackbuff4TimeTextBlock"
+                                         IsEnabled="False"
+                                         IsReadOnly="True"
+                                         TextWrapping="Wrap"
+                                         d:Text="60 sec.."
+                                         FontSize="18"
+                                         Margin="5,10,10,10"
+                                         Width="70"
+                                         TextAlignment="Center" />
+
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="BlueEMSpot5Button"
+                                        Content="SPOT 5"
+                                        BorderBrush="#FFB7403A"
+                                        Background="#FFB7403A"
+                                        Click="BlueEMSpot5Button_Click"
+                                        FontSize="18"
+                                        Margin="10,5,0,5"
+                                        Height="40"
+                                        Width="95" />
+                                <TextBox x:Name="BlueAttackbuff5TimeTextBlock"
+                                         IsEnabled="False"
+                                         IsReadOnly="True"
+                                         TextWrapping="Wrap"
+                                         d:Text="60 sec.."
+                                         FontSize="18"
+                                         Margin="5,10,10,10"
+                                         Width="70"
+                                         TextAlignment="Center" />
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="BlueZone1Button"
+                                        Content="ZONE 1"
+                                        BorderBrush="#FFB7403A"
+                                        Background="#FFB7403A"
+                                        Click="BlueZone1Button_Click"
+                                        FontSize="18"
+                                        Margin="10,5,0,5"
+                                        Height="40"
+                                        Width="95" />
+                                <TextBox x:Name="BlueZone1TimeTextBlock"
+                                         IsEnabled="False"
+                                         IsReadOnly="True"
+                                         TextWrapping="Wrap"
+                                         d:Text="30 sec.."
+                                         FontSize="18"
+                                         Margin="5,10,10,10"
+                                         Width="70"
+                                         TextAlignment="Center" />
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="BlueZone2Button"
+                                        Content="ZONE 2"
+                                        BorderBrush="#FFB7403A"
+                                        Background="#FFB7403A"
+                                        Click="BlueZone2Button_Click"
+                                        FontSize="18"
+                                        Margin="10,5,0,5"
+                                        Height="40"
+                                        Width="95" />
+                                <TextBox x:Name="BlueZone2TimeTextBlock"
+                                         IsEnabled="False"
+                                         IsReadOnly="True"
+                                         TextWrapping="Wrap"
+                                         d:Text="30 sec.."
+                                         FontSize="18"
+                                         Margin="5,10,10,10"
+                                         Width="70"
+                                         TextAlignment="Center" />
+                            </StackPanel>
+                        </StackPanel>
                     </StackPanel>
                 </StackPanel>
             </StackPanel>
-        </StackPanel>
-        <StackPanel x:Name="RobotBaseStackPanel"
-                    Grid.Row="2"
-                    Orientation="Horizontal">
-            <StackPanel x:Name="RedTeamStackPanel"
-                        Orientation="Horizontal"
-                        Background="White">
-                <local:TwoRobotCommunicationController x:Name="Red12"
-                                                    Robot1Label="Red 1"
-                                                    Robot1Color="#10FF0000"
-                                                    Robot2Label="Red 2"
-                                                    Robot2Color="#10FF0000" />
-                <local:TwoRobotCommunicationController x:Name="Red34"
-                                                    Robot1Label="Red 3"
-                                                    Robot1Color="#10FF0000"
-                                                    Robot2Label="Red 4"
-                                                    Robot2Color="#10FF0000" />
-                <local:OneRobotCommunicationController x:Name="Red5"
-                                                       RobotLabel="Red 5"
-                                                       RobotColor="#10FF0000" />
-            </StackPanel>
-            <StackPanel x:Name="BaseStackPanel"
-                        Margin="0,0,0,0"
-                        Background="White">
-                <local:CommonBaseStatusManager x:Name="BaseC"
-                                         BasePanelLabel="BaseC"
-                                         Background="#66F5E98B"/>
-   
-            </StackPanel>
+
+
             <StackPanel x:Name="BlueTeamStackPanel"
+                        Grid.Column="2"
+                        Panel.ZIndex="0"
                         Orientation="Horizontal"
                         Background="White">
                 <local:TwoRobotCommunicationController x:Name="Blue12"
-                                                    Robot1Label="Blue 1"
-                                                    Robot1Color="#100000FF"
-                                                    Robot2Label="Blue 2"
-                                                    Robot2Color="#100000FF" />
+                                                       Robot1Label="Blue 1"
+                                                       Robot1Color="#100000FF"
+                                                       Robot2Label="Blue 2"
+                                                       Robot2Color="#100000FF" />
                 <local:TwoRobotCommunicationController x:Name="Blue34"
-                                                    Robot1Label="Blue 3"
-                                                    Robot1Color="#100000FF"
-                                                    Robot2Label="Blue 4"
-                                                    Robot2Color="#100000FF" />
+                                                       Robot1Label="Blue 3"
+                                                       Robot1Color="#100000FF"
+                                                       Robot2Label="Blue 4"
+                                                       Robot2Color="#100000FF" />
                 <local:OneRobotCommunicationController x:Name="Blue5"
                                                        RobotLabel="Blue 5"
                                                        RobotColor="#100000FF" />
+            </StackPanel>
+        </Grid>
+        <StackPanel x:Name="TurretBaseStackPanel"
+                    Grid.Row="1"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center">
+            <local:AutoTurretCommunicationController x:Name="Red6"
+                                                     AutoTurretLabel="Red 6"
+                                                     AutoTurretColor="#10FF0000"
+                                                     Background="White" />
+
+            <local:TeamBaseStatusManager x:Name="RedBase"
+                                         TeamBaseLabel="Base-R"
+                                         TeamBaseColor="#10FF0000"
+                                         Background="White" />
+
+            <local:CommonBaseStatusManager x:Name="CommonBase"
+                                           CommonBaseLabel="Base-C"
+                                           CommonBaseColor="#66F5E98B"
+                                           Background="White" />
+
+            <local:TeamBaseStatusManager x:Name="BlueBase"
+                                         TeamBaseLabel="Base-B"
+                                         TeamBaseColor="#100000FF"
+                                         Background="White" />
+
+            <local:AutoTurretCommunicationController x:Name="Blue6"
+                                                     AutoTurretLabel="Blue 6"
+                                                     AutoTurretColor="#100000FF"
+                                                     Background="White" />
+        </StackPanel>
+        <StackPanel x:Name="SheildbuffStackPanel"
+                    Orientation="Horizontal"
+                    Background="#FFFFFBE9"
+                    Margin="1500,770,1501,10">
+            <StackPanel>
+                <Label Content="UDP Log"
+                       Margin="10,5,10,0"
+                       FontSize="14" />
+                <TextBox x:Name="LinkTextBox"
+                         TextWrapping="Wrap"
+                         d:Text="*** autoRef HOST *** P3.02h&#xA;ID:0107542 GroupeID:0107592&#xA;CH:15 nodeNo[0503]&#xA;&gt;"
+                         Margin="15,0,15,0"
+                         FontSize="12"
+                         Height="95"
+                         Width="200"
+                         IsReadOnly="True"
+                         AcceptsReturn="True"
+                         Background="#67FFFFFF" />
+                <StackPanel Orientation="Horizontal">
+                    <TextBox x:Name="ShieldBuffEndPointTextBox"
+                             materialDesign:HintAssist.Hint="Endpoint {IP}:{PORT}"
+                             TextWrapping="Wrap"
+                             FontSize="14"
+                             Style="{DynamicResource MaterialDesignTextBox}"
+                             Margin="10,5,0,5"
+                             Width="130"
+                             TextChanged="ShieldBuffEndPointTextBox_TextChanged"
+                             KeyDown="ShieldBuffEndPointTextBox_KeyDown" />
+                    <Button x:Name="ShieldBuffConnectButton"
+                            Content="Open"
+                            Margin="10,5,0,5"
+                            Click="ShieldBuffConnectButton_Click"
+                            HorizontalAlignment="Left"
+                            Width="70" />
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Orientation="Vertical"
+                        Margin="10,10,0,0">
+                <StackPanel Orientation="Horizontal">
+                    <ToggleButton x:Name="ShieldRed1ToggleButton"
+                                  d:IsChecked="True"
+                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                  Margin="5,0,0,5"
+                                  Checked="ShieldRed1ToggleButton_CheckedChanged"
+                                  Unchecked="ShieldRed1ToggleButton_CheckedChanged" />
+                    <Label Content="Red1"
+                           FontSize="14"
+                           Margin="5,0,5,5"
+                           VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <ToggleButton x:Name="ShieldRed2ToggleButton"
+                                  d:IsChecked="True"
+                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                  Margin="5,0,0,5"
+                                  Checked="ShieldRed2ToggleButton_CheckedChanged"
+                                  Unchecked="ShieldRed2ToggleButton_CheckedChanged" />
+                    <Label Content="Red2"
+                           FontSize="14"
+                           Margin="5,0,5,5"
+                           VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <ToggleButton x:Name="ShieldRed3ToggleButton"
+                                  d:IsChecked="True"
+                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                  Margin="5,0,0,5"
+                                  Checked="ShieldRed3ToggleButton_CheckedChanged"
+                                  Unchecked="ShieldRed3ToggleButton_CheckedChanged" />
+                    <Label Content="Red3"
+                           FontSize="14"
+                           Margin="5,0,5,5"
+                           VerticalAlignment="Center" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal">
+                    <ToggleButton x:Name="ShieldRed4ToggleButton"
+                                  d:IsChecked="True"
+                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                  Margin="5,0,0,5"
+                                  Checked="ShieldRed4ToggleButton_CheckedChanged"
+                                  Unchecked="ShieldRed4ToggleButton_CheckedChanged" />
+                    <Label Content="Red4"
+                           FontSize="14"
+                           Margin="5,0,5,5"
+                           VerticalAlignment="Center" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal">
+                    <ToggleButton x:Name="ShieldRed5ToggleButton"
+                                  d:IsChecked="True"
+                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                  Margin="5,0,0,5"
+                                  Checked="ShieldRed5ToggleButton_CheckedChanged"
+                                  Unchecked="ShieldRed5ToggleButton_CheckedChanged" />
+                    <Label Content="Red5"
+                           FontSize="14"
+                           Margin="5,0,5,5"
+                           VerticalAlignment="Center" />
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Orientation="Vertical"
+                        Margin="5,10,0,0">
+                <StackPanel Orientation="Horizontal">
+                    <ToggleButton x:Name="ShieldBlue1ToggleButton"
+                                  d:IsChecked="True"
+                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                  Margin="5,0,0,5"
+                                  Checked="ShieldBlue1ToggleButton_CheckedChanged"
+                                  Unchecked="ShieldBlue1ToggleButton_CheckedChanged" />
+                    <Label Content="Blue1"
+                           FontSize="14"
+                           Margin="5,0,5,5"
+                           VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <ToggleButton x:Name="ShieldBlue2ToggleButton"
+                                  d:IsChecked="True"
+                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                  Margin="5,0,0,5"
+                                  Checked="ShieldBlue2ToggleButton_CheckedChanged"
+                                  Unchecked="ShieldBlue2ToggleButton_CheckedChanged" />
+                    <Label Content="Blue2"
+                           FontSize="14"
+                           Margin="5,0,5,5"
+                           VerticalAlignment="Center" />
+                </StackPanel> 
+                <StackPanel Orientation="Horizontal">
+                    <ToggleButton x:Name="ShieldBlue3ToggleButton"
+                                  d:IsChecked="True"
+                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                  Margin="5,0,0,5"
+                                  Checked="ShieldBlue3ToggleButton_CheckedChanged"
+                                  Unchecked="ShieldBlue3ToggleButton_CheckedChanged" />
+                    <Label Content="Blue3"
+                           FontSize="14"
+                           Margin="5,0,5,5"
+                           VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <ToggleButton x:Name="ShieldBlue4ToggleButton"
+                                  d:IsChecked="True"
+                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                  Margin="5,0,0,5"
+                                  Checked="ShieldBlue4ToggleButton_CheckedChanged"
+                                  Unchecked="ShieldBlue4ToggleButton_CheckedChanged" />
+                    <Label Content="Blue4"
+                           FontSize="14"
+                           Margin="5,0,5,5"
+                           VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <ToggleButton x:Name="ShieldBlue5ToggleButton"
+                                  d:IsChecked="True"
+                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                  Margin="5,0,0,5"
+                                  Checked="ShieldBlue5ToggleButton_CheckedChanged"
+                                  Unchecked="ShieldBlue5ToggleButton_CheckedChanged" />
+                    <Label Content="Blue5"
+                           FontSize="14"
+                           Margin="5,0,5,5"
+                           VerticalAlignment="Center" />
+                </StackPanel>
             </StackPanel>
         </StackPanel>
     </Grid>

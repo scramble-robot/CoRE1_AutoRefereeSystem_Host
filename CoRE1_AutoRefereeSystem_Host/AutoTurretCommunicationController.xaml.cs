@@ -251,8 +251,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                     bool powerRelayOnFlag = robotStatus.PowerOnFlag;
                     int hpBarColor = (int)robotStatus.HPBarColor;
                     int dpColor = (int)robotStatus.DamagePanelColor;
-                    //int hpPercent = 100 * robotStatus.HP / robotStatus.MaxHP;
-                    int hpPercent = 100;
+                    int hpPercent = 100 * robotStatus.HP / robotStatus.MaxHP;
 
 
                     // 送信データを規定のプロトコルに基づいて作成
@@ -328,37 +327,33 @@ namespace CoRE1_AutoRefereeSystem_Host
                         // 文字列を,で分割し，それぞれの16進数の文字をint型に変換
                         int[] info = receivedDataString.Split(',').Select(part => Convert.ToInt32(part, 16)).ToArray();
 
-                        //if (Master.Instance.DuringGame && !robotStatus.DefeatedFlag && !robotStatus.InvincibilityFlag) {
-                        //    // ダメージパネルのヒット情報からHPを計算
-                        //    int attackBuff = 1;
-                        //    if (robotStatus.TeamColor.Contains("Red"))
-                        //        attackBuff = Master.Instance.BlueAttackBuff;
-                        //    else
-                        //        attackBuff = Master.Instance.RedAttackBuff;
+                        if (Master.Instance.DuringGame && !robotStatus.DefeatedFlag && !robotStatus.InvincibilityFlag) {
+                            // ダメージパネルのヒット情報からHPを計算
+                            int attackBuff = 1;
+                            if (robotStatus.TeamColor.Contains("Red"))
+                                attackBuff = Master.Instance.BlueAttackBuff;
+                            else
+                                attackBuff = Master.Instance.RedAttackBuff;
 
-                        //    for (int i = 0; i < 4; i++) {
-                        //        if (BitHigh(info[5], i)) {
-                        //            robotStatus.HP -= attackBuff * Master.Instance.HitDamage;
-                        //            robotStatus.DamageTaken += attackBuff * Master.Instance.HitDamage;
-                        //            robotStatus.AddRobotLog($"Hit DP{i}. -{attackBuff * Master.Instance.HitDamage}, now: {robotStatus.HP}/{robotStatus.MaxHP}");
-                        //        }
-                        //    }
-                        //}
+                            for (int i = 0; i < 4; i++) {
+                                if (BitHigh(info[5], i)) {
+                                    robotStatus.HP -= attackBuff * Master.Instance.HitDamage;
+                                    robotStatus.DamageTaken += attackBuff * Master.Instance.HitDamage;
+                                    robotStatus.AddRobotLog($"Hit DP{i}. -{attackBuff * Master.Instance.HitDamage}, now: {robotStatus.HP}/{robotStatus.MaxHP}");
+                                }
+                            }
+                        }
 
-                        //if (robotStatus.HP <= 0) {
-                        //    robotStatus.DamageTaken -= Math.Abs(robotStatus.HP);
-                        //    robotStatus.HP = 0;
-                        //    if (!robotStatus.DefeatedFlag) {
-                        //        robotStatus.AddRobotLog("Defeated");
-                        //        robotStatus.DefeatedFlag = true;
-                        //        robotStatus.PowerOnFlag = false;
-                        //        robotStatus.DefeatedNum++;
-                        //        if (Master.Instance.GameFormat != Master.GameFormatEnum.PRELIMINALY
-                        //            && !Master.Instance.GameEndFlag) {
-                        //            robot.StartRespawnTimer();
-                        //        }
-                        //    }
-                        //}
+                        if (robotStatus.HP <= 0) {
+                            robotStatus.DamageTaken -= Math.Abs(robotStatus.HP);
+                            robotStatus.HP = 0;
+                            if (!robotStatus.DefeatedFlag) {
+                                robotStatus.AddRobotLog("Defeated");
+                                robotStatus.DefeatedFlag = true;
+                                robotStatus.PowerOnFlag = false;
+                                robotStatus.DefeatedNum++;
+                            }
+                        }
 
                         if (statusChanged) {
                             var converter = new System.Windows.Media.BrushConverter();

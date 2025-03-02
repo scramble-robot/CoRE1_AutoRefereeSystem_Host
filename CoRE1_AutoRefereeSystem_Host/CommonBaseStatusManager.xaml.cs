@@ -28,6 +28,22 @@ namespace CoRE1_AutoRefereeSystem_Host
     /// </summary>
     public partial class CommonBaseStatusManager : UserControl
     {
+        /* 依存プロパティの設定 ****************************************************************************************************************************************/
+        #region
+        public static readonly DependencyProperty CommonBaseLabelProperty = DependencyProperty.Register("CommonBaseLabel", typeof(string), typeof(TeamBaseStatusManager), new PropertyMetadata("Base-#"));
+        public static readonly DependencyProperty CommonBaseColorProperty = DependencyProperty.Register("CommonBaseColor", typeof(string), typeof(TeamBaseStatusManager), new PropertyMetadata("#10FF0000"));
+
+        public string CommonBaseLabel {
+            get { return (string)GetValue(CommonBaseLabelProperty); }
+            set { SetValue(CommonBaseLabelProperty, value); }
+        }
+        public string CommonBaseColor {
+            get { return (string)GetValue(CommonBaseColorProperty); }
+            set { SetValue(CommonBaseColorProperty, value); }
+        }
+
+        #endregion
+
         /* BaseStatusの定義 ******************************************************************************************************************************************/
         #region
         public class BaseStatus {
@@ -157,6 +173,8 @@ namespace CoRE1_AutoRefereeSystem_Host
                 }
             }
 
+            /* 各ダメージパネルの設定 ******************************************************************************************************************************************/
+            #region
             public bool LeftRDPInvulnerable {
                 get { return _dpIsInvulnerable[(int)DamagePanelPosition.LeftRDP]; }
                 set { 
@@ -413,6 +431,8 @@ namespace CoRE1_AutoRefereeSystem_Host
                     });
                 }
             }
+            #endregion
+
             // ログ
             public List<string> Log {
                 get { return _log; }
@@ -441,6 +461,11 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         /* インスタンス ****************************************************************************************************************************************/
         private BaseStatus _baseStatus;
+
+        public BaseStatus Status {
+            private set { _baseStatus = value; }
+            get { return _baseStatus; }
+        }
 
         // タイマー
         private System.Timers.Timer _invulnerableTimer;
@@ -989,22 +1014,6 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         public void BlueLevelButton_Click(object sender, RoutedEventArgs e) {
             _baseStatus.OccupationLevel += 1;
-            //if (this.Name == "BaseL") {
-            //    if (Master.Instance.BaseLOccupationLevel < 5) {
-            //        Master.Instance.BaseLOccupationLevel++;
-            //    }
-            //    OccupationLevelBar.Value = 5 - Master.Instance.BaseLOccupationLevel;
-            //} else if (this.Name == "BaseC") {
-            //    if (Master.Instance.BaseCOccupationLevel < 5) {
-            //        Master.Instance.BaseCOccupationLevel++;
-            //    }
-            //    OccupationLevelBar.Value = 5 - Master.Instance.BaseCOccupationLevel;
-            //} else {
-            //    if (Master.Instance.BaseROccupationLevel < 5) {
-            //        Master.Instance.BaseROccupationLevel++;
-            //    }
-            //    OccupationLevelBar.Value = 5 - Master.Instance.BaseROccupationLevel;
-            //}
         }
 
         private void ConnectButton_Click(object sender, RoutedEventArgs e) {
