@@ -360,6 +360,7 @@ namespace CoRE1_AutoRefereeSystem_Host
             _updateTimer.Interval = 100;
             _updateTimer.Elapsed += UpdateAttackBuff;
             _updateTimer.Elapsed += UpdateStriderBuff;
+            _updateTimer.Elapsed += UpdateBaseActive;
             _updateTimer.Elapsed += OnEventArrived;
             _updateTimer.Elapsed += AggregateDamage;
             _updateTimer.Elapsed += CheckGameEnd;
@@ -439,7 +440,7 @@ namespace CoRE1_AutoRefereeSystem_Host
 
             Application.Current.Dispatcher.Invoke(() => {
                 var window = GetMainWindow();
-                Instance.RedAttackBuff = 1;
+                int buff = 1;
                 if (Instance.IsRedAttackBuff1Active) {
                     var timePassed = DateTime.Now - Instance._redAttackBuff1StartTime;
                     var remainingTime = TimeSpan.FromSeconds(Instance.AttackBuff12Time) - timePassed;
@@ -448,7 +449,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         window.RedAttackbuff1TimeTextBlock.Text = "";
                         window.RedAttackbuff1TimeTextBlock.IsEnabled = false;
                     } else {
-                        Instance.RedAttackBuff *= 2;
+                        buff *= 2;
                         window.RedAttackbuff1TimeTextBlock.Text = $"{remainingTime.TotalSeconds:00} sec..";
                     }
                 }
@@ -461,7 +462,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         window.RedAttackbuff2TimeTextBlock.Text = "";
                         window.RedAttackbuff2TimeTextBlock.IsEnabled = false;
                     } else {
-                        Instance.RedAttackBuff *= 2;
+                        buff *= 2;
                         window.RedAttackbuff2TimeTextBlock.Text = $"{remainingTime.TotalSeconds:00} sec..";
                     }
                 }
@@ -474,7 +475,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         window.RedAttackbuff4TimeTextBlock.Text = "";
                         window.RedAttackbuff4TimeTextBlock.IsEnabled = false;
                     } else {
-                        Instance.RedAttackBuff *= 2;
+                        buff *= 2;
                         window.RedAttackbuff4TimeTextBlock.Text = $"{remainingTime.TotalSeconds:00} sec..";
                     }
                 }
@@ -487,12 +488,13 @@ namespace CoRE1_AutoRefereeSystem_Host
                         window.RedAttackbuff5TimeTextBlock.Text = "";
                         window.RedAttackbuff5TimeTextBlock.IsEnabled = false;
                     } else {
-                        Instance.RedAttackBuff *= 2;
+                        buff *= 2;
                         window.RedAttackbuff5TimeTextBlock.Text = $"{remainingTime.TotalSeconds:00} sec..";
                     }
                 }
+                Instance.RedAttackBuff = buff;
 
-                Instance.BlueAttackBuff = 1;
+                buff = 1;
                 if (Instance.IsBlueAttackBuff1Active) {
                     var timePassed = DateTime.Now - Instance._blueAttackBuff1StartTime;
                     var remainingTime = TimeSpan.FromSeconds(Instance.AttackBuff12Time) - timePassed;
@@ -501,7 +503,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         window.BlueAttackbuff1TimeTextBlock.Text = "";
                         window.BlueAttackbuff1TimeTextBlock.IsEnabled = false;
                     } else {
-                        Instance.BlueAttackBuff *= 2;
+                        buff *= 2;
                         window.BlueAttackbuff1TimeTextBlock.Text = $"{remainingTime.TotalSeconds:00} sec..";
                     }
                 }
@@ -514,7 +516,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         window.BlueAttackbuff2TimeTextBlock.Text = "";
                         window.BlueAttackbuff2TimeTextBlock.IsEnabled = false;
                     } else {
-                        Instance.BlueAttackBuff *= 2;
+                        buff *= 2;
                         window.BlueAttackbuff2TimeTextBlock.Text = $"{remainingTime.TotalSeconds:00} sec..";
                     }
                 }
@@ -527,7 +529,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         window.BlueAttackbuff4TimeTextBlock.Text = "";
                         window.BlueAttackbuff4TimeTextBlock.IsEnabled = false;
                     } else {
-                        Instance.BlueAttackBuff *= 2;
+                        buff *= 2;
                         window.BlueAttackbuff4TimeTextBlock.Text = $"{remainingTime.TotalSeconds:00} sec..";
                     }
                 }
@@ -540,11 +542,12 @@ namespace CoRE1_AutoRefereeSystem_Host
                         window.BlueAttackbuff5TimeTextBlock.Text = "";
                         window.BlueAttackbuff5TimeTextBlock.IsEnabled = false;
                     } else {
-                        Instance.BlueAttackBuff *= 2;
+                        buff *= 2;
                         window.BlueAttackbuff5TimeTextBlock.Text = $"{remainingTime.TotalSeconds:00} sec..";
                     }
                 }
-                
+                Instance.BlueAttackBuff = buff;
+                                
                 window.RedAttackBuffTextBlock.Text = $"x{Instance.RedAttackBuff:0}";
                 window.BlueAttackBuffTextBlock.Text = $"x{Instance.BlueAttackBuff:0}";
             });
@@ -628,6 +631,19 @@ namespace CoRE1_AutoRefereeSystem_Host
                         window.BlueZone2TimeTextBlock.Text = $"{remainingTime.TotalSeconds:00} sec..";
                     }
                 }
+            });
+        }
+
+        private void UpdateBaseActive(object sender, EventArgs e) {
+            if (!Instance.DuringGame) return;
+            if (Instance.GameFormat == GameFormatEnum.PRELIMINALY) return;
+
+            Application.Current.Dispatcher.Invoke(() => {
+                var window = GetMainWindow();
+                window.CommonBase.Status.IsRedActive = window.Blue6.Robot1.Status.DefeatedFlag;
+                window.CommonBase.Status.IsBlueActive = window.Red6.Robot1.Status.DefeatedFlag;
+                window.RedBase.Status.IsActive = window.Blue6.Robot1.Status.DefeatedFlag;
+                window.BlueBase.Status.IsActive = window.Red6.Robot1.Status.DefeatedFlag;
             });
         }
 

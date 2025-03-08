@@ -49,7 +49,8 @@ namespace CoRE1_AutoRefereeSystem_Host
         public class BaseStatus {
             private readonly CommonBaseStatusManager _baseStatusManager;
             private Master.BaseConnectionEnum _connection;
-            private bool _isActive = false;
+            private bool _isRedActive = false;
+            private bool _isBlueActive = false;
             private Master.HPBarColorEnum _occupationLevelBarColor;
             private Master.DamagePanelColorEnum _damagePanelColor;
             private Master.OccupiedEnum _occupied = Master.OccupiedEnum.NO;
@@ -86,10 +87,15 @@ namespace CoRE1_AutoRefereeSystem_Host
                 set { _connection = value; }
             }
 
-            public bool IsActive {
-                get { return _isActive; }
-                set { _isActive = value; }
+            public bool IsRedActive {
+                get { return _isRedActive; }
+                set { _isRedActive = value; }
             }
+
+            public bool IsBlueActive {
+                get { return _isBlueActive; }
+                set { _isBlueActive = value; }
+            } 
 
             public string NodeNo { get; set; } = "0109";
 
@@ -573,7 +579,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         stream.ReadTimeout = 2000;
                         stream.WriteTimeout = 2000;
 
-                        string command = "boot autoturret";
+                        string command = "boot commonbase";
                         SendTextToArduino(command);
                         Dispatcher.Invoke(() => {
                             HostStatusTextBox.Text = "Reconnecting succeeded";
@@ -682,7 +688,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                     var baseRecivedTextBox = ReceivedDataTextBox1;
 
 
-                    bool activeFlag = status.IsActive;
+                    bool activeFlag = status.IsRedActive | status.IsBlueActive;
                     bool defeatedFlag = false; // dummy
 
                     int hpBarColor = (int)status.OccupationLevelBarColor;
@@ -764,11 +770,10 @@ namespace CoRE1_AutoRefereeSystem_Host
                         // 文字列を,で分割し，それぞれの16進数の文字をint型に変換
                         int[] info = receivedDataString.Split(',').Select(part => Convert.ToInt32(part, 16)).ToArray();
 
-                        if (Master.Instance.DuringGame && !status.IsActive) {
-                            // ダメージパネルのヒット情報から占拠レベルを計算
+                        // ダメージパネルのヒット情報から占拠レベルを計算
 
-                            // 青
-                            if (status.Occupied != Master.OccupiedEnum.BLUE) {
+                            // 青の攻撃
+                            if (status.IsBlueActive && status.Occupied != Master.OccupiedEnum.BLUE) {
                                 int attackBuff = Master.Instance.BlueAttackBuff;
                                 if (!status.LeftRDPInvulnerable && BitHigh(info[5], (int)BaseStatus.DamagePanelPosition.LeftRDP)) {
                                     int diff = 1 * attackBuff;
@@ -796,8 +801,8 @@ namespace CoRE1_AutoRefereeSystem_Host
                                 }
                             }
 
-                            // 赤
-                            if (status.Occupied != Master.OccupiedEnum.RED) {
+                            // 赤の攻撃
+                            if (status.IsRedActive && status.Occupied != Master.OccupiedEnum.RED) {
                                 var attackBuff = Master.Instance.RedAttackBuff;
                                 if (!status.LeftBDPInvulnerable && BitHigh(info[5], (int)BaseStatus.DamagePanelPosition.LeftBDP)) {
                                     int diff = 1 * attackBuff;
@@ -824,7 +829,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                                     status.AddRobotLog($"Hit Right BDP. -{diff}, now: {status.OccupationLevel}");
                                 }
                             }
-                        }
+                        
 
                         if (status.Occupied != Master.OccupiedEnum.NO) {
                             string teamColor = status.Occupied == Master.OccupiedEnum.RED ? "Red" : "Blue";
