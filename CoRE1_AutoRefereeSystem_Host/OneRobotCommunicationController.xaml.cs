@@ -105,8 +105,11 @@ namespace CoRE1_AutoRefereeSystem_Host
         private void UserControl_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e) {
             if (this.IsEnabled) {
                 Robot1.Status.Connection = Master.RobotConnectionEnum.ENABLED;
+                Robot1.RobotTypeComboBox.SelectedIndex = 1;
             } else {
                 Robot1.Status.Connection = Master.RobotConnectionEnum.DISABLED;
+                Robot1.RobotTypeComboBox.SelectedIndex = 0;
+
                 CommEnabledToggleButton1.IsEnabled = false;
                 ComPortSelectionComboBox.IsEnabled = false;
                 ConnectButton.IsEnabled = false;
@@ -300,6 +303,9 @@ namespace CoRE1_AutoRefereeSystem_Host
                 if (_isWatching) StopWatchingReceivedData();
                 try {
                     // クライアントに送信する情報
+
+                    if (Robot1.Status.Connection != Master.RobotConnectionEnum.CONNECTED) return;
+
                     var robot = Robot1;
                     var robotStatus = Robot1.Status;
                     var robotRecivedTextBox = ReceivedDataTextBox1;

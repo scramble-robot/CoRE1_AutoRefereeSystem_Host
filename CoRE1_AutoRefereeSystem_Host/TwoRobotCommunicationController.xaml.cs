@@ -123,10 +123,13 @@ namespace CoRE1_AutoRefereeSystem_Host
             if (this.IsEnabled) {
                 Robot1.Status.Connection = Master.RobotConnectionEnum.ENABLED;
                 Robot2.Status.Connection = Master.RobotConnectionEnum.ENABLED;
-
+                Robot1.RobotTypeComboBox.SelectedIndex = 1;
+                Robot2.RobotTypeComboBox.SelectedIndex = 1;
             } else {
                 Robot1.Status.Connection = Master.RobotConnectionEnum.DISABLED;
                 Robot2.Status.Connection = Master.RobotConnectionEnum.DISABLED;
+                Robot1.RobotTypeComboBox.SelectedIndex = 0;
+                Robot2.RobotTypeComboBox.SelectedIndex = 0;
 
                 CommEnabledToggleButton1.IsEnabled = false;
                 CommEnabledToggleButton2.IsEnabled = false;
@@ -346,19 +349,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                     TextBox robotRecivedTextBox;
                     int communicatingRobot = -1;
 
-                    if (_numCommunicationRobot == 1) { // 1台のみ通信するとき
-                        if (Robot1.Status.Connection == Master.RobotConnectionEnum.CONNECTED) {
-                            robot = Robot1;
-                            robotStatus = Robot1.Status;
-                            robotRecivedTextBox = ReceivedDataTextBox1;
-                            communicatingRobot = 1;
-                        } else {
-                            robot = Robot2;
-                            robotStatus = Robot2.Status;
-                            robotRecivedTextBox = ReceivedDataTextBox2;
-                            communicatingRobot = 2;
-                        }
-                    } else { // 2台通信するとき
+                    if (Robot1.Status.Connection == Master.RobotConnectionEnum.CONNECTED && Robot2.Status.Connection == Master.RobotConnectionEnum.CONNECTED) {
                         if (_lastCommunicationRobot == 2) {
                             robot = Robot1;
                             robotStatus = Robot1.Status;
@@ -378,6 +369,18 @@ namespace CoRE1_AutoRefereeSystem_Host
                             // TODO: ヒット判定があったロボットを優先するなど
                             _lastCommunicationRobot = 2;
                         }
+                    } else if (Robot1.Status.Connection == Master.RobotConnectionEnum.CONNECTED) {
+                        robot = Robot1;
+                        robotStatus = Robot1.Status;
+                        robotRecivedTextBox = ReceivedDataTextBox1;
+                        communicatingRobot = 1;
+                    } else if (Robot2.Status.Connection == Master.RobotConnectionEnum.CONNECTED) {
+                        robot = Robot2;
+                        robotStatus = Robot2.Status;
+                        robotRecivedTextBox = ReceivedDataTextBox2;
+                        communicatingRobot = 2;
+                    } else {
+                        return;
                     }
 
                     bool defeatedFlag = robotStatus.DefeatedFlag;
@@ -493,7 +496,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                                 robotStatus.PowerOnFlag = false;
                                 robotStatus.DefeatedNum++;
                                 if (Master.Instance.GameFormat != Master.GameFormatEnum.PRELIMINALY
-                                    && !Master.Instance.GameEndFlag) {
+                                    && !Master.Instance.GameEndFlag && robotStatus.RobotType != Master.RobotTypeEnum.AUTOTURRET) {
                                     robot.StartRespawnTimer();
                                 }
                             }
@@ -667,11 +670,18 @@ namespace CoRE1_AutoRefereeSystem_Host
                 Robot1.Status.Connection = Master.RobotConnectionEnum.ENABLED;
                 ConnectButton.IsEnabled = true;
                 ComPortSelectionComboBox.IsEnabled = true;
+                if (CommEnabledToggleButton2.IsChecked == true) {
+                    _numCommunicationRobot = 2;
+                } else {
+                    _numCommunicationRobot = 1;
+                }
             } else {
                 Robot1.Status.Connection = Master.RobotConnectionEnum.DISABLED;
+                _numCommunicationRobot = 1;
                 if (CommEnabledToggleButton2.IsChecked == false) {
                     ConnectButton.IsEnabled = false;
                     ComPortSelectionComboBox.IsEnabled = false;
+                    _numCommunicationRobot = 0;
                 }
             }
         }
@@ -681,11 +691,19 @@ namespace CoRE1_AutoRefereeSystem_Host
                 Robot2.Status.Connection = Master.RobotConnectionEnum.ENABLED;
                 ConnectButton.IsEnabled = true;
                 ComPortSelectionComboBox.IsEnabled = true;
+
+                if (CommEnabledToggleButton1.IsChecked == true) {
+                    _numCommunicationRobot = 2;
+                } else {
+                    _numCommunicationRobot = 1;
+                }
             } else {
                 Robot2.Status.Connection = Master.RobotConnectionEnum.DISABLED;
+                _numCommunicationRobot = 1;
                 if (CommEnabledToggleButton1.IsChecked == false) {
                     ConnectButton.IsEnabled = false;
                     ComPortSelectionComboBox.IsEnabled = false;
+                    _numCommunicationRobot = 0;
                 }
             }
         }

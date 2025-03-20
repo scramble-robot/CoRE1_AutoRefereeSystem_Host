@@ -25,8 +25,10 @@ namespace CoRE1_AutoRefereeSystem_Host
             private string _teamName;
             private int _teamID;
             private string _teamColor;
+            private Master.RobotTypeEnum _robotType;
             private int _hp = 0;
             private int _maxHp = 0;
+            private int _respawnHp = 0;
             private bool _defeatedFlag = false;
             private bool _powerOnFlag = true;
             private bool _invincivilityFlag = false;
@@ -70,6 +72,11 @@ namespace CoRE1_AutoRefereeSystem_Host
                 set { _teamColor = value; }
             }
 
+            public Master.RobotTypeEnum RobotType {
+                get { return _robotType; }
+                set { _robotType = value; }
+            }
+
             public int HP {
                 get { return _hp; }
                 set {
@@ -93,6 +100,11 @@ namespace CoRE1_AutoRefereeSystem_Host
                         _robotStatusManager.HPBar.Maximum = _maxHp;
                     }
                 }
+            }
+
+            public int RespawnHP {
+                get { return _respawnHp; }
+                set { _respawnHp = value; }
             }
 
             public bool DefeatedFlag {
@@ -258,8 +270,17 @@ namespace CoRE1_AutoRefereeSystem_Host
             TeamNameComboBox.Items.Clear();
             foreach (string tn in Master.Instance.TeamName)
                 TeamNameComboBox.Items.Add(tn);
-
+            
             Status = new RobotStatus(this);
+
+            RobotTypeComboBox.Items.Clear();
+            RobotTypeComboBox.Items.Add("");
+            RobotTypeComboBox.Items.Add("Attacker");
+            RobotTypeComboBox.Items.Add("Builder");
+            RobotTypeComboBox.Items.Add("AutoTureet");
+            //RobotTypeComboBox.Items.Add("Strider");
+            RobotTypeComboBox.SelectedIndex = 1;
+
 
             _respawnTimer = new System.Timers.Timer();
             _respawnTimer.Interval = 50;
@@ -299,6 +320,9 @@ namespace CoRE1_AutoRefereeSystem_Host
                     Status.TeamColor = PanelLabel.Replace(" ", "");
                     if (Status.TeamColor.Contains("Red")) maxHp = Master.Instance.PreRedMaxHP;
                     else maxHp = Master.Instance.PreBlueMaxHP;
+                    RobotTypeComboBox.IsEnabled = false;
+                } else {
+                    RobotTypeComboBox.IsEnabled= true;
                 }
                 Status.MaxHP = maxHp;
                 Status.HP = maxHp;
@@ -306,6 +330,7 @@ namespace CoRE1_AutoRefereeSystem_Host
             } else {
                 Status.HP = 0;
                 HPBar.Opacity = 0.5;
+                RobotTypeComboBox.IsEnabled = false;
             }
             Status.MaxHP = maxHp;
         }
@@ -320,8 +345,28 @@ namespace CoRE1_AutoRefereeSystem_Host
             Master.Instance.SettingsChanged = true;
         }
 
+        private void RobotTypeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+            if (RobotTypeComboBox.SelectedItem is null) return;
+            Status.RobotType = (Master.RobotTypeEnum)RobotTypeComboBox.SelectedIndex;
+            Master.Instance.SettingsChanged = true;
+
+            if (Master.Instance.GameFormat == Master.GameFormatEnum.PRELIMINALY) return;
+
+            if (Status.RobotType == Master.RobotTypeEnum.ATTACKER) {
+                Status.MaxHP = Master.Instance.MaxHP;
+                Status.RespawnHP = Master.Instance.RespawnHP;
+            } else if (Status.RobotType == Master.RobotTypeEnum.BUILDER) {
+                Status.MaxHP = Master.Instance.MaxHPBuilder;
+                Status.RespawnHP = Master.Instance.RespawnHPBuilder;
+            } else if (Status.RobotType == Master.RobotTypeEnum.AUTOTURRET) {
+                Status.MaxHP = Master.Instance.MaxHPAutoTurret;
+                Status.RespawnHP = 0;
+            }
+            Status.HP = Status.MaxHP;
+        }
+
         private void RespawnButton_Click(object sender, RoutedEventArgs e) {
-            Status.HP = Master.Instance.RespawnHP;
+            Status.HP = Status.RespawnHP;
             Status.DefeatedFlag = false;
             Status.PowerOnFlag = true;
             Status.RespawnTime = TimeSpan.Zero;
@@ -384,7 +429,7 @@ namespace CoRE1_AutoRefereeSystem_Host
             if (Status.RespawnTime.TotalSeconds <= 0) {
                 _respawnTimer.Stop();
 
-                Status.HP = Master.Instance.RespawnHP;
+                Status.HP = Status.RespawnHP;
                 Status.DefeatedFlag = false;
                 Status.PowerOnFlag = true;
                 Status.InvincibilityFlag = true;

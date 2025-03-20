@@ -16,13 +16,25 @@
             <StackPanel Orientation="Horizontal">
                 <Label Content="{Binding PanelLabel, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
                        FontSize="22"
-                       Margin="10,10,5,15"
+                       Margin="10,10,5,10"
                        FontWeight="Bold" />
                 <ComboBox x:Name="TeamNameComboBox"
-                          Margin="5,10,10,20"
+                          Margin="5,10,10,10"
                           Width="190"
                           FontSize="18"
                           SelectionChanged="TeamNameComboBox_SelectionChanged" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center">
+                <Label Content="Robot Type"
+                       FontSize="16"
+                       Margin="0,0,5,0"
+                       HorizontalAlignment="Center" />
+                <ComboBox x:Name="RobotTypeComboBox"
+                          Margin="5,0,10,0"
+                          Width="100"
+                          FontSize="16"
+                          SelectionChanged="RobotTypeComboBox_SelectionChanged" />
             </StackPanel>
             <StackPanel Orientation="Horizontal">
                 <Label Content="HP"
@@ -47,22 +59,22 @@
                         HorizontalAlignment="Center">
                 <Label Content="Defeated: "
                        FontSize="16"
-                       Margin="10,10,0,10" />
+                       Margin="10,5,0,5" />
                 <TextBlock x:Name="DefeatedTextBlock"
                            TextWrapping="Wrap"
                            Text="0"
                            FontSize="18"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
-                           Margin="0,10,10,10" />
+                           Margin="0,5,10,5" />
                 <Label Content="Damage Taken: "
                        FontSize="16"
-                       Margin="10,10,0,10" />
+                       Margin="10,5,0,5" />
                 <TextBlock x:Name="DamageTakenTextBlock"
                            TextWrapping="Wrap"
                            Text="0"
                            FontSize="18"
-                           Margin="0,10,0,10"
+                           Margin="0,5,0,5"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
                            Width="30" />
@@ -91,7 +103,7 @@
                      d:Text="[0:10:2] Hit"
                      Margin="15,0,15,10"
                      FontSize="12"
-                     Height="125"
+                     Height="120"
                      IsReadOnly="True"
                      AcceptsReturn="True"
                      Background="#66FFFFFF" />
