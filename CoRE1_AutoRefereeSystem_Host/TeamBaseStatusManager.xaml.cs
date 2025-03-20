@@ -631,8 +631,8 @@ namespace CoRE1_AutoRefereeSystem_Host
 
                             if (status.Occupied == Master.OccupiedEnum.NO) {
                                 int attackBuff = 1;
-                                if (status.BaseColor.Contains("R")) attackBuff = Master.Instance.RedAttackBuff;
-                                else attackBuff = Master.Instance.BlueAttackBuff;
+                                if (status.BaseColor.Contains("R")) attackBuff = (int)Master.Instance.RedAttackBuff;
+                                else attackBuff = (int)Master.Instance.BlueAttackBuff;
 
                                 if (!status.LeftHighDPInvulnerable && BitHigh(info[5], (int)BaseStatus.DamagePanelPosition.LeftHighDP)) {
                                     int diff = 2 * attackBuff; // 2倍ダメージ

@@ -12,6 +12,7 @@ using System.Windows.Threading;
 using System.Net.Sockets;
 using System.Text;
 using System.Diagnostics;
+using System.Net;
 
 
 namespace CoRE1_AutoRefereeSystem_Host
@@ -22,46 +23,38 @@ namespace CoRE1_AutoRefereeSystem_Host
         public static Master Instance => _instance.Value;
 
         // 出場チーム
-        public string[] TeamName = {   "",
-                                "[VXGA]VERTEX-Gamma",
-                                "[VXZE]VERTEX-Zeta",
-                                "[FRCI]FRENTE-Cielo",
-                                "[FRRO]FRENTE-Rosa",
-                                "[YKHK]YOOKATORE-Hakata",
-                                "[KTTM]KT-tokitama",
-                                "[JKK]jkk女坂",
-                                "[KMOK]KmoKHS-CoRE",
-                                "[RKGR]洛北ギアーズ"};
-
-        public Dictionary<string, int> TeamNodeNo = new Dictionary<string, int> {
-            {"", 9999},
-            {"[VXGA]VERTEX-Gamma", 9999},
-            {"[VXZE]VERTEX-Zeta", 9999},
-            {"[FRCI]FRENTE-Cielo", 9999},
-            {"[FRRO]FRENTE-Rosa", 9999},
-            {"[YKHK]YOOKATORE-Hakata", 9999},
-            {"[KTTM]KT-tokitama", 9999},
-            {"[JKK]jkk女坂", 9999},
-            {"[KMOK]KmoKHS-CoRE", 9999},
-            {"[RKGR]洛北ギアーズ", 9999},
+        public string[] TeamName = {
+            "",
+            "[AGA]AGA'star.",
+            "[AGSR]AGSR",
+            "[AVNT]AVANT",
+            "[KNIT]KINKI KNIGHTS",
+            "[MKNG]MA-KING",
+            "[RTUS]Ro.T.U.S",
+            "[SEC]SETAGAYA Eclipse",
+            "[TMC]Tactical Majestic Creators",
+            "[TKG]TKG",
+            "[TRU]Tohoku Roboconist Union",
+            "[CNTN]こんてにゅ～",
+            "[DTB]でんとつーとびーばー",
+            "[TSTM]チーム薩摩",
+            "[KSHH]機襲藩",
+            "[KSKN]香創研",
+            "[DRBS]大ロボーズ",
+            "[RISN]雷閃"
         };
 
-        public Dictionary<string, int> HostCH = new Dictionary<string, int> {
-            {"Red12", 1},
-            {"Red34", 2},
-            {"Red5", 3},
-            {"Blue12", 5},
-            {"Blue34", 8},
-            {"Blue5", 9}
-        };
+
+        public Dictionary<string, int> TeamNodeNo = new Dictionary<string, int> {};
+
+        public Dictionary<string, int> HostCH = new Dictionary<string, int> {};
 
         /***** 試合のルール *******************************************************************************************************/
-        public int SettingTimeMin { private set; get; } = 3;
-        public int AllianceMtgTimeMin { private set; get; } = 3;
-        public int PreSettingTimeMin { private set; get; } = 2;
 
         public int GameTimeMin { private set; get; } = 5;
         public int MaxHP { private set; get; } = 40;
+        public int MaxHPBuilder { private set; get; } = 80;
+        public int MaxHPAutoTurret { private set; get; } = 200;
         public int PreGameTimeMin { private set; get; } = 2;
 
         public int PreRedMaxHP { private set; get; } = 100;  // 予選の赤（攻撃サイド）のMaxHP
@@ -81,6 +74,7 @@ namespace CoRE1_AutoRefereeSystem_Host
         public int PenaltyDamage { private set; get; } = 10;
         public int RespawnTime { private set; get; } = 60;
         public int RespawnHP { private set; get; } = 30;
+        public int RespawnHPBuilder { private set; get; } = 60;
         public int InvincibleTime { private set; get; } = 5;
 
         public int BaseNeutralPointTime { private set; get; } = 30;
@@ -93,6 +87,14 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         /***** enum定義 *******************************************************************************************************/
         #region
+        public enum RobotTypeEnum {
+            NONE,
+            ATTACKER,
+            BUILDER,
+            AUTOTURRET,
+            STRIDER,
+        }
+
         public enum RobotConnectionEnum {
             DISABLED,
             ENABLED,
@@ -282,14 +284,14 @@ namespace CoRE1_AutoRefereeSystem_Host
             }
         }
 
-        public int RedAttackBuff { set; get; } = 1;
+        public double RedAttackBuff { set; get; } = 1.0;
         public bool IsRedAttackBuff1Active { set; get; } = false;
         public bool IsRedAttackBuff2Active { set; get; } = false;
 
         public bool IsRedAttackBuff4Active { set; get; } = false;
         public bool IsRedAttackBuff5Active { set; get; } = false;
 
-        public int BlueAttackBuff { set; get; } = 1;
+        public double BlueAttackBuff { set; get; } = 1.0;
         public bool IsBlueAttackBuff1Active { set; get; } = false;
         public bool IsBlueAttackBuff2Active { set; get; } = false;
         public bool IsBlueAttackBuff4Active { set; get; } = false;
@@ -312,9 +314,14 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         // 操縦画面用プログラムに送信するためのクラス
         public CoreClass Msgs = new CoreClass();
+        private const int _sendPort = 12345;
+        private UdpClient _operatorUdpSender = new UdpClient();
 
-        private const int _port = 12345;
-        private UdpClient _udpClient = new UdpClient();
+        //
+        private const int _recievePort = 8888;
+        private UdpClient _buffUdpReciever = new UdpClient(_recievePort);
+        private Dictionary<IPAddress, string> _latestDataByIp = new();
+        private IPEndPoint _remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
         public static MainWindow GetMainWindow() {
             return Application.Current.MainWindow as MainWindow;
@@ -347,13 +354,13 @@ namespace CoRE1_AutoRefereeSystem_Host
         private static System.Timers.Timer _countDownTimer;
         private static DateTime _startTime;
         private static TimeSpan _remainingTime;
-        private static bool _isPaused = false;
 
         // Settingsのタイマー
         public static System.Timers.Timer _settingsTimer;
 
         // UDPのタイマー
-        public readonly DispatcherTimer _udpTimer;
+        public readonly DispatcherTimer _udpSenderTimer;
+        public readonly DispatcherTimer _udpReceiverTimer;
 
         private Master() {
             _updateTimer = new System.Timers.Timer();
@@ -375,10 +382,15 @@ namespace CoRE1_AutoRefereeSystem_Host
             _settingsTimer.Elapsed += SaveSettings;
             _settingsTimer.Start();
 
-            _udpTimer = new DispatcherTimer();
-            _udpTimer.Interval = new TimeSpan(0, 0, 0, 0, 50);
-            _udpTimer.Tick += new EventHandler(SendMsgsToOperatorScreen);
-            _udpTimer.Start();
+            _udpSenderTimer = new DispatcherTimer();
+            _udpSenderTimer.Interval = new TimeSpan(0, 0, 0, 0, 100);
+            _udpSenderTimer.Tick += new EventHandler(SendMsgsToOperatorScreen);
+            _udpSenderTimer.Start();
+
+            _udpReceiverTimer = new DispatcherTimer();
+            _udpReceiverTimer.Interval = new TimeSpan(0, 0, 0, 0, 200);
+            _udpReceiverTimer.Tick += new EventHandler(ReceiveAndTriggerBuff);
+            _udpReceiverTimer.Start();
         }
 
         private void OnEventArrived(object sender, EventArgs e) {
@@ -908,7 +920,8 @@ namespace CoRE1_AutoRefereeSystem_Host
                 settings.NumBlueWins = Instance.SettingsJson.NumBlueWins;
             }
 
-            Application.Current.Dispatcher.Invoke((Delegate)(() => {
+            //Application.Current.Dispatcher.Invoke((Delegate)(() => {
+            Application.Current.Dispatcher.InvokeAsync(() => {
                 var window = GetMainWindow();
                 settings.Red1TeamName = window.Red12.Robot1.Status.TeamName;
                 settings.Red2TeamName = window.Red12.Robot2.Status.TeamName;
@@ -930,7 +943,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                 settings.Blue12ComPort = window.Blue12.ComPortSelectionComboBox.SelectedItem;
                 settings.Blue34ComPort = window.Blue34.ComPortSelectionComboBox.SelectedItem;
                 settings.Blue5ComPort = window.Blue5.ComPortSelectionComboBox.SelectedItem;
-            }));
+            });
 
             try {
                 SettingsManager.Instance.SaveSettings(settings);
@@ -1023,7 +1036,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                 string json = JsonConvert.SerializeObject(Msgs);
                 byte[] data = Encoding.UTF8.GetBytes(json);
 
-                await _udpClient.SendAsync(data, data.Length, "192.168.100.100", _port);
+                await _operatorUdpSender.SendAsync(data, data.Length, "192.168.100.100", _sendPort);
             } catch (Exception ex) {
                 Debug.WriteLine(ex.ToString());
             }
@@ -1032,7 +1045,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                 string json = JsonConvert.SerializeObject(Msgs);
                 byte[] data = Encoding.UTF8.GetBytes(json);
 
-                await _udpClient.SendAsync(data, data.Length, "192.168.100.101", _port);
+                await _operatorUdpSender.SendAsync(data, data.Length, "192.168.100.101", _sendPort);
             } catch (Exception ex) {
                 Debug.WriteLine(ex.ToString());
             }
@@ -1041,7 +1054,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                 string json = JsonConvert.SerializeObject(Msgs);
                 byte[] data = Encoding.UTF8.GetBytes(json);
 
-                await _udpClient.SendAsync(data, data.Length, "192.168.100.102", _port);
+                await _operatorUdpSender.SendAsync(data, data.Length, "192.168.100.102", _sendPort);
             } catch (Exception ex) {
                 Debug.WriteLine(ex.ToString());
             }
@@ -1050,12 +1063,169 @@ namespace CoRE1_AutoRefereeSystem_Host
                 string json = JsonConvert.SerializeObject(Msgs);
                 byte[] data = Encoding.UTF8.GetBytes(json);
 
-                await _udpClient.SendAsync(data, data.Length, "192.168.100.103", _port);
+                await _operatorUdpSender.SendAsync(data, data.Length, "192.168.100.103", _sendPort);
             } catch (Exception ex) {
                 Debug.WriteLine(ex.ToString());
             }
 
             Interlocked.Exchange(ref isSending, 0);
+        }
+
+        private int isParsing = 0;
+        private async void ReceiveAndTriggerBuff(object sender, EventArgs e) {
+            if (Interlocked.CompareExchange(ref isParsing, 1, 0) != 0) return;
+
+            try {
+                while (_buffUdpReciever.Available > 0) {
+                    byte[] receivedBytes = _buffUdpReciever.Receive(ref _remoteEndPoint);
+                    string receivedData = Encoding.UTF8.GetString(receivedBytes);
+                    Debug.WriteLine(receivedData);
+                    IPAddress senderIp = _remoteEndPoint.Address;
+                    _latestDataByIp[senderIp] = receivedData;
+                }
+
+                // バンカー
+                Application.Current.Dispatcher.Invoke(() => {
+                    var window = GetMainWindow();
+                    
+                    // 192.168.11.230と231の値を処理（シールドバフ）
+                    bool[] redShieldBuffs = new bool[5]; // 各ロボット用
+                    bool[] blueShieldBuffs = new bool[5]; // 各ロボット用
+                    
+                    foreach (var ipString in new[] { "192.168.11.230", "192.168.11.231" }) {
+                        IPAddress ip = IPAddress.Parse(ipString);
+                        if (_latestDataByIp.TryGetValue(ip, out string data)) {
+                            if (data.StartsWith("R") && data.Contains("B")) {
+                                string redPart = data.Substring(1, 5);
+                                string bluePart = data.Substring(data.IndexOf('B') + 1, 5);
+
+                                for (int i = 0; i < 5; i++) {
+                                    redShieldBuffs[i] |= (redPart[i] == '1');
+                                    blueShieldBuffs[i] |= (bluePart[i] == '1');
+                                }
+                            }
+                        }
+                    }
+                    window.ShieldRed1ToggleButton.IsChecked = redShieldBuffs[0];
+                    window.ShieldRed2ToggleButton.IsChecked = redShieldBuffs[1];
+                    window.ShieldRed3ToggleButton.IsChecked = redShieldBuffs[2];
+                    window.ShieldRed4ToggleButton.IsChecked = redShieldBuffs[3];
+                    window.ShieldRed5ToggleButton.IsChecked = redShieldBuffs[4];
+
+                    window.ShieldBlue1ToggleButton.IsChecked = blueShieldBuffs[0];
+                    window.ShieldBlue2ToggleButton.IsChecked = blueShieldBuffs[1];
+                    window.ShieldBlue3ToggleButton.IsChecked = blueShieldBuffs[2];
+                    window.ShieldBlue4ToggleButton.IsChecked = blueShieldBuffs[3];
+                    window.ShieldBlue5ToggleButton.IsChecked = blueShieldBuffs[4];
+                    
+                    // 192.168.11.220と221の値を処理（アクティブバフ）
+                    bool[] redActiveBuffs = new bool[5]; // 各ロボット用
+                    bool[] blueActiveBuffs = new bool[5]; // 各ロボット用
+                    
+                    foreach (var ipString in new[] { "192.168.11.220", "192.168.11.221" }) {
+                        IPAddress ip = IPAddress.Parse(ipString);
+                        if (_latestDataByIp.TryGetValue(ip, out string data)) {
+                            if (data.StartsWith("R") && data.Contains("B")) {
+                                string redPart = data.Substring(1, 5);
+                                string bluePart = data.Substring(data.IndexOf('B') + 1, 5);
+                                
+                                for (int i = 0; i < 5; i++) {
+                                    redActiveBuffs[i] |= (redPart[i] == '1');
+                                    blueActiveBuffs[i] |= (bluePart[i] == '1');
+                                }
+                            }
+                        }
+                    }
+
+                    if (redActiveBuffs[0] && window.RedEMSpot1Button.IsEnabled) {
+                        Instance.IsRedAttackBuff1Active = true;
+                        Instance._redAttackBuff1StartTime = DateTime.Now;
+                        window.RedAttackbuff1TimeTextBlock.IsEnabled = true;
+                        window.RedEMSpot1Button.IsEnabled = false;
+                    }
+
+                    if (redActiveBuffs[1] && window.RedEMSpot2Button.IsEnabled) {
+                        Instance.IsRedAttackBuff2Active = true;
+                        Instance._redAttackBuff2StartTime = DateTime.Now;
+                        window.RedAttackbuff2TimeTextBlock.IsEnabled = true;
+                        window.RedEMSpot2Button.IsEnabled = false;
+                    }
+
+                    if (redActiveBuffs[2] && window.RedEMSpot3Button.IsEnabled) {
+                        Instance.RedHealing = true;
+                        if (!window.Red12.Robot1.Status.DefeatedFlag) window.Red12.Robot1.Status.HP = window.Red12.Robot1.Status.MaxHP;
+                        if (!window.Red12.Robot2.Status.DefeatedFlag) window.Red12.Robot2.Status.HP = window.Red12.Robot2.Status.MaxHP;
+                        if (!window.Red34.Robot1.Status.DefeatedFlag) window.Red34.Robot1.Status.HP = window.Red34.Robot1.Status.MaxHP;
+                        if (!window.Red34.Robot2.Status.DefeatedFlag) window.Red34.Robot2.Status.HP = window.Red34.Robot2.Status.MaxHP;
+
+                        if (Master.Instance.GameFormat == Master.GameFormatEnum.FINALS
+                            && !window.Red5.Robot1.Status.DefeatedFlag)
+                            window.Red5.Robot1.Status.HP = window.Red5.Robot1.Status.MaxHP;
+
+                        window.RedEMSpot3Button.IsEnabled = false;
+                    }
+
+                    if (redActiveBuffs[3] && window.RedEMSpot4Button.IsEnabled) {
+                        Instance.IsRedAttackBuff4Active = true;
+                        Instance._redAttackBuff4StartTime = DateTime.Now;
+                        window.RedAttackbuff4TimeTextBlock.IsEnabled = true;
+                        window.RedEMSpot4Button.IsEnabled = false;
+                    }
+
+                    if (redActiveBuffs[4] && window.RedEMSpot5Button.IsEnabled) {
+                        Instance.IsRedAttackBuff5Active = true;
+                        Instance._redAttackBuff5StartTime = DateTime.Now;
+                        window.RedAttackbuff5TimeTextBlock.IsEnabled = true;
+                        window.RedEMSpot5Button.IsEnabled = false;
+                    }
+
+                    if (blueActiveBuffs[0] && window.BlueEMSpot1Button.IsEnabled) {
+                        Instance.IsBlueAttackBuff1Active = true;
+                        Instance._blueAttackBuff1StartTime = DateTime.Now;
+                        window.BlueAttackbuff1TimeTextBlock.IsEnabled = true;
+                        window.BlueEMSpot1Button.IsEnabled = false;
+                    }
+
+                    if (blueActiveBuffs[1] && window.BlueEMSpot2Button.IsEnabled) {
+                        Instance.IsBlueAttackBuff2Active = true;
+                        Instance._blueAttackBuff2StartTime = DateTime.Now;
+                        window.BlueAttackbuff2TimeTextBlock.IsEnabled = true;
+                        window.BlueEMSpot2Button.IsEnabled = false;
+                    }
+
+                    if (blueActiveBuffs[2] && window.BlueEMSpot3Button.IsEnabled) {
+                        Instance.BlueHealing = true;
+                        if (!window.Blue12.Robot1.Status.DefeatedFlag) window.Blue12.Robot1.Status.HP = window.Blue12.Robot1.Status.MaxHP;
+                        if (!window.Blue12.Robot2.Status.DefeatedFlag) window.Blue12.Robot2.Status.HP = window.Blue12.Robot2.Status.MaxHP;
+                        if (!window.Blue34.Robot1.Status.DefeatedFlag) window.Blue34.Robot1.Status.HP = window.Blue34.Robot1.Status.MaxHP;
+                        if (!window.Blue34.Robot2.Status.DefeatedFlag) window.Blue34.Robot2.Status.HP = window.Blue34.Robot2.Status.MaxHP;
+
+                        if (Master.Instance.GameFormat == Master.GameFormatEnum.FINALS
+                            && !window.Blue5.Robot1.Status.DefeatedFlag)
+                            window.Blue5.Robot1.Status.HP = window.Blue5.Robot1.Status.MaxHP;
+
+                        window.BlueEMSpot3Button.IsEnabled = false;
+                    }
+
+                    if (blueActiveBuffs[3] && window.BlueEMSpot4Button.IsEnabled) {
+                        Instance.IsBlueAttackBuff4Active = true;
+                        Instance._blueAttackBuff4StartTime = DateTime.Now;
+                        window.BlueAttackbuff4TimeTextBlock.IsEnabled = true;
+                        window.BlueEMSpot4Button.IsEnabled = false;
+                    }
+
+                    if (blueActiveBuffs[4] && window.BlueEMSpot5Button.IsEnabled) {
+                        Instance.IsBlueAttackBuff5Active = true;
+                        Instance._blueAttackBuff5StartTime = DateTime.Now;
+                        window.BlueAttackbuff5TimeTextBlock.IsEnabled = true;
+                        window.BlueEMSpot5Button.IsEnabled = false;
+                    }
+                });
+            } catch (Exception ex) {
+                ;
+            } finally {
+                Interlocked.Exchange(ref isParsing, 0);
+            }
         }
 
         private int Bool2Int(bool value) {

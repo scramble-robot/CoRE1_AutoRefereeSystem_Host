@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
+using System.Net;
 
 
 namespace CoRE1_AutoRefereeSystem_Host
@@ -28,24 +29,41 @@ namespace CoRE1_AutoRefereeSystem_Host
                 FinalsRadioButton.IsChecked = true;
 
             Red12.Robot1.TeamNameComboBox.SelectedItem = settings.Red1TeamName;
+            Red12.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Red1RobotType;
             Red12.Robot2.TeamNameComboBox.SelectedItem = settings.Red2TeamName;
+            Red12.Robot2.RobotTypeComboBox.SelectedIndex = (int)settings.Red2RobotType;
             Red34.Robot1.TeamNameComboBox.SelectedItem = settings.Red3TeamName;
+            Red34.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Red3RobotType;
             Red34.Robot2.TeamNameComboBox.SelectedItem = settings.Red4TeamName;
+            Red34.Robot2.RobotTypeComboBox.SelectedIndex = (int)settings.Red4RobotType;
             Red5.Robot1.TeamNameComboBox.SelectedItem = settings.Red5TeamName;
+            Red5.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Red5RobotType;
             Red6.Robot1.TeamNameComboBox.SelectedItem = settings.Red6TeamName;
+            Red6.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Red6RobotType;
             Blue12.Robot1.TeamNameComboBox.SelectedItem = settings.Blue1TeamName;
+            Blue12.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Blue1RobotType;
             Blue12.Robot2.TeamNameComboBox.SelectedItem = settings.Blue2TeamName;
+            Blue12.Robot2.RobotTypeComboBox.SelectedIndex = (int)settings.Blue2RobotType;
             Blue34.Robot1.TeamNameComboBox.SelectedItem = settings.Blue3TeamName;
+            Blue34.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Blue3RobotType;
             Blue34.Robot2.TeamNameComboBox.SelectedItem = settings.Blue4TeamName;
+            Blue34.Robot2.RobotTypeComboBox.SelectedIndex = (int)settings.Blue4RobotType;
             Blue5.Robot1.TeamNameComboBox.SelectedItem = settings.Blue5TeamName;
+            Blue5.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Blue5RobotType;
             Blue6.Robot1.TeamNameComboBox.SelectedItem = settings.Blue6TeamName;
+            Blue6.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Blue6RobotType;
 
             Red12.ComPortSelectionComboBox.SelectedItem = settings.Red12ComPort;
             Red34.ComPortSelectionComboBox.SelectedItem = settings.Red34ComPort;
             Red5.ComPortSelectionComboBox.SelectedItem = settings.Red5ComPort;
+            Red6.EndPointTextBox.Text = settings.Red6EndPoint;
+
             Blue12.ComPortSelectionComboBox.SelectedItem = settings.Blue12ComPort;
             Blue34.ComPortSelectionComboBox.SelectedItem = settings.Blue34ComPort;
             Blue5.ComPortSelectionComboBox.SelectedItem = settings.Blue5ComPort;
+            Blue6.EndPointTextBox.Text = settings.Red6EndPoint;
+
+            BuffHostTextBox.Text = settings.BuffHost;
 
             Master.Instance.SettingsJson = settings;
 
@@ -363,14 +381,14 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         private void RedEMSpot3Button_Click(object sender, RoutedEventArgs e) {
             Master.Instance.RedHealing = true;
-            if (!Red12.Robot1.Status.DefeatedFlag) Red12.Robot1.Status.HP = Master.Instance.MaxHP;
-            if (!Red12.Robot2.Status.DefeatedFlag) Red12.Robot2.Status.HP = Master.Instance.MaxHP;
-            if (!Red34.Robot1.Status.DefeatedFlag) Red34.Robot1.Status.HP = Master.Instance.MaxHP;
-            if (!Red34.Robot2.Status.DefeatedFlag) Red34.Robot2.Status.HP = Master.Instance.MaxHP;
+            if (!Red12.Robot1.Status.DefeatedFlag) Red12.Robot1.Status.HP = Red12.Robot1.Status.MaxHP;
+            if (!Red12.Robot2.Status.DefeatedFlag) Red12.Robot2.Status.HP = Red12.Robot2.Status.MaxHP;
+            if (!Red34.Robot1.Status.DefeatedFlag) Red34.Robot1.Status.HP = Red34.Robot1.Status.MaxHP;
+            if (!Red34.Robot2.Status.DefeatedFlag) Red34.Robot2.Status.HP = Red34.Robot2.Status.MaxHP;
 
             if (Master.Instance.GameFormat == Master.GameFormatEnum.FINALS
                 && !Red5.Robot1.Status.DefeatedFlag)
-                Red5.Robot1.Status.HP = Master.Instance.MaxHP;
+                Red5.Robot1.Status.HP = Red5.Robot1.Status.MaxHP;
 
             RedEMSpot3Button.IsEnabled = false;
         }
@@ -405,14 +423,14 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         private void BlueEMSpot3Button_Click(object sender, RoutedEventArgs e) {
             Master.Instance.BlueHealing = true;
-            if (!Blue12.Robot1.Status.DefeatedFlag) Blue12.Robot1.Status.HP = Master.Instance.MaxHP;
-            if (!Blue12.Robot2.Status.DefeatedFlag) Blue12.Robot2.Status.HP = Master.Instance.MaxHP;
-            if (!Blue34.Robot1.Status.DefeatedFlag) Blue34.Robot1.Status.HP = Master.Instance.MaxHP;
-            if (!Blue34.Robot2.Status.DefeatedFlag) Blue34.Robot2.Status.HP = Master.Instance.MaxHP;
+            if (!Blue12.Robot1.Status.DefeatedFlag) Blue12.Robot1.Status.HP = Blue12.Robot1.Status.MaxHP;
+            if (!Blue12.Robot2.Status.DefeatedFlag) Blue12.Robot2.Status.HP = Blue12.Robot2.Status.MaxHP;
+            if (!Blue34.Robot1.Status.DefeatedFlag) Blue34.Robot1.Status.HP = Blue34.Robot1.Status.MaxHP;
+            if (!Blue34.Robot2.Status.DefeatedFlag) Blue34.Robot2.Status.HP = Blue34.Robot2.Status.MaxHP;
 
             if (Master.Instance.GameFormat == Master.GameFormatEnum.FINALS
                 && !Blue5.Robot1.Status.DefeatedFlag)
-                Blue5.Robot1.Status.HP = Master.Instance.MaxHP;
+                Blue5.Robot1.Status.HP = Blue5.Robot1.Status.MaxHP;
 
             BlueEMSpot3Button.IsEnabled = false;
         }
@@ -473,16 +491,55 @@ namespace CoRE1_AutoRefereeSystem_Host
         }
 
         /***** 副審のArduinoからUDPで受信するための設定 *******************************************************************************************************/
-        private void ShieldBuffEndPointTextBox_KeyDown(object sender, KeyEventArgs e) {
+        private void BuffHostTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) {
+            var converter = new System.Windows.Media.BrushConverter();
+            BuffHostTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#30FF0000");
+        }
+        
+        private void BuffHostTextBox_KeyDown(object sender, KeyEventArgs e) {
+            if (e.Key == System.Windows.Input.Key.Enter) {
+                string input = BuffHostTextBox.Text;
+                if (TryParseIpPort(input, out IPEndPoint? tmpIPEndPoint)) {
+                    Keyboard.ClearFocus();
+                    e.Handled = true;
 
+                    //serverIPEndPoint = tmpIPEndPoint;
+                    //Debug.WriteLine(serverIPEndPoint);
+                    var converter = new System.Windows.Media.BrushConverter();
+                    BuffHostTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
+                } else {
+                    MessageBox.Show($"Invalid endpoint: {BuffHostTextBox.Text}.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
         }
 
-        private void ShieldBuffEndPointTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) {
-
+        private void BuffHostOpenButton_Click(object sender, RoutedEventArgs e) {
+            
         }
 
-        private void ShieldBuffConnectButton_Click(object sender, RoutedEventArgs e) {
+        static bool TryParseIpPort(string input, out IPEndPoint? endPoint) {
+            endPoint = null;
 
+            // ":"が含まれていない場合は無効
+            if (!input.Contains(":"))
+                return false;
+
+            // ":"で分割
+            string[] parts = input.Split(':');
+            if (parts.Length != 2)
+                return false;
+
+            // IPアドレスのチェック
+            if (!IPAddress.TryParse(parts[0], out IPAddress? ipAddress))
+                return false;
+
+            // ポート番号のチェック（1～65535）
+            if (!int.TryParse(parts[1], out int port) || port < 1 || port > 65535)
+                return false;
+
+            // IPEndPointを作成
+            endPoint = new IPEndPoint(ipAddress, port);
+            return true;
         }
 
         /***** デバフのcallback *******************************************************************************************************/

@@ -774,7 +774,7 @@ namespace CoRE1_AutoRefereeSystem_Host
 
                             // 青の攻撃
                             if (status.IsBlueActive && status.Occupied != Master.OccupiedEnum.BLUE) {
-                                int attackBuff = Master.Instance.BlueAttackBuff;
+                                int attackBuff = (int)Master.Instance.BlueAttackBuff;
                                 if (!status.LeftRDPInvulnerable && BitHigh(info[5], (int)BaseStatus.DamagePanelPosition.LeftRDP)) {
                                     int diff = 1 * attackBuff;
                                     status.OccupationLevel += diff;
@@ -803,7 +803,7 @@ namespace CoRE1_AutoRefereeSystem_Host
 
                             // 赤の攻撃
                             if (status.IsRedActive && status.Occupied != Master.OccupiedEnum.RED) {
-                                var attackBuff = Master.Instance.RedAttackBuff;
+                                int attackBuff = (int)Master.Instance.RedAttackBuff;
                                 if (!status.LeftBDPInvulnerable && BitHigh(info[5], (int)BaseStatus.DamagePanelPosition.LeftBDP)) {
                                     int diff = 1 * attackBuff;
                                     status.OccupationLevel -= diff;

@@ -303,7 +303,6 @@ namespace CoRE1_AutoRefereeSystem_Host
                 if (_isWatching) StopWatchingReceivedData();
                 try {
                     // クライアントに送信する情報
-
                     if (Robot1.Status.Connection != Master.RobotConnectionEnum.CONNECTED) return;
 
                     var robot = Robot1;
@@ -394,7 +393,7 @@ namespace CoRE1_AutoRefereeSystem_Host
 
                         if (Master.Instance.DuringGame && !robotStatus.DefeatedFlag && !robotStatus.InvincibilityFlag) {
                             // ダメージパネルのヒット情報からHPを計算
-                            int attackBuff = 1;
+                            double attackBuff = 1;
                             if (robotStatus.TeamColor.Contains("Red")) {
                                 attackBuff = Master.Instance.BlueAttackBuff;
                                 if (Master.Instance.RedInvinsible) attackBuff = 0;
@@ -403,10 +402,12 @@ namespace CoRE1_AutoRefereeSystem_Host
                                 if (Master.Instance.BlueInvinsible) attackBuff = 0;
                             }
 
+                            if (robotStatus.IsShieldBuffActive) attackBuff /= 2.0;
+
                             for (int i = 0; i < 4; i++) {
                                 if (BitHigh(info[4], i)) {
-                                    robotStatus.HP -= attackBuff * Master.Instance.HitDamage;
-                                    robotStatus.DamageTaken += attackBuff * Master.Instance.HitDamage;
+                                    robotStatus.HP -= (int)(attackBuff * Master.Instance.HitDamage);
+                                    robotStatus.DamageTaken += (int)(attackBuff * Master.Instance.HitDamage);
                                     robotStatus.AddRobotLog($"Hit DP{i}. -{attackBuff * Master.Instance.HitDamage}, now at {robotStatus.HP}/{robotStatus.MaxHP}");
                                 }
                             }

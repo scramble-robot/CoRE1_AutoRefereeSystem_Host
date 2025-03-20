@@ -32,6 +32,8 @@ namespace CoRE1_AutoRefereeSystem_Host
             private bool _defeatedFlag = false;
             private bool _powerOnFlag = true;
             private bool _invincivilityFlag = false;
+            private bool _isShieldBuffActive = false;
+
             private TimeSpan _respawnTime;
             private string _respawnTimeString;
             private List<string> _log = new List<string>();
@@ -153,6 +155,12 @@ namespace CoRE1_AutoRefereeSystem_Host
                     _invincibilityFlagPrev = _invincivilityFlag;
                 }
             }
+
+            public bool IsShieldBuffActive {
+                get { return _isShieldBuffActive; }
+                set { _isShieldBuffActive = value; }
+            }
+
 
             public TimeSpan RespawnTime {
                 get { return _respawnTime; }
@@ -389,13 +397,13 @@ namespace CoRE1_AutoRefereeSystem_Host
         }
 
         public void PunishButton_Click(object sender, RoutedEventArgs e) {
-            int attackBuff = 1;
+            double attackBuff = 1;
 
             if (Status.TeamColor.Contains("Red")) attackBuff = Master.Instance.BlueAttackBuff;
             else attackBuff = Master.Instance.RedAttackBuff;
 
-            Status.HP -= attackBuff * Master.Instance.PenaltyDamage;
-            Status.DamageTaken += attackBuff * Master.Instance.PenaltyDamage;
+            Status.HP -= (int)(attackBuff * Master.Instance.PenaltyDamage);
+            Status.DamageTaken += (int)(attackBuff * Master.Instance.PenaltyDamage);
 
             if (Status.HP <= 0) {
                 Status.HP = 0;
