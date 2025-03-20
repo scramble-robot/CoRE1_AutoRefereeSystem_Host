@@ -758,7 +758,7 @@ namespace CoRE1_AutoRefereeSystem_Host
         // 試合中以外ではこの関数で常時受信データを監視する
         private async void WatchReceivedData(object sender, EventArgs args) {
             if (stream is null) {
-                Debug.WriteLine("stream is null");
+                // Debug.WriteLine("stream is null");
                 return;
             }
 
@@ -841,7 +841,7 @@ namespace CoRE1_AutoRefereeSystem_Host
         private void ConnectButton_Click(object sender, RoutedEventArgs e) {
             if (client is null || !client.Connected) {
                 if (serverIPEndPoint is null) {
-                    Debug.WriteLine("stream is null");
+                    // Debug.WriteLine("stream is null");
                     return;
                 }
                 try {
@@ -884,7 +884,7 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         private void SendButton_Click(object sender, RoutedEventArgs e) {
             if (stream is null) {
-                Debug.WriteLine("stream is null");
+                // Debug.WriteLine("stream is null");
                 return;
             }
 
@@ -895,7 +895,7 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         private void PingButton_Click(object sender, RoutedEventArgs e) {
             if (stream is null) {
-                Debug.WriteLine("stream is null");
+                // Debug.WriteLine("stream is null");
                 return;
             }
             if (arsSequence != Master.ARSSequenceEnum.OPENED) return;
@@ -906,7 +906,7 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         private void SendTextToArduino(string text, bool verbose = true) {
             if (stream is null) {
-                Debug.WriteLine("stream is null");
+                // Debug.WriteLine("stream is null");
                 return;
             }
 
@@ -929,7 +929,7 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         private void BootButton_Click(object sender, RoutedEventArgs e) {
             if (stream is null) {
-                Debug.WriteLine("stream is null");
+                // Debug.WriteLine("stream is null");
                 return;
             }
             if (arsSequence == Master.ARSSequenceEnum.OPENED) {
