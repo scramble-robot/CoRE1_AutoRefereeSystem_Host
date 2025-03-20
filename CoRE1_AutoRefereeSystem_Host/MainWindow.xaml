@@ -546,6 +546,178 @@
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
+                <StackPanel x:Name="SheildbuffStackPanel"
+                            Orientation="Horizontal"
+                            Background="#FFFFFBE9">
+                    <StackPanel>
+                        <Label Content="UDP Reciever Log"
+                               Margin="10,0,10,0"
+                               FontSize="14" />
+                        <TextBox x:Name="LinkTextBox"
+                                 TextWrapping="Wrap"
+                                 d:Text="*** autoRef HOST *** P3.02h&#xA;ID:0107542 GroupeID:0107592&#xA;CH:15 nodeNo[0503]&#xA;&gt;"
+                                 Margin="15,0,15,0"
+                                 FontSize="12"
+                                 Height="110"
+                                 Width="200"
+                                 IsReadOnly="True"
+                                 AcceptsReturn="True"
+                                 Background="#67FFFFFF" />
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox x:Name="BuffHostTextBox"
+                                     materialDesign:HintAssist.Hint="Host {IP}:{PORT}"
+                                     TextWrapping="Wrap"
+                                     FontSize="14"
+                                     Style="{DynamicResource MaterialDesignTextBox}"
+                                     Margin="10,5,0,5"
+                                     Width="130"
+                                     TextChanged="BuffHostTextBox_TextChanged"
+                                     KeyDown="BuffHostTextBox_KeyDown" />
+                            <Button x:Name="BuffHostOpenButton"
+                                    Content="Open"
+                                    Margin="10,5,0,5"
+                                    Click="BuffHostOpenButton_Click"
+                                    HorizontalAlignment="Left"
+                                    Width="70" />
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel>
+                        <Label Content="Shield Buff"
+                               Margin="10,0,10,0"
+                               FontSize="14"
+                               FontWeight="Bold" />
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel Orientation="Vertical"
+                                        Margin="10,0,0,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <ToggleButton x:Name="ShieldRed1ToggleButton"
+                                                  d:IsChecked="True"
+                                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                                  Margin="5,0,0,5"
+                                                  Checked="ShieldRed1ToggleButton_CheckedChanged"
+                                                  Unchecked="ShieldRed1ToggleButton_CheckedChanged" />
+                                    <Label Content="Red1"
+                                           FontSize="14"
+                                           Margin="5,0,5,5"
+                                           VerticalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <ToggleButton x:Name="ShieldRed2ToggleButton"
+                                                  d:IsChecked="True"
+                                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                                  Margin="5,0,0,5"
+                                                  Checked="ShieldRed2ToggleButton_CheckedChanged"
+                                                  Unchecked="ShieldRed2ToggleButton_CheckedChanged" />
+                                    <Label Content="Red2"
+                                           FontSize="14"
+                                           Margin="5,0,5,5"
+                                           VerticalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <ToggleButton x:Name="ShieldRed3ToggleButton"
+                                                  d:IsChecked="True"
+                                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                                  Margin="5,0,0,5"
+                                                  Checked="ShieldRed3ToggleButton_CheckedChanged"
+                                                  Unchecked="ShieldRed3ToggleButton_CheckedChanged" />
+                                    <Label Content="Red3"
+                                           FontSize="14"
+                                           Margin="5,0,5,5"
+                                           VerticalAlignment="Center" />
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal">
+                                    <ToggleButton x:Name="ShieldRed4ToggleButton"
+                                                  d:IsChecked="True"
+                                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                                  Margin="5,0,0,5"
+                                                  Checked="ShieldRed4ToggleButton_CheckedChanged"
+                                                  Unchecked="ShieldRed4ToggleButton_CheckedChanged" />
+                                    <Label Content="Red4"
+                                           FontSize="14"
+                                           Margin="5,0,5,5"
+                                           VerticalAlignment="Center" />
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal">
+                                    <ToggleButton x:Name="ShieldRed5ToggleButton"
+                                                  d:IsChecked="True"
+                                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                                  Margin="5,0,0,0"
+                                                  Checked="ShieldRed5ToggleButton_CheckedChanged"
+                                                  Unchecked="ShieldRed5ToggleButton_CheckedChanged" />
+                                    <Label Content="Red5"
+                                           FontSize="14"
+                                           Margin="5,0,5,0"
+                                           VerticalAlignment="Center" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical"
+                                        Margin="5,0,0,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <ToggleButton x:Name="ShieldBlue1ToggleButton"
+                                                  d:IsChecked="True"
+                                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                                  Margin="5,0,0,5"
+                                                  Checked="ShieldBlue1ToggleButton_CheckedChanged"
+                                                  Unchecked="ShieldBlue1ToggleButton_CheckedChanged" />
+                                    <Label Content="Blue1"
+                                           FontSize="14"
+                                           Margin="5,0,5,5"
+                                           VerticalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <ToggleButton x:Name="ShieldBlue2ToggleButton"
+                                                  d:IsChecked="True"
+                                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                                  Margin="5,0,0,5"
+                                                  Checked="ShieldBlue2ToggleButton_CheckedChanged"
+                                                  Unchecked="ShieldBlue2ToggleButton_CheckedChanged" />
+                                    <Label Content="Blue2"
+                                           FontSize="14"
+                                           Margin="5,0,5,5"
+                                           VerticalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <ToggleButton x:Name="ShieldBlue3ToggleButton"
+                                                  d:IsChecked="True"
+                                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                                  Margin="5,0,0,5"
+                                                  Checked="ShieldBlue3ToggleButton_CheckedChanged"
+                                                  Unchecked="ShieldBlue3ToggleButton_CheckedChanged" />
+                                    <Label Content="Blue3"
+                                           FontSize="14"
+                                           Margin="5,0,5,5"
+                                           VerticalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <ToggleButton x:Name="ShieldBlue4ToggleButton"
+                                                  d:IsChecked="True"
+                                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                                  Margin="5,0,0,5"
+                                                  Checked="ShieldBlue4ToggleButton_CheckedChanged"
+                                                  Unchecked="ShieldBlue4ToggleButton_CheckedChanged" />
+                                    <Label Content="Blue4"
+                                           FontSize="14"
+                                           Margin="5,0,5,5"
+                                           VerticalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <ToggleButton x:Name="ShieldBlue5ToggleButton"
+                                                  d:IsChecked="True"
+                                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                                  Margin="5,0,0,5"
+                                                  Checked="ShieldBlue5ToggleButton_CheckedChanged"
+                                                  Unchecked="ShieldBlue5ToggleButton_CheckedChanged" />
+                                    <Label Content="Blue5"
+                                           FontSize="14"
+                                           Margin="5,0,5,5"
+                                           VerticalAlignment="Center" />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
             </StackPanel>
 
 
@@ -581,6 +753,7 @@
             <local:TeamBaseStatusManager x:Name="RedBase"
                                          TeamBaseLabel="Base-R"
                                          TeamBaseColor="#10FF0000"
+                                         OccupationLevelColor="#FFE61500"
                                          Background="White" />
 
             <local:CommonBaseStatusManager x:Name="CommonBase"
@@ -591,185 +764,13 @@
             <local:TeamBaseStatusManager x:Name="BlueBase"
                                          TeamBaseLabel="Base-B"
                                          TeamBaseColor="#100000FF"
+                                         OccupationLevelColor="#FF0015E6"
                                          Background="White" />
 
             <local:AutoTurretCommunicationController x:Name="Blue6"
                                                      AutoTurretLabel="Blue 6"
                                                      AutoTurretColor="#100000FF"
                                                      Background="White" />
-        </StackPanel>
-        <StackPanel x:Name="SheildbuffStackPanel"
-                    Orientation="Horizontal"
-                    Background="#FFFFFBE9"
-                    Margin="1500,770,1501,0">
-            <StackPanel>
-                <Label Content="UDP Reciever Log"
-                       Margin="10,0,10,0"
-                       FontSize="14" />
-                <TextBox x:Name="LinkTextBox"
-                         TextWrapping="Wrap"
-                         d:Text="*** autoRef HOST *** P3.02h&#xA;ID:0107542 GroupeID:0107592&#xA;CH:15 nodeNo[0503]&#xA;&gt;"
-                         Margin="15,0,15,0"
-                         FontSize="12"
-                         Height="110"
-                         Width="200"
-                         IsReadOnly="True"
-                         AcceptsReturn="True"
-                         Background="#67FFFFFF" />
-                <StackPanel Orientation="Horizontal">
-                    <TextBox x:Name="BuffHostTextBox"
-                             materialDesign:HintAssist.Hint="Host {IP}:{PORT}"
-                             TextWrapping="Wrap"
-                             FontSize="14"
-                             Style="{DynamicResource MaterialDesignTextBox}"
-                             Margin="10,5,0,5"
-                             Width="130"
-                             TextChanged="BuffHostTextBox_TextChanged"
-                             KeyDown="BuffHostTextBox_KeyDown" />
-                    <Button x:Name="BuffHostOpenButton"
-                            Content="Open"
-                            Margin="10,5,0,5"
-                            Click="BuffHostOpenButton_Click"
-                            HorizontalAlignment="Left"
-                            Width="70" />
-                </StackPanel>
-            </StackPanel>
-            <StackPanel>
-                <Label Content="Shield Buff"
-                       Margin="10,0,10,0"
-                       FontSize="14"
-                       FontWeight="Bold" />
-                <StackPanel Orientation="Horizontal">
-                    <StackPanel Orientation="Vertical"
-                                Margin="10,0,0,0">
-                        <StackPanel Orientation="Horizontal">
-                            <ToggleButton x:Name="ShieldRed1ToggleButton"
-                                          d:IsChecked="True"
-                                          Style="{StaticResource MaterialDesignSwitchToggleButton}"
-                                          Margin="5,0,0,5"
-                                          Checked="ShieldRed1ToggleButton_CheckedChanged"
-                                          Unchecked="ShieldRed1ToggleButton_CheckedChanged" />
-                            <Label Content="Red1"
-                                   FontSize="14"
-                                   Margin="5,0,5,5"
-                                   VerticalAlignment="Center" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <ToggleButton x:Name="ShieldRed2ToggleButton"
-                                          d:IsChecked="True"
-                                          Style="{StaticResource MaterialDesignSwitchToggleButton}"
-                                          Margin="5,0,0,5"
-                                          Checked="ShieldRed2ToggleButton_CheckedChanged"
-                                          Unchecked="ShieldRed2ToggleButton_CheckedChanged" />
-                            <Label Content="Red2"
-                                   FontSize="14"
-                                   Margin="5,0,5,5"
-                                   VerticalAlignment="Center" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <ToggleButton x:Name="ShieldRed3ToggleButton"
-                                          d:IsChecked="True"
-                                          Style="{StaticResource MaterialDesignSwitchToggleButton}"
-                                          Margin="5,0,0,5"
-                                          Checked="ShieldRed3ToggleButton_CheckedChanged"
-                                          Unchecked="ShieldRed3ToggleButton_CheckedChanged" />
-                            <Label Content="Red3"
-                                   FontSize="14"
-                                   Margin="5,0,5,5"
-                                   VerticalAlignment="Center" />
-                        </StackPanel>
-
-                        <StackPanel Orientation="Horizontal">
-                            <ToggleButton x:Name="ShieldRed4ToggleButton"
-                                          d:IsChecked="True"
-                                          Style="{StaticResource MaterialDesignSwitchToggleButton}"
-                                          Margin="5,0,0,5"
-                                          Checked="ShieldRed4ToggleButton_CheckedChanged"
-                                          Unchecked="ShieldRed4ToggleButton_CheckedChanged" />
-                            <Label Content="Red4"
-                                   FontSize="14"
-                                   Margin="5,0,5,5"
-                                   VerticalAlignment="Center" />
-                        </StackPanel>
-
-                        <StackPanel Orientation="Horizontal">
-                            <ToggleButton x:Name="ShieldRed5ToggleButton"
-                                          d:IsChecked="True"
-                                          Style="{StaticResource MaterialDesignSwitchToggleButton}"
-                                          Margin="5,0,0,0"
-                                          Checked="ShieldRed5ToggleButton_CheckedChanged"
-                                          Unchecked="ShieldRed5ToggleButton_CheckedChanged" />
-                            <Label Content="Red5"
-                                   FontSize="14"
-                                   Margin="5,0,5,0"
-                                   VerticalAlignment="Center" />
-                        </StackPanel>
-                    </StackPanel>
-                    <StackPanel Orientation="Vertical"
-                                Margin="5,0,0,0">
-                        <StackPanel Orientation="Horizontal">
-                            <ToggleButton x:Name="ShieldBlue1ToggleButton"
-                                          d:IsChecked="True"
-                                          Style="{StaticResource MaterialDesignSwitchToggleButton}"
-                                          Margin="5,0,0,5"
-                                          Checked="ShieldBlue1ToggleButton_CheckedChanged"
-                                          Unchecked="ShieldBlue1ToggleButton_CheckedChanged" />
-                            <Label Content="Blue1"
-                                   FontSize="14"
-                                   Margin="5,0,5,5"
-                                   VerticalAlignment="Center" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <ToggleButton x:Name="ShieldBlue2ToggleButton"
-                                          d:IsChecked="True"
-                                          Style="{StaticResource MaterialDesignSwitchToggleButton}"
-                                          Margin="5,0,0,5"
-                                          Checked="ShieldBlue2ToggleButton_CheckedChanged"
-                                          Unchecked="ShieldBlue2ToggleButton_CheckedChanged" />
-                            <Label Content="Blue2"
-                                   FontSize="14"
-                                   Margin="5,0,5,5"
-                                   VerticalAlignment="Center" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <ToggleButton x:Name="ShieldBlue3ToggleButton"
-                                          d:IsChecked="True"
-                                          Style="{StaticResource MaterialDesignSwitchToggleButton}"
-                                          Margin="5,0,0,5"
-                                          Checked="ShieldBlue3ToggleButton_CheckedChanged"
-                                          Unchecked="ShieldBlue3ToggleButton_CheckedChanged" />
-                            <Label Content="Blue3"
-                                   FontSize="14"
-                                   Margin="5,0,5,5"
-                                   VerticalAlignment="Center" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <ToggleButton x:Name="ShieldBlue4ToggleButton"
-                                          d:IsChecked="True"
-                                          Style="{StaticResource MaterialDesignSwitchToggleButton}"
-                                          Margin="5,0,0,5"
-                                          Checked="ShieldBlue4ToggleButton_CheckedChanged"
-                                          Unchecked="ShieldBlue4ToggleButton_CheckedChanged" />
-                            <Label Content="Blue4"
-                                   FontSize="14"
-                                   Margin="5,0,5,5"
-                                   VerticalAlignment="Center" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <ToggleButton x:Name="ShieldBlue5ToggleButton"
-                                          d:IsChecked="True"
-                                          Style="{StaticResource MaterialDesignSwitchToggleButton}"
-                                          Margin="5,0,0,5"
-                                          Checked="ShieldBlue5ToggleButton_CheckedChanged"
-                                          Unchecked="ShieldBlue5ToggleButton_CheckedChanged" />
-                            <Label Content="Blue5"
-                                   FontSize="14"
-                                   Margin="5,0,5,5"
-                                   VerticalAlignment="Center" />
-                        </StackPanel>
-                    </StackPanel>
-                </StackPanel>
-            </StackPanel>
         </StackPanel>
     </Grid>
 </Window>

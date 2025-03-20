@@ -84,14 +84,7 @@ namespace CoRE1_AutoRefereeSystem_Host
         #region
         private void UserControl_Loaded(object sender, RoutedEventArgs e) {
             Robot1.RobotTypeComboBox.SelectedIndex = 3;
-            // this.IsEnabled = false;
 
-            /*CommEnabledToggleButton1.IsEnabled = false;
-            ConnectButton.IsEnabled = false;
-            PingButton1.IsEnabled = false;
-            BootButton.IsEnabled = false;
-            ShutdownButton.IsEnabled = false;
-            SendButton.IsEnabled = false;*/
         }
 
         private void UserControl_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e) {
@@ -497,15 +490,17 @@ namespace CoRE1_AutoRefereeSystem_Host
         }
 
 
-        private void ConnectButton_Click(object sender, RoutedEventArgs e) {
+        private async void ConnectButton_Click(object sender, RoutedEventArgs e) {
             if (client is null || !client.Connected) {
                 if (serverIPEndPoint is null) {
                     // Debug.WriteLine("stream is null");
                     return;
                 }
                 try {
+                    ConnectButton.Content = "...";
+
                     client = new TcpClient();
-                    client.Connect(serverIPEndPoint);
+                    await client.ConnectAsync(serverIPEndPoint);
                     stream = client.GetStream();
 
                     // タイムアウトの設定
@@ -519,6 +514,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                     BootButton.IsEnabled = true;
                     SendButton.IsEnabled = true;
                 } catch (Exception ex) {
+                    ConnectButton.Content = "Open";
                     MessageBox.Show($"{this.Name}: Failed to connect to Arduino server\n" +
                          $"\nProbably, selected IP has already been connnected by another.",
                          "Connection failure", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -559,22 +555,6 @@ namespace CoRE1_AutoRefereeSystem_Host
                 SendButton_Click(this, new RoutedEventArgs());
             }
         }
-
-        //private void BootButton_Click(object sender, RoutedEventArgs e) {
-        //    if (stream is null) return;
-        //    if (arsSequence != Master.ARSSequenceEnum.OPENED) return;
-
-        //    StopWatchingReceivedData();
-        //    try {
-        //        HostStatusTextBox.Text = "Booting ARS...";
-        //        arsSequence = Master.ARSSequenceEnum.BOOTING;
-
-        //        string command = "boot autoturret";
-        //        SendTextToArduino(command);
-        //    } catch (Exception ex) {
-        //        ;
-        //    }
-        //}
 
         private void BootButton_Click(object sender, RoutedEventArgs e) {
             if (stream is null) {
@@ -666,6 +646,18 @@ namespace CoRE1_AutoRefereeSystem_Host
                 } else {
                     MessageBox.Show($"Invalid endpoint: {EndPointTextBox.Text}.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
+            }
+        }
+
+        public void EnterEndPoint() {
+            string input = EndPointTextBox.Text;
+            if (TryParseIpPort(input, out IPEndPoint? tmpIPEndPoint)) {
+                serverIPEndPoint = tmpIPEndPoint;
+                Debug.WriteLine(serverIPEndPoint);
+                var converter = new System.Windows.Media.BrushConverter();
+                EndPointTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
+            } else {
+                MessageBox.Show($"Invalid endpoint: {EndPointTextBox.Text}.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

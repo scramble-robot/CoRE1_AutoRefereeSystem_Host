@@ -362,15 +362,17 @@ namespace CoRE1_AutoRefereeSystem_Host
 
             if (Status.RobotType == Master.RobotTypeEnum.ATTACKER) {
                 Status.MaxHP = Master.Instance.MaxHP;
+                Status.HP = Master.Instance.MaxHP;
                 Status.RespawnHP = Master.Instance.RespawnHP;
             } else if (Status.RobotType == Master.RobotTypeEnum.BUILDER) {
                 Status.MaxHP = Master.Instance.MaxHPBuilder;
+                Status.HP = Master.Instance.MaxHPBuilder;
                 Status.RespawnHP = Master.Instance.RespawnHPBuilder;
             } else if (Status.RobotType == Master.RobotTypeEnum.AUTOTURRET) {
                 Status.MaxHP = Master.Instance.MaxHPAutoTurret;
+                Status.HP = Master.Instance.MaxHPAutoTurret;
                 Status.RespawnHP = 0;
             }
-            Status.HP = Status.MaxHP;
         }
 
         private void RespawnButton_Click(object sender, RoutedEventArgs e) {
@@ -412,7 +414,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                 Status.DefeatedNum++;
                 Status.AddRobotLog("Defeated");
 
-                if (Master.Instance.GameFormat != Master.GameFormatEnum.PRELIMINALY && !Status.TeamColor.Contains("6"))
+                if (Master.Instance.GameFormat != Master.GameFormatEnum.PRELIMINALY && !Status.TeamColor.Contains("6") && Status.RobotType != Master.RobotTypeEnum.AUTOTURRET)
                     StartRespawnTimer();
             }
         }

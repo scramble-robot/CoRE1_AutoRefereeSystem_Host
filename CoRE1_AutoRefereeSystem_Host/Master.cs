@@ -652,10 +652,10 @@ namespace CoRE1_AutoRefereeSystem_Host
 
             Application.Current.Dispatcher.Invoke(() => {
                 var window = GetMainWindow();
-                window.CommonBase.Status.IsRedActive = window.Blue6.Robot1.Status.DefeatedFlag;
-                window.CommonBase.Status.IsBlueActive = window.Red6.Robot1.Status.DefeatedFlag;
-                window.RedBase.Status.IsActive = window.Blue6.Robot1.Status.DefeatedFlag;
-                window.BlueBase.Status.IsActive = window.Red6.Robot1.Status.DefeatedFlag;
+                window.CommonBase.Status.IsRedActive = window.Red6.Robot1.Status.DefeatedFlag;
+                window.CommonBase.Status.IsBlueActive = window.Blue6.Robot1.Status.DefeatedFlag;
+                window.RedBase.Status.IsActive = window.Red6.Robot1.Status.DefeatedFlag;
+                window.BlueBase.Status.IsActive = window.Blue6.Robot1.Status.DefeatedFlag;
             });
         }
 
@@ -937,12 +937,34 @@ namespace CoRE1_AutoRefereeSystem_Host
                 settings.Blue5TeamName = window.Blue5.Robot1.Status.TeamName;
                 settings.Blue6TeamName = window.Blue6.Robot1.Status.TeamName;
 
+                settings.Red1RobotType = window.Red12.Robot1.Status.RobotType;
+                settings.Red2RobotType = window.Red12.Robot2.Status.RobotType;
+                settings.Red3RobotType = window.Red34.Robot1.Status.RobotType;
+                settings.Red4RobotType = window.Red34.Robot2.Status.RobotType;
+                settings.Red5RobotType = window.Red5.Robot1.Status.RobotType;
+                settings.Red6RobotType = window.Red6.Robot1.Status.RobotType;
+
+                settings.Blue1RobotType = window.Blue12.Robot1.Status.RobotType;
+                settings.Blue2RobotType = window.Blue12.Robot2.Status.RobotType;
+                settings.Blue3RobotType = window.Blue34.Robot1.Status.RobotType;
+                settings.Blue4RobotType = window.Blue34.Robot2.Status.RobotType;
+                settings.Blue5RobotType = window.Blue5.Robot1.Status.RobotType;
+                settings.Blue6RobotType = window.Blue6.Robot1.Status.RobotType;
+
                 settings.Red12ComPort = window.Red12.ComPortSelectionComboBox.SelectedItem;
                 settings.Red34ComPort = window.Red34.ComPortSelectionComboBox.SelectedItem;
                 settings.Red5ComPort = window.Red5.ComPortSelectionComboBox.SelectedItem;
                 settings.Blue12ComPort = window.Blue12.ComPortSelectionComboBox.SelectedItem;
                 settings.Blue34ComPort = window.Blue34.ComPortSelectionComboBox.SelectedItem;
                 settings.Blue5ComPort = window.Blue5.ComPortSelectionComboBox.SelectedItem;
+
+                settings.Red6EndPoint = window.Red6.EndPointTextBox.Text;
+                settings.Blue6EndPoint = window.Red6.EndPointTextBox.Text;
+                settings.RedBaseEndPoint = window.RedBase.EndPointTextBox.Text;
+                settings.BlueBaseEndPoint = window.Red6.EndPointTextBox.Text;
+                settings.CommonBaseEndPoint = window.CommonBase.EndPointTextBox.Text;
+
+                settings.BuffHost = window.BuffHostTextBox.Text;
             });
 
             try {

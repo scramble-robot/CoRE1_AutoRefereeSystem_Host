@@ -43,6 +43,11 @@ namespace CoRE1_AutoRefereeSystem_Host
             get { return (string)GetValue(TeamBaseColorProperty); }
             set { SetValue(TeamBaseColorProperty, value); }
         }
+
+        public string OccupationLevelColor {
+            get { return (string)GetValue(OccupationLevelColorProperty); }
+            set { SetValue(OccupationLevelColorProperty, value); }
+        }
         #endregion
 
         /* BaseStatusの定義 ******************************************************************************************************************************************/
@@ -122,14 +127,14 @@ namespace CoRE1_AutoRefereeSystem_Host
                         _occupationLevelBarColor = Master.HPBarColorEnum.WHITE;
                     } else if (BaseColor.Contains("R")) {
                         _occupationLevelBarColor = Master.HPBarColorEnum.RED;
-                        pointText = "R" + Math.Abs(_occupationLevel).ToString();
+                        pointText = "B" + Math.Abs(_occupationLevel).ToString();
                     } else {
                         _occupationLevelBarColor = Master.HPBarColorEnum.BLUE;
-                        pointText = "B" + Math.Abs(_occupationLevel).ToString();
+                        pointText = "R" + Math.Abs(_occupationLevel).ToString();
                     }
 
                     Application.Current.Dispatcher.Invoke(() => {
-                        _baseStatusManager.OccupationLevelBar.Value = 5 + _occupationLevel;
+                        _baseStatusManager.OccupationLevelBar.Value = _occupationLevel;
                         _baseStatusManager.PointTextBox.Text = pointText;
                     });
                 }
@@ -353,6 +358,9 @@ namespace CoRE1_AutoRefereeSystem_Host
         private bool _isWatching = false;
         public Master.ARSSequenceEnum arsSequence = Master.ARSSequenceEnum.NONE;
 
+        private bool isActivePrev = false;
+        private bool isOccupiedPrev = false;
+
         private int numSoftwareReset = 0;
         private int numTimeout = 0;
         private bool statusChanged = false;
@@ -402,7 +410,15 @@ namespace CoRE1_AutoRefereeSystem_Host
         private void UserControl_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e) {
             if (this.IsEnabled) {
                 OccupationLevelBar.Opacity = 1;
-                BaseDPPanel.Opacity = 1;
+                //BaseDPPanel.Opacity = 1;
+
+                Application.Current.Dispatcher.Invoke(() => {
+                    InvincibleTimeTextBoxLH.Text = "nonactive";
+                    InvincibleTimeTextBoxRH.Text = "nonactive";
+                    InvincibleTimeTextBoxLL.Text = "nonactive";
+                    InvincibleTimeTextBoxRL.Text = "nonactive";
+                });
+
             } else {
                 OccupationLevelBar.Opacity = 0.5;
                 BaseDPPanel.Opacity = 0.5;
@@ -412,7 +428,6 @@ namespace CoRE1_AutoRefereeSystem_Host
         private void UpdateBaseStatus(object sender, EventArgs args) {
             // 1つ前のイベントがまだ終了していない（別スレッドで実行中）場合はスキップ
             if (Interlocked.CompareExchange(ref _isBusy, 1, 0) != 0) return;
-
             if (logClear) {
                 Dispatcher.Invoke(() => {
                     HostStatusTextBox.Clear();
@@ -627,8 +642,18 @@ namespace CoRE1_AutoRefereeSystem_Host
                         int[] info = receivedDataString.Split(',').Select(part => Convert.ToInt32(part, 16)).ToArray();
 
                         if (Master.Instance.DuringGame && status.IsActive) {
-                            // ダメージパネルのヒット情報から占拠レベルを計算
+                            if (!isActivePrev) {
+                                Application.Current.Dispatcher.Invoke(() => {
+                                    BaseDPPanel.Opacity = 1;
+                                    InvincibleTimeTextBoxLH.Text = "";
+                                    InvincibleTimeTextBoxRH.Text = "";
+                                    InvincibleTimeTextBoxLL.Text = "";
+                                    InvincibleTimeTextBoxRL.Text = "";
+                                });
+                                isActivePrev = true;
+                            }
 
+                            // ダメージパネルのヒット情報から占拠レベルを計算
                             if (status.Occupied == Master.OccupiedEnum.NO) {
                                 int attackBuff = 1;
                                 if (status.BaseColor.Contains("R")) attackBuff = (int)Master.Instance.RedAttackBuff;
@@ -672,9 +697,10 @@ namespace CoRE1_AutoRefereeSystem_Host
                             }
                         }
 
-                        if (status.Occupied != Master.OccupiedEnum.NO) {
-                            string teamColor = status.Occupied == Master.OccupiedEnum.RED ? "Red" : "Blue";
+                        if (!isOccupiedPrev && status.Occupied != Master.OccupiedEnum.NO) {
+                            string teamColor = status.Occupied == Master.OccupiedEnum.RED ? "Blue" : "Red";
                             status.AddRobotLog($"Occupied by {teamColor} team");
+                            isOccupiedPrev = true;
                         }
 
                         if (statusChanged) {
@@ -838,15 +864,17 @@ namespace CoRE1_AutoRefereeSystem_Host
             _baseStatus.OccupationLevel += 1;
         }
 
-        private void ConnectButton_Click(object sender, RoutedEventArgs e) {
+        private async void ConnectButton_Click(object sender, RoutedEventArgs e) {
             if (client is null || !client.Connected) {
                 if (serverIPEndPoint is null) {
                     // Debug.WriteLine("stream is null");
                     return;
                 }
                 try {
+                    ConnectButton.Content = "...";
+
                     client = new TcpClient();
-                    client.Connect(serverIPEndPoint);
+                    await client.ConnectAsync(serverIPEndPoint);
                     stream = client.GetStream();
 
                     // タイムアウトの設定
@@ -860,6 +888,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                     BootButton.IsEnabled = true;
                     SendButton.IsEnabled = true;
                 } catch (Exception ex) {
+                    ConnectButton.Content = "Open";
                     MessageBox.Show($"{this.Name}: Failed to connect to Arduino server\n" +
                          $"\nProbably, selected IP has already been connnected by another.",
                          "Connection failure", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -969,6 +998,18 @@ namespace CoRE1_AutoRefereeSystem_Host
                 } else {
                     MessageBox.Show($"Invalid endpoint: {EndPointTextBox.Text}.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
+            }
+        }
+
+        public void EnterEndPoint() {
+            string input = EndPointTextBox.Text;
+            if (TryParseIpPort(input, out IPEndPoint? tmpIPEndPoint)) {
+                serverIPEndPoint = tmpIPEndPoint;
+                Debug.WriteLine(serverIPEndPoint);
+                var converter = new System.Windows.Media.BrushConverter();
+                EndPointTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
+            } else {
+                MessageBox.Show($"Invalid endpoint: {EndPointTextBox.Text}.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

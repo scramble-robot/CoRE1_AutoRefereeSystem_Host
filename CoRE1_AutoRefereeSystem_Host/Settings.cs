@@ -14,42 +14,48 @@ namespace CoRE1_AutoRefereeSystem_Host
         public int NumRedWins { get; set; } = 0;
         public int NumBlueWins { get; set; } = 0;
         public string Red1TeamName { get; set; } = "";
-        public Master.RobotTypeEnum Red1RobotType { get; set; } = Master.RobotTypeEnum.NONE;
         public string Red2TeamName { get; set; } = "";
-        public Master.RobotTypeEnum Red2RobotType { get; set; } = Master.RobotTypeEnum.NONE;
         public string Red3TeamName { get; set; } = "";
-        public Master.RobotTypeEnum Red3RobotType { get; set; } = Master.RobotTypeEnum.NONE;
         public string Red4TeamName { get; set; } = "";
-        public Master.RobotTypeEnum Red4RobotType { get; set; } = Master.RobotTypeEnum.NONE;
         public string Red5TeamName { get; set; } = "";
-        public Master.RobotTypeEnum Red5RobotType { get; set; } = Master.RobotTypeEnum.NONE;
         public string Red6TeamName { get; set; } = ""; // オートタレット
-        public Master.RobotTypeEnum Red6RobotType { get; set; } = Master.RobotTypeEnum.AUTOTURRET;
         public string Red7TeamName { get; set; } = ""; // ストライダー
-        public Master.RobotTypeEnum Red7RobotType { get; set; } = Master.RobotTypeEnum.STRIDER;
         public string Blue1TeamName { get; set; } = "";
-        public Master.RobotTypeEnum Blue1RobotType { get; set; } = Master.RobotTypeEnum.NONE;
         public string Blue2TeamName { get; set; } = "";
-        public Master.RobotTypeEnum Blue2RobotType { get; set; } = Master.RobotTypeEnum.NONE;
         public string Blue3TeamName { get; set; } = "";
-        public Master.RobotTypeEnum Blue3RobotType { get; set; } = Master.RobotTypeEnum.NONE;
         public string Blue4TeamName { get; set; } = "";
-        public Master.RobotTypeEnum Blue4RobotType { get; set; } = Master.RobotTypeEnum.NONE;
         public string Blue5TeamName { get; set; } = "";
-        public Master.RobotTypeEnum Blue5RobotType { get; set; } = Master.RobotTypeEnum.NONE;
         public string Blue6TeamName { get; set; } = ""; // オートタレット
-        public Master.RobotTypeEnum Blue6RobotType { get; set; } = Master.RobotTypeEnum.AUTOTURRET;
         public string Blue7TeamName { get; set; } = ""; // ストライダー
+
+        public Master.RobotTypeEnum Red1RobotType { get; set; } = Master.RobotTypeEnum.NONE;
+        public Master.RobotTypeEnum Red2RobotType { get; set; } = Master.RobotTypeEnum.NONE;
+        public Master.RobotTypeEnum Red3RobotType { get; set; } = Master.RobotTypeEnum.NONE;
+        public Master.RobotTypeEnum Red4RobotType { get; set; } = Master.RobotTypeEnum.NONE;
+        public Master.RobotTypeEnum Red5RobotType { get; set; } = Master.RobotTypeEnum.NONE;
+        public Master.RobotTypeEnum Red6RobotType { get; set; } = Master.RobotTypeEnum.AUTOTURRET;
+        public Master.RobotTypeEnum Red7RobotType { get; set; } = Master.RobotTypeEnum.STRIDER;
+        public Master.RobotTypeEnum Blue1RobotType { get; set; } = Master.RobotTypeEnum.NONE;
+        public Master.RobotTypeEnum Blue2RobotType { get; set; } = Master.RobotTypeEnum.NONE;
+        public Master.RobotTypeEnum Blue3RobotType { get; set; } = Master.RobotTypeEnum.NONE;
+        public Master.RobotTypeEnum Blue4RobotType { get; set; } = Master.RobotTypeEnum.NONE;
+        public Master.RobotTypeEnum Blue5RobotType { get; set; } = Master.RobotTypeEnum.NONE;
+        public Master.RobotTypeEnum Blue6RobotType { get; set; } = Master.RobotTypeEnum.AUTOTURRET;
         public Master.RobotTypeEnum Blue7RobotType { get; set; } = Master.RobotTypeEnum.STRIDER;
+
         public object Red12ComPort { get; set; } = "";
         public object Red34ComPort { get; set; } = "";
         public object Red5ComPort { get; set; } = "";
-        public string Red6EndPoint { get; set; } = "";
         public object Blue12ComPort { get; set; } = "";
         public object Blue34ComPort { get; set; } = "";
         public object Blue5ComPort { get; set; } = "";
-        public string Blue6EndPoint { get; set; } = "";
-        public string BuffHost { get; set; } = "";
+        
+        public string Red6EndPoint { get; set; } = "192.169.11.200:8888";
+        public string Blue6EndPoint { get; set; } = "192.168.11.201:8888";
+        public string RedBaseEndPoint { get; set; } = "192.168.11.210:8888";
+        public string BlueBaseEndPoint { get; set; } = "192.168.11.211:8888";
+        public string CommonBaseEndPoint { get; set; } = "192.168.11.212:8888";
+        public string BuffHost { get; set; } = "192.168.11.10:8888";
     }
 
     public class SettingsManager
@@ -58,8 +64,7 @@ namespace CoRE1_AutoRefereeSystem_Host
         private static readonly Lazy<SettingsManager> _instance = new Lazy<SettingsManager>(() => new SettingsManager());
         public static SettingsManager Instance => _instance.Value;
 
-
-        private readonly string settingsFilePath = "Settings.json";
+        private readonly string settingsFilePath = Path.Combine("config", "Settings.json");
         public bool FileExsits { get; set; } = false;
 
         private int isBusy = 0;
@@ -68,6 +73,8 @@ namespace CoRE1_AutoRefereeSystem_Host
                 throw new BusyException();
 
             try {
+                Directory.CreateDirectory("config");
+                
                 if (File.Exists(settingsFilePath)) {
                     FileExsits = true;
                     string json = File.ReadAllText(settingsFilePath);
@@ -131,7 +138,7 @@ namespace CoRE1_AutoRefereeSystem_Host
         public static NnChSettingsManager Instance => _instance.Value;
 
 
-        private readonly string settingsFilePath = "NnChSettings.json";
+        private readonly string settingsFilePath = Path.Combine("config", "NnChSettings.json");
         public bool FileExsits { get; set; } = false;
 
         private int isBusy = 0;
@@ -140,6 +147,8 @@ namespace CoRE1_AutoRefereeSystem_Host
                 throw new BusyException();
 
             try {
+                Directory.CreateDirectory("config");
+                
                 if (File.Exists(settingsFilePath)) {
                     FileExsits = true;
                     string json = File.ReadAllText(settingsFilePath);

@@ -31,7 +31,7 @@
                                  d:Foreground="#FFE61500"
                                  BorderBrush="#FF0B1508"
                                  Maximum="10"
-                                 Value="5"
+                                 Value="0"
                                  Cursor="" />
                     <TextBox x:Name="PointTextBox"
                              TextWrapping="Wrap"

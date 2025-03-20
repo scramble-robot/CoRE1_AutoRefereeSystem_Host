@@ -57,13 +57,25 @@ namespace CoRE1_AutoRefereeSystem_Host
             Red34.ComPortSelectionComboBox.SelectedItem = settings.Red34ComPort;
             Red5.ComPortSelectionComboBox.SelectedItem = settings.Red5ComPort;
             Red6.EndPointTextBox.Text = settings.Red6EndPoint;
+            Red6.EnterEndPoint();
 
             Blue12.ComPortSelectionComboBox.SelectedItem = settings.Blue12ComPort;
             Blue34.ComPortSelectionComboBox.SelectedItem = settings.Blue34ComPort;
             Blue5.ComPortSelectionComboBox.SelectedItem = settings.Blue5ComPort;
             Blue6.EndPointTextBox.Text = settings.Red6EndPoint;
+            Blue6.EnterEndPoint();
+
+            RedBase.EndPointTextBox.Text = settings.RedBaseEndPoint;
+            RedBase.EnterEndPoint();
+
+            BlueBase.EndPointTextBox.Text = settings.BlueBaseEndPoint;
+            BlueBase.EnterEndPoint();
+
+            CommonBase.EndPointTextBox.Text = settings.CommonBaseEndPoint;
+            CommonBase.EnterEndPoint();
 
             BuffHostTextBox.Text = settings.BuffHost;
+
 
             Master.Instance.SettingsJson = settings;
 
@@ -299,7 +311,7 @@ namespace CoRE1_AutoRefereeSystem_Host
             Red12.Robot1.IsEnabled = false; 
             Red12.CommEnabledToggleButton1.IsEnabled = false;
             Red12.CommEnabledToggleButton1.IsChecked = false;
-            Red12.Robot2.IsEnabled = false; 
+            Red12.Robot2.IsEnabled = false;
             Red12.CommEnabledToggleButton2.IsEnabled = false;
             Red12.CommEnabledToggleButton2.IsChecked = false;
 
@@ -545,43 +557,83 @@ namespace CoRE1_AutoRefereeSystem_Host
         /***** デバフのcallback *******************************************************************************************************/
 
         private void ShieldRed1ToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
-
+            if (ShieldRed1ToggleButton.IsChecked == true) {
+                Red12.Robot1.Status.IsShieldBuffActive = true;
+            } else {
+                Red12.Robot1.Status.IsShieldBuffActive=false;
+            }
         }
 
         private void ShieldRed2ToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
-
+            if (ShieldRed2ToggleButton.IsChecked == true) {
+                Red12.Robot2.Status.IsShieldBuffActive = true;
+            } else {
+                Red12.Robot2.Status.IsShieldBuffActive=false;
+            }
         }
 
         private void ShieldRed3ToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
-
+            if (ShieldRed3ToggleButton.IsChecked == true) {
+                Red34.Robot1.Status.IsShieldBuffActive = true;
+            } else {
+                Red34.Robot1.Status.IsShieldBuffActive=false;
+            }
         }
 
         private void ShieldRed4ToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
-
+            if (ShieldRed4ToggleButton.IsChecked == true) {
+                Red34.Robot2.Status.IsShieldBuffActive = true;
+            } else {
+                Red34.Robot2.Status.IsShieldBuffActive=false;
+            }
         }
 
         private void ShieldRed5ToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
-
+            if (ShieldRed5ToggleButton.IsChecked == true) {
+                Red5.Robot1.Status.IsShieldBuffActive = true;
+            } else {
+                Red5.Robot1.Status.IsShieldBuffActive=false;
+            }
         }
 
         private void ShieldBlue1ToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
-
+            if (ShieldBlue1ToggleButton.IsChecked == true) {
+                Blue12.Robot1.Status.IsShieldBuffActive = true;
+            } else {
+                Blue12.Robot1.Status.IsShieldBuffActive=false;
+            }
         }
 
         private void ShieldBlue2ToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
-
+            if (ShieldBlue2ToggleButton.IsChecked == true) {
+                Blue12.Robot2.Status.IsShieldBuffActive = true;
+            } else {
+                Blue12.Robot2.Status.IsShieldBuffActive=false;
+            }
         }
 
         private void ShieldBlue3ToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
-
+            if (ShieldBlue3ToggleButton.IsChecked == true) {
+                Blue34.Robot1.Status.IsShieldBuffActive = true;
+            } else {
+                Blue34.Robot1.Status.IsShieldBuffActive=false;
+            }
         }
 
         private void ShieldBlue4ToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
-
+            if (ShieldBlue4ToggleButton.IsChecked == true) {
+                Blue34.Robot2.Status.IsShieldBuffActive = true;
+            } else {
+                Blue34.Robot2.Status.IsShieldBuffActive=false;
+            }
         }
 
         private void ShieldBlue5ToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
-
+            if (ShieldBlue5ToggleButton.IsChecked == true) {
+                Blue5.Robot1.Status.IsShieldBuffActive = true;
+            } else {
+                Blue5.Robot1.Status.IsShieldBuffActive=false;
+            }
         }
 
         /***** 手動判定の際のキーボードショートカット *******************************************************************************************************/

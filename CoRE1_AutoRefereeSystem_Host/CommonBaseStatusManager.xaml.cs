@@ -134,10 +134,10 @@ namespace CoRE1_AutoRefereeSystem_Host
                         _occupationLevelBarColor = Master.HPBarColorEnum.WHITE;
                     } else if (_occupationLevel < 0) {
                         _occupationLevelBarColor = Master.HPBarColorEnum.RED;
-                        pointText = "R" + Math.Abs(_occupationLevel).ToString();
+                        pointText = "B" + Math.Abs(_occupationLevel).ToString();
                     } else {
                         _occupationLevelBarColor = Master.HPBarColorEnum.BLUE;
-                        pointText = "B" + Math.Abs(_occupationLevel).ToString();
+                        pointText = "R" + Math.Abs(_occupationLevel).ToString();
                     }
 
                     Application.Current.Dispatcher.Invoke(() => {
@@ -490,6 +490,9 @@ namespace CoRE1_AutoRefereeSystem_Host
         private bool _isWatching = false;
         public Master.ARSSequenceEnum arsSequence = Master.ARSSequenceEnum.NONE;
 
+        private bool isRedActivePrev = false;
+        private bool isBlueActivePrev = false;
+
         private int numSoftwareReset = 0;
         private int numTimeout = 0;
         private bool statusChanged = false;
@@ -533,18 +536,24 @@ namespace CoRE1_AutoRefereeSystem_Host
         /* ロード時のイベント ****************************************************************************************************************************************/
         #region
         private void UserControl_Loaded(object sender, RoutedEventArgs e) {
-            this.IsEnabled = false;
-            //BootButton.IsEnabled = false;
-            //RedPingButton.IsEnabled = false;
-            //BluePingButton.IsEnabled = false;
-            //SendButton.IsEnabled = false;
+
         }
 
         private void UserControl_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e) {
             if (this.IsEnabled) {
                 OccupationLevelBar.Opacity = 1;
-                RedBaseDPPanel.Opacity = 1;
-                BlueBaseDPPanel.Opacity = 1;
+                //RedBaseDPPanel.Opacity = 1;
+                //BlueBaseDPPanel.Opacity = 1;
+
+                Application.Current.Dispatcher.Invoke(() => {
+                    InvincibleTimeTextBoxRL.Text = "nonactive";
+                    InvincibleTimeTextBoxRC.Text = "nonactive";
+                    InvincibleTimeTextBoxRR.Text = "nonactive";
+                    InvincibleTimeTextBoxBL.Text = "nonactive";
+                    InvincibleTimeTextBoxBC.Text = "nonactive";
+                    InvincibleTimeTextBoxBR.Text = "nonactive";
+                });
+
             } else {
                 OccupationLevelBar.Opacity = 0.5;
                 RedBaseDPPanel.Opacity = 0.5;
@@ -564,7 +573,6 @@ namespace CoRE1_AutoRefereeSystem_Host
                     logClear = false;
                 });
             }
-
             if (arsSequence != Master.ARSSequenceEnum.UPDATING) {
                 try {
                     if (arsSequence == Master.ARSSequenceEnum.OPENED) {
@@ -771,9 +779,21 @@ namespace CoRE1_AutoRefereeSystem_Host
                         int[] info = receivedDataString.Split(',').Select(part => Convert.ToInt32(part, 16)).ToArray();
 
                         // ダメージパネルのヒット情報から占拠レベルを計算
-
+                        if (Master.Instance.DuringGame) {
                             // 青の攻撃
-                            if (status.IsBlueActive && status.Occupied != Master.OccupiedEnum.BLUE) {
+                            if (status.IsRedActive && status.Occupied != Master.OccupiedEnum.BLUE) {
+                                Debug.WriteLine("Blue Active");
+
+                                if (!isRedActivePrev) {
+                                    Application.Current.Dispatcher.Invoke(() => {
+                                        RedBaseDPPanel.Opacity = 1;
+                                        InvincibleTimeTextBoxRL.Text = "";
+                                        InvincibleTimeTextBoxRC.Text = "";
+                                        InvincibleTimeTextBoxRR.Text = "";
+                                    });
+                                    isRedActivePrev = true;
+                                }
+
                                 int attackBuff = (int)Master.Instance.BlueAttackBuff;
                                 if (!status.LeftRDPInvulnerable && BitHigh(info[5], (int)BaseStatus.DamagePanelPosition.LeftRDP)) {
                                     int diff = 1 * attackBuff;
@@ -802,7 +822,17 @@ namespace CoRE1_AutoRefereeSystem_Host
                             }
 
                             // 赤の攻撃
-                            if (status.IsRedActive && status.Occupied != Master.OccupiedEnum.RED) {
+                            if (status.IsBlueActive && status.Occupied != Master.OccupiedEnum.RED) {
+                                if (!isBlueActivePrev) {
+                                    Application.Current.Dispatcher.Invoke(() => {
+                                        BlueBaseDPPanel.Opacity = 1;
+                                        InvincibleTimeTextBoxBL.Text = "";
+                                        InvincibleTimeTextBoxBC.Text = "";
+                                        InvincibleTimeTextBoxBR.Text = "";
+                                    });
+                                    isBlueActivePrev = true;
+                                }
+
                                 int attackBuff = (int)Master.Instance.RedAttackBuff;
                                 if (!status.LeftBDPInvulnerable && BitHigh(info[5], (int)BaseStatus.DamagePanelPosition.LeftBDP)) {
                                     int diff = 1 * attackBuff;
@@ -829,10 +859,10 @@ namespace CoRE1_AutoRefereeSystem_Host
                                     status.AddRobotLog($"Hit Right BDP. -{diff}, now: {status.OccupationLevel}");
                                 }
                             }
-                        
+                        }
 
                         if (status.Occupied != Master.OccupiedEnum.NO) {
-                            string teamColor = status.Occupied == Master.OccupiedEnum.RED ? "Red" : "Blue";
+                            string teamColor = status.Occupied == Master.OccupiedEnum.RED ? "Blue" : "Red";
                             status.AddRobotLog($"Occupied by {teamColor} team");
                         }
 
@@ -995,7 +1025,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                     //string receivedChar = System.Text.Encoding.ASCII.GetString(new byte[] { b })
                     //string receivedChar = b.ToString()
                     sb.Append(receivedChar);
-                    Debug.Write(receivedChar);
+                    //Debug.Write(receivedChar);
                     if (receivedChar == value) return sb.ToString();
                 }
             }
@@ -1021,15 +1051,17 @@ namespace CoRE1_AutoRefereeSystem_Host
             _baseStatus.OccupationLevel += 1;
         }
 
-        private void ConnectButton_Click(object sender, RoutedEventArgs e) {
+        private async void ConnectButton_Click(object sender, RoutedEventArgs e) {
             if (client is null || !client.Connected) {
                 if (serverIPEndPoint is null) {
                     // Debug.WriteLine("stream is null");
                     return;
                 }
                 try {
+                    ConnectButton.Content = "...";
+
                     client = new TcpClient();
-                    client.Connect(serverIPEndPoint);
+                    await client.ConnectAsync(serverIPEndPoint);
                     stream = client.GetStream();
 
                     // タイムアウトの設定
@@ -1043,6 +1075,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                     BootButton.IsEnabled = true;
                     SendButton.IsEnabled = true;
                 } catch (Exception ex) {
+                    ConnectButton.Content = "Open";
                     MessageBox.Show($"{this.Name}: Failed to connect to Arduino server\n" +
                          $"\nProbably, selected IP has already been connnected by another.",
                          "Connection failure", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -1159,6 +1192,18 @@ namespace CoRE1_AutoRefereeSystem_Host
                 } else {
                     MessageBox.Show($"Invalid endpoint: {EndPointTextBox.Text}.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
+            }
+        }
+
+        public void EnterEndPoint() {
+            string input = EndPointTextBox.Text;
+            if (TryParseIpPort(input, out IPEndPoint? tmpIPEndPoint)) {
+                serverIPEndPoint = tmpIPEndPoint;
+                Debug.WriteLine(serverIPEndPoint);
+                var converter = new System.Windows.Media.BrushConverter();
+                EndPointTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
+            } else {
+                MessageBox.Show($"Invalid endpoint: {EndPointTextBox.Text}.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
