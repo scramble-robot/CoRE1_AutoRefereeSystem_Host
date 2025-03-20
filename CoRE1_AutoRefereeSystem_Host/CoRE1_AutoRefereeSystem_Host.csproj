@@ -6,6 +6,7 @@
     <RootNamespace>CoRE1_AutoRefereeSystem_Host</RootNamespace>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Icons\CoRE-logo_only.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,6 +17,10 @@
     <Resource Include="Images\damagePanel.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Icons\CoRE-logo_only.ico" />
   </ItemGroup>
 
   <ItemGroup>
