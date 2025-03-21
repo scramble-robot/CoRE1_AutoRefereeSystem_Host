@@ -74,7 +74,7 @@ namespace CoRE1_AutoRefereeSystem_Host
             CommonBase.EndPointTextBox.Text = settings.CommonBaseEndPoint;
             CommonBase.EnterEndPoint();
 
-            BuffHostTextBox.Text = settings.BuffHost;
+            //BuffHostTextBox.Text = settings.BuffHost;
 
 
             Master.Instance.SettingsJson = settings;
@@ -503,31 +503,29 @@ namespace CoRE1_AutoRefereeSystem_Host
         }
 
         /***** 副審のArduinoからUDPで受信するための設定 *******************************************************************************************************/
-        private void BuffHostTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) {
-            var converter = new System.Windows.Media.BrushConverter();
-            BuffHostTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#30FF0000");
-        }
+        //private void BuffHostTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) {
+        //    var converter = new System.Windows.Media.BrushConverter();
+        //    BuffHostTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#30FF0000");
+        //}
         
-        private void BuffHostTextBox_KeyDown(object sender, KeyEventArgs e) {
-            if (e.Key == System.Windows.Input.Key.Enter) {
-                string input = BuffHostTextBox.Text;
-                if (TryParseIpPort(input, out IPEndPoint? tmpIPEndPoint)) {
-                    Keyboard.ClearFocus();
-                    e.Handled = true;
+        //private void BuffHostTextBox_KeyDown(object sender, KeyEventArgs e) {
+        //    if (e.Key == System.Windows.Input.Key.Enter) {
+        //        string input = BuffHostTextBox.Text;
+        //        if (TryParseIpPort(input, out IPEndPoint? tmpIPEndPoint)) {
+        //            Keyboard.ClearFocus();
+        //            e.Handled = true;
+        //            var converter = new System.Windows.Media.BrushConverter();
+        //            BuffHostTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
+        //            Master.Instance.SettingsChanged = true;
+        //        } else {
+        //            MessageBox.Show($"Invalid endpoint: {BuffHostTextBox.Text}.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        //        }
+        //    }
+        //}
 
-                    //serverIPEndPoint = tmpIPEndPoint;
-                    //Debug.WriteLine(serverIPEndPoint);
-                    var converter = new System.Windows.Media.BrushConverter();
-                    BuffHostTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
-                } else {
-                    MessageBox.Show($"Invalid endpoint: {BuffHostTextBox.Text}.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-        }
-
-        private void BuffHostOpenButton_Click(object sender, RoutedEventArgs e) {
+        //private void BuffHostOpenButton_Click(object sender, RoutedEventArgs e) {
             
-        }
+        //}
 
         static bool TryParseIpPort(string input, out IPEndPoint? endPoint) {
             endPoint = null;

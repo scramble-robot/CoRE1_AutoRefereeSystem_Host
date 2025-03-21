@@ -968,7 +968,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                     string command = "boot commonbase";
                     SendTextToArduino(command);
 
-                    BootButton.Content = "Shtdwn";
+                    BootButton.Content = "Shut.";
                     arsSequence = Master.ARSSequenceEnum.BOOTING;
 
                 } catch (Exception ex) {
@@ -1008,6 +1008,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                 Debug.WriteLine(serverIPEndPoint);
                 var converter = new System.Windows.Media.BrushConverter();
                 EndPointTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
+                Master.Instance.SettingsChanged = true;
             } else {
                 MessageBox.Show($"Invalid endpoint: {EndPointTextBox.Text}.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }

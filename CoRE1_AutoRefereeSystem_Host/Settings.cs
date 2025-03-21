@@ -50,7 +50,7 @@ namespace CoRE1_AutoRefereeSystem_Host
         public object Blue34ComPort { get; set; } = "";
         public object Blue5ComPort { get; set; } = "";
         
-        public string Red6EndPoint { get; set; } = "192.169.11.200:8888";
+        public string Red6EndPoint { get; set; } = "192.168.11.200:8888";
         public string Blue6EndPoint { get; set; } = "192.168.11.201:8888";
         public string RedBaseEndPoint { get; set; } = "192.168.11.210:8888";
         public string BlueBaseEndPoint { get; set; } = "192.168.11.211:8888";

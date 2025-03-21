@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:CoRE1_AutoRefereeSystem_Host"
              mc:Ignorable="d"
-             d:DesignHeight="940"
+             d:DesignHeight="950"
              d:DesignWidth="600"
              d:Background="White"
              Loaded="UserControl_Loaded"
@@ -39,7 +39,8 @@
                 <StackPanel x:Name="Client1Panel"
                             Orientation="Vertical"
                             Grid.Column="0">
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal"
+                                Margin="0,10,0,0">
                         <ToggleButton x:Name="CommEnabledToggleButton1"
                                       d:IsChecked="True"
                                       Style="{StaticResource MaterialDesignSwitchToggleButton}"
@@ -73,7 +74,8 @@
                 <StackPanel x:Name="Client2Panel"
                             Orientation="Vertical"
                             Grid.Column="2">
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal"
+                                Margin="0,10,0,0">
                         <ToggleButton x:Name="CommEnabledToggleButton2"
                                       d:IsChecked="True"
                                       Style="{StaticResource MaterialDesignSwitchToggleButton}"

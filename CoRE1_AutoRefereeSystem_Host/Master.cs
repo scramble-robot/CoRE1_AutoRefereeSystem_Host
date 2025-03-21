@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
-using System.IO;
-using System.IO.Pipes;
 using System.Threading;
 using System.Timers;
 using System.Windows;
 using Newtonsoft.Json;
-using System.ComponentModel;
 using System.Windows.Threading;
 using System.Net.Sockets;
 using System.Text;
@@ -964,15 +960,15 @@ namespace CoRE1_AutoRefereeSystem_Host
                 settings.BlueBaseEndPoint = window.Red6.EndPointTextBox.Text;
                 settings.CommonBaseEndPoint = window.CommonBase.EndPointTextBox.Text;
 
-                settings.BuffHost = window.BuffHostTextBox.Text;
+                //settings.BuffHost = window.BuffHostTextBox.Text;
             });
 
             try {
                 SettingsManager.Instance.SaveSettings(settings);
             } catch (BusyException ex) {
-                ;
+                return;
             } catch (Exception ex) {
-                ;
+                return;
             }
 
             Instance.SettingsChanged = false;
@@ -1020,7 +1016,6 @@ namespace CoRE1_AutoRefereeSystem_Host
             RobotClass blueAutoRobot = new RobotClass();
             redAutoRobot.TeamColor = "Red6";  redAutoRobot.TeamID = 18;
             blueAutoRobot.TeamColor = "Blue6"; blueAutoRobot.TeamID = 18;
-
 
             RobotStatusManager.RobotStatus[] AllRobotStatus = {
                 window.Red12.Robot1.Status,
@@ -1101,9 +1096,18 @@ namespace CoRE1_AutoRefereeSystem_Host
                 while (_buffUdpReciever.Available > 0) {
                     byte[] receivedBytes = _buffUdpReciever.Receive(ref _remoteEndPoint);
                     string receivedData = Encoding.UTF8.GetString(receivedBytes);
-                    Debug.WriteLine(receivedData);
                     IPAddress senderIp = _remoteEndPoint.Address;
                     _latestDataByIp[senderIp] = receivedData;
+
+                    Application.Current.Dispatcher.Invoke(() => {
+                        var window = GetMainWindow();
+                        window.UdpTextBox.AppendText(
+                             $"[{DateTime.Now.ToString("HH:mm:ss.ff")}] from {senderIp} \r\n" +
+                             $"|---> {receivedData}" +
+                             "---------\r\n"
+                        );
+                        window.UdpTextBox.ScrollToEnd();
+                    });
                 }
 
                 // バンカー
