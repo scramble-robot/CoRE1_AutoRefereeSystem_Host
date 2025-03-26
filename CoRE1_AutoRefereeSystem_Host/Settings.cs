@@ -106,28 +106,39 @@ namespace CoRE1_AutoRefereeSystem_Host
     public class NnChSettings
     {
         public Dictionary<string, int> TeamNodeNo = new Dictionary<string, int> {
-            {"", 2000},
-            {"[FRCI]FRENTE-Cielo", 2603},
-            {"[FRRO]FRENTE-Rosa", 2703},
-            {"[FRSE]FRENTE-Selva", 2803},
-            {"[FRBR]Front Line Breakers", 2903},
-            {"[GRGA]GIRASOLE-Gauss", 3403},
-            {"[GRVO]GIRASOLE-Volta", 3203},
-            {"[KMOK]KmoKHS-CoRE", 3903},
-            {"[KTTM]KT-tokitama", 3803},
-            {"[SHND]SCHWARZ-HANEDA", 2403},
-            {"[VXGA]VERTEX-Gamma", 2103},
-            {"[VXZE]VERTEX-Zeta", 3303},
-            {"[HYLI]東山Lightning", 3003},
+            {"AGSR [ATK]", 9999},
+            {"AVNT [ATK]", 9999},
+            {"KNIT [ATK]", 9999},
+            {"MKNG [ATK]", 9999},
+            {"RTUS [ATK]", 9999},
+            {"SEC [ATK]", 9999},
+            {"TMC [ATK]", 9999},
+            {"TKG [ATK]", 9999},
+            {"TRU [ATK]", 9999},
+            {"CNTN [ATK]", 9999},
+            {"DTB [ATK]", 9999},
+            {"TSTM [ATK]", 9999},
+            {"KSHH [ATK]", 9999},
+            {"DRBS [ATK]", 9999},
+            {"RISN [ATK]", 9999},
+            {"KSKN [BLD]", 9999},
+            {"AGSR [BLD]", 9999},
+            {"TRU [BLD]", 9999},
+            {"RISN [BLD]", 9999},
+            {"SEC [ATR]", 9999},
+            {"TKG [ATR]", 9999},
+            {"DTB [ATR]", 9999},
+            {"KNIT [STR]", 9999},
+            {"MKNG [STR]", 9999},
         };
 
         public Dictionary<string, int> HostCH = new Dictionary<string, int> {
-            {"Red12", 2},
+            {"Red12", 1},
             {"Red34", 3},
             {"Red5", 4},
             {"Blue12", 5},
-            {"Blue34", 6},
-            {"Blue5", 7}
+            {"Blue34", 7},
+            {"Blue5", 9}
         };
     }
 

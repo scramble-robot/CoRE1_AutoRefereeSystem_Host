@@ -350,6 +350,10 @@ namespace CoRE1_AutoRefereeSystem_Host
             if (TeamNameComboBox.SelectedItem is null) return;
             Status.TeamName = TeamNameComboBox.SelectedItem.ToString();
             Status.TeamID = TeamNameComboBox.SelectedIndex;
+
+            if (Status.TeamName.Contains("[ATK]")) RobotTypeComboBox.SelectedItem = "Attacker";
+            else if (Status.TeamName.Contains("[BLD]")) RobotTypeComboBox.SelectedItem = "Builder";
+            
             Master.Instance.SettingsChanged = true;
         }
 

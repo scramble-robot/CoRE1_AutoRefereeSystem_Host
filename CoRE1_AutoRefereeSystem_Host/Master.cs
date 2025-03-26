@@ -21,25 +21,31 @@ namespace CoRE1_AutoRefereeSystem_Host
         // 出場チーム
         public string[] TeamName = {
             "",
-            "[AGA]AGA'star.",
-            "[AGSR]AGSR",
-            "[AVNT]AVANT",
-            "[KNIT]KINKI KNIGHTS",
-            "[MKNG]MA-KING",
-            "[RTUS]Ro.T.U.S",
-            "[SEC]SETAGAYA Eclipse",
-            "[TMC]Tactical Majestic Creators",
-            "[TKG]TKG",
-            "[TRU]Tohoku Roboconist Union",
-            "[CNTN]こんてにゅ～",
-            "[DTB]でんとつーとびーばー",
-            "[TSTM]チーム薩摩",
-            "[KSHH]機襲藩",
-            "[KSKN]香創研",
-            "[DRBS]大ロボーズ",
-            "[RISN]雷閃"
+            "AGSR [ATK]",
+            "AVNT [ATK]",
+            "KNIT [ATK]",
+            "MKNG [ATK]",
+            "RTUS [ATK]",
+            "SEC [ATK]",
+            "TMC [ATK]",
+            "TKG [ATK]",
+            "TRU [ATK]",
+            "CNTN [ATK]",
+            "DTB [ATK]",
+            "TSTM [ATK]",
+            "KSHH [ATK]",
+            "DRBS [ATK]",
+            "RISN [ATK]",
+            "KSKN [BLD]",
+            "AGSR [BLD]",
+            "TRU [BLD]",
+            "RISN [BLD]",
+            "SEC [ATR]",
+            "TKG [ATR]",
+            "DTB [ATR]",
+            "KNIT [STR]",
+            "MKNG [STR]",
         };
-
 
         public Dictionary<string, int> TeamNodeNo = new Dictionary<string, int> {};
 
@@ -586,7 +592,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         Instance.IsRedZone2ShieldBuffActive = true;
                         Instance._redZone2ShieldBuffStartTime = DateTime.Now;
                     } else {
-                        window.RedZone1TimeTextBlock.Text = $"waiting...";
+                        window.RedZone2TimeTextBlock.Text = $"waiting...";
                     }
                 }
 
@@ -623,7 +629,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         Instance.IsBlueZone2ShieldBuffActive = true;
                         Instance._blueZone2ShieldBuffStartTime = DateTime.Now;
                     } else {
-                        window.BlueZone1TimeTextBlock.Text = $"waiting...";
+                        window.BlueZone2TimeTextBlock.Text = $"waiting...";
                     }
                 }
 
