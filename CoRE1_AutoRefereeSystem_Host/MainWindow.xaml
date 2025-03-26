@@ -212,7 +212,7 @@
                                              d:Text="40 sec.."
                                              FontSize="18"
                                              Margin="5,10,10,10"
-                                             Width="70"
+                                             Width="80"
                                              TextAlignment="Center" />
                                 </StackPanel>
 
@@ -234,7 +234,7 @@
                                              d:Text="40 sec.."
                                              FontSize="18"
                                              Margin="5,10,10,10"
-                                             Width="70"
+                                             Width="80"
                                              TextAlignment="Center" />
                                 </StackPanel>
 
@@ -266,7 +266,7 @@
                                              d:Text="60 sec.."
                                              FontSize="18"
                                              Margin="5,10,10,10"
-                                             Width="70"
+                                             Width="80"
                                              TextAlignment="Center" />
 
                                 </StackPanel>
@@ -287,7 +287,7 @@
                                              d:Text="60 sec.."
                                              FontSize="18"
                                              Margin="5,10,10,10"
-                                             Width="70"
+                                            Width="80"
                                              TextAlignment="Center" />
                                 </StackPanel>
 
@@ -308,7 +308,7 @@
                                              d:Text="30 sec.."
                                              FontSize="18"
                                              Margin="5,10,10,10"
-                                             Width="70"
+                                             Width="80"
                                              TextAlignment="Center" />
                                 </StackPanel>
 
@@ -329,7 +329,7 @@
                                              d:Text="30 sec.."
                                              FontSize="18"
                                              Margin="5,10,10,10"
-                                             Width="70"
+                                             Width="80"
                                              TextAlignment="Center" />
                                 </StackPanel>
                             </StackPanel>
@@ -425,7 +425,7 @@
                                              d:Text="40 sec.."
                                              FontSize="18"
                                              Margin="5,10,10,10"
-                                             Width="70"
+                                             Width="80"
                                              TextAlignment="Center" />
                                 </StackPanel>
 
@@ -447,7 +447,7 @@
                                              d:Text="40 sec.."
                                              FontSize="18"
                                              Margin="5,10,10,10"
-                                             Width="70"
+                                             Width="80"
                                              TextAlignment="Center" />
                                 </StackPanel>
 
@@ -479,7 +479,7 @@
                                              d:Text="60 sec.."
                                              FontSize="18"
                                              Margin="5,10,10,10"
-                                             Width="70"
+                                             Width="80"
                                              TextAlignment="Center" />
 
                                 </StackPanel>
@@ -500,7 +500,7 @@
                                              d:Text="60 sec.."
                                              FontSize="18"
                                              Margin="5,10,10,10"
-                                             Width="70"
+                                            Width="80"
                                              TextAlignment="Center" />
                                 </StackPanel>
 
@@ -521,7 +521,7 @@
                                              d:Text="30 sec.."
                                              FontSize="18"
                                              Margin="5,10,10,10"
-                                             Width="70"
+                                             Width="80"
                                              TextAlignment="Center" />
                                 </StackPanel>
 
@@ -542,7 +542,7 @@
                                              d:Text="30 sec.."
                                              FontSize="18"
                                              Margin="5,10,10,10"
-                                             Width="70"
+                                             Width="80"
                                              TextAlignment="Center" />
                                 </StackPanel>
                             </StackPanel>
@@ -580,7 +580,7 @@
                                     Margin="10,5,0,5"
                                     Click="BuffHostOpenButton_Click"
                                     HorizontalAlignment="Left"
-                                    Width="70" />
+                                    Width="80" />
                         </StackPanel>-->
                         </StackPanel>
                         <StackPanel>

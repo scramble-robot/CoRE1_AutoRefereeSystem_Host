@@ -205,6 +205,9 @@ namespace CoRE1_AutoRefereeSystem_Host
             Blue6.CommEnabledToggleButton1.IsEnabled = true;
             Blue6.CommEnabledToggleButton1.IsChecked = true;
 
+            RedZone1Button.IsEnabled = true;
+            BlueZone1Button.IsEnabled= true;
+
             RedBase.IsEnabled = true;
             CommonBase.IsEnabled = true;
             BlueBase.IsEnabled = true;
@@ -281,6 +284,9 @@ namespace CoRE1_AutoRefereeSystem_Host
             Blue6.Robot1.IsEnabled = true;
             Blue6.CommEnabledToggleButton1.IsEnabled = true;
             Blue6.CommEnabledToggleButton1.IsChecked = true;
+
+            RedZone1Button.IsEnabled = true;
+            BlueZone1Button.IsEnabled = true;
 
             RedBase.IsEnabled = true;
             CommonBase.IsEnabled = true;
@@ -365,6 +371,12 @@ namespace CoRE1_AutoRefereeSystem_Host
             Blue6.Robot1.IsEnabled = false; 
             Blue6.CommEnabledToggleButton1.IsEnabled = false;
             Blue6.CommEnabledToggleButton1.IsChecked = false;
+
+            // ZONE
+            RedZone1Button.IsEnabled = false;
+            RedZone2Button.IsEnabled = false;
+            BlueZone1Button.IsEnabled = false;
+            BlueZone2Button.IsEnabled = false;
 
             // RedBase
             RedBase.IsEnabled = false;
@@ -472,7 +484,7 @@ namespace CoRE1_AutoRefereeSystem_Host
         }
 
         private void RedZone2Button_Click(object sender, RoutedEventArgs e) {
-            if (!Master.Instance.IsRedZone1ShieldBuffActive) { // ゾーン1のバフ効果が継続中
+            if (Master.Instance.IsRedZone1ShieldBuffActive) { // ゾーン1のバフ効果が継続中
                 Master.Instance.IsRedZone2ShieldBuffActiveWaiting = true;
             } else {
                 Master.Instance.IsRedZone2ShieldBuffActive = true;
@@ -492,7 +504,7 @@ namespace CoRE1_AutoRefereeSystem_Host
         }
 
         private void BlueZone2Button_Click(object sender, RoutedEventArgs e) {
-            if (!Master.Instance.IsBlueZone1ShieldBuffActive) { // ゾーン1のバフ効果が継続中
+            if (Master.Instance.IsBlueZone1ShieldBuffActive) { // ゾーン1のバフ効果が継続中
                 Master.Instance.IsBlueZone2ShieldBuffActiveWaiting = true;
             } else {
                 Master.Instance.IsBlueZone2ShieldBuffActive = true;
