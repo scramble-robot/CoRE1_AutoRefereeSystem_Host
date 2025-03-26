@@ -314,6 +314,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                     int hpBarColor = (int)robotStatus.HPBarColor;
                     int dpColor = (int)robotStatus.DamagePanelColor;
                     int hpPercent = 100 * robotStatus.HP / robotStatus.MaxHP;
+                    if (defeatedFlag) hpPercent = 100; // 撃破時にHPバーを黄色に光らせるために100%にする
 
 
                     // 送信データを規定のプロトコルに基づいて作成

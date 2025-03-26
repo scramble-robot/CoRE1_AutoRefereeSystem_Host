@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO.Ports;
 using System.Windows;
 using System.Windows.Controls;
 using System.Text;
@@ -9,7 +8,6 @@ using System.Windows.Threading;
 using System.Net.Sockets;
 using System.Linq;
 using System.Diagnostics;
-using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Windows.Input;
 using System.Net;
@@ -59,7 +57,6 @@ namespace CoRE1_AutoRefereeSystem_Host
         // ARSの更新タイマー
         private System.Timers.Timer _updateTimer;
         private System.Timers.Timer _logClearTimer;
-
 
         public AutoTurretCommunicationController() {
             InitializeComponent();
@@ -246,7 +243,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                     int hpBarColor = (int)robotStatus.HPBarColor;
                     int dpColor = (int)robotStatus.DamagePanelColor;
                     int hpPercent = 100 * robotStatus.HP / robotStatus.MaxHP;
-
+                    if (defeatedFlag) hpPercent = 100; // 撃破時にHPバーを黄色に光らせるために100%にする
 
                     // 送信データを規定のプロトコルに基づいて作成
                     _sendData.Clear();
@@ -379,11 +376,9 @@ namespace CoRE1_AutoRefereeSystem_Host
                         stream.Close();
                         Thread.Sleep(2000);
                         arsSequence = Master.ARSSequenceEnum.RECONNECTING;
-                    } 
-                    catch (Exception ex) {
+                    } catch (Exception ex) {
                         Debug.WriteLine(ex);
                     }
-
                 } finally {
                     Interlocked.Exchange(ref _isBusy, 0);
                 }
