@@ -349,7 +349,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                     TextBox robotRecivedTextBox;
                     int communicatingRobot = -1;
 
-                    if (Robot1.Status.Connection == Master.RobotConnectionEnum.CONNECTED && Robot2.Status.Connection == Master.RobotConnectionEnum.CONNECTED) {
+                    if (Robot1.Status.Connection == Master.RobotConnectionEnum.ENABLED && Robot2.Status.Connection == Master.RobotConnectionEnum.ENABLED) {
                         if (_lastCommunicationRobot == 2) {
                             robot = Robot1;
                             robotStatus = Robot1.Status;
@@ -369,12 +369,12 @@ namespace CoRE1_AutoRefereeSystem_Host
                             // TODO: ヒット判定があったロボットを優先するなど
                             _lastCommunicationRobot = 2;
                         }
-                    } else if (Robot1.Status.Connection == Master.RobotConnectionEnum.CONNECTED) {
+                    } else if (Robot1.Status.Connection == Master.RobotConnectionEnum.ENABLED) {
                         robot = Robot1;
                         robotStatus = Robot1.Status;
                         robotRecivedTextBox = ReceivedDataTextBox1;
                         communicatingRobot = 1;
-                    } else if (Robot2.Status.Connection == Master.RobotConnectionEnum.CONNECTED) {
+                    } else if (Robot2.Status.Connection == Master.RobotConnectionEnum.ENABLED) {
                         robot = Robot2;
                         robotStatus = Robot2.Status;
                         robotRecivedTextBox = ReceivedDataTextBox2;
@@ -458,8 +458,6 @@ namespace CoRE1_AutoRefereeSystem_Host
                                 LinkTextBox.ScrollToEnd();
                             });
                         }
-
-                        // Debug.WriteLine(receivedDataString);
 
                         // 受信データの複号
                         // IM920が自動で付与するヘッダを除去
