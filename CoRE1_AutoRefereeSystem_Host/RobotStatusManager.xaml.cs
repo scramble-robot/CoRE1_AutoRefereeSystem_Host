@@ -334,12 +334,12 @@ namespace CoRE1_AutoRefereeSystem_Host
         }
 
         private void UserControl_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e) {
-            int maxHp = Master.Instance.MaxHP;
+            int maxHp = Master.Instance.MaxHPAttacker;
             if (this.IsEnabled) {
                 if (Master.Instance.GameFormat == Master.GameFormatEnum.PRELIMINALY) {
                     Status.TeamColor = PanelLabel.Replace(" ", "");
-                    if (Status.TeamColor.Contains("Red")) maxHp = Master.Instance.PreRedMaxHP;
-                    else maxHp = Master.Instance.PreBlueMaxHP;
+                    if (Status.TeamColor.Contains("Red")) maxHp = Master.Instance.PreliminaryGameRedMaxHP;
+                    else maxHp = Master.Instance.PreliminaryGameBlueMaxHP;
                     RobotTypeComboBox.IsEnabled = false;
                 } else {
                     RobotTypeComboBox.IsEnabled= true;
@@ -376,9 +376,9 @@ namespace CoRE1_AutoRefereeSystem_Host
             if (Master.Instance.GameFormat == Master.GameFormatEnum.PRELIMINALY) return;
 
             if (Status.RobotType == Master.RobotTypeEnum.ATTACKER) {
-                Status.MaxHP = Master.Instance.MaxHP;
-                Status.HP = Master.Instance.MaxHP;
-                Status.RespawnHP = Master.Instance.RespawnHP;
+                Status.MaxHP = Master.Instance.MaxHPAttacker;
+                Status.HP = Master.Instance.MaxHPAttacker;
+                Status.RespawnHP = Master.Instance.RespawnHPAttacker;
             } else if (Status.RobotType == Master.RobotTypeEnum.BUILDER) {
                 Status.MaxHP = Master.Instance.MaxHPBuilder;
                 Status.HP = Master.Instance.MaxHPBuilder;
@@ -446,7 +446,7 @@ namespace CoRE1_AutoRefereeSystem_Host
         }
 
         private void OnRespawnTimedEvent(object source, ElapsedEventArgs e) {
-            if (!Master.Instance.DuringGame) return;
+            if (!Master.Instance.IsGameRunning) return;
 
             var timePassed = DateTime.Now - _startTime;
             Status.RespawnTime = _remainingTime - timePassed;

@@ -82,7 +82,7 @@ namespace CoRE1_AutoRefereeSystem_Host
             Blue12.ComPortSelectionComboBox.SelectedItem = settings.Blue12ComPort;
             Blue34.ComPortSelectionComboBox.SelectedItem = settings.Blue34ComPort;
             Blue5.ComPortSelectionComboBox.SelectedItem = settings.Blue5ComPort;
-            Blue6.EndPointTextBox.Text = settings.Red6EndPoint;
+            Blue6.EndPointTextBox.Text = settings.Blue6EndPoint;
             Blue6.EnterEndPoint();
 
             RedBase.EndPointTextBox.Text = settings.RedBaseEndPoint;
@@ -134,7 +134,6 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         private void PreliminaryRadioButton_Checked(object sender, RoutedEventArgs e) {
             Master.Instance.GameFormat = Master.GameFormatEnum.PRELIMINALY;
-            Master.Instance.SettingsChanged = true;
 
             AllControlPanelDisabled();
 
@@ -166,16 +165,17 @@ namespace CoRE1_AutoRefereeSystem_Host
             GameResetButton.IsEnabled = false;
 
             Master.Instance.GameStatus = Master.GameStatusEnum.PREGAME;
-            int time = Master.Instance.PreGameTimeMin;
+            int time = Master.Instance.PreliminaryGameTimeMin;
             string timeText = $"{time:D2}:00";
             GameCountDown.Text = timeText;
             Master.Instance.GameTime = timeText;
             Master.Instance.SettingTime = timeText;
+
+            Master.Instance.SettingsChanged = true;
         }
 
         private void SemifinalsRadioButton_Checked(object sender, RoutedEventArgs e) {
             Master.Instance.GameFormat = Master.GameFormatEnum.SEMIFINALS;
-            Master.Instance.SettingsChanged = true;
 
             AllControlPanelDisabled();
 
@@ -241,11 +241,13 @@ namespace CoRE1_AutoRefereeSystem_Host
             GameResetButton.IsEnabled = false;
 
             Master.Instance.GameStatus = Master.GameStatusEnum.PREGAME;
-            int time = Master.Instance.GameTimeMin;
+            int time = Master.Instance.TornamentGameTimeMin;
             string timeText = $"{time:D2}:00";
             GameCountDown.Text = timeText;
             Master.Instance.GameTime = timeText;
             Master.Instance.SettingTime = timeText;
+
+            Master.Instance.SettingsChanged = true;
         }
 
         private void FinalsRadioButton_Checked(object sender, RoutedEventArgs e) {
@@ -324,11 +326,13 @@ namespace CoRE1_AutoRefereeSystem_Host
             /*int settingTime = Master.Instance.SettingTimeMin;
             if (Master.Instance.Added3min) settingTime += Master.Instance.AllianceMtgTimeMin;
             string timeText = $"{settingTime:D2}:00";*/
-            int time = Master.Instance.GameTimeMin;
+            int time = Master.Instance.TornamentGameTimeMin;
             string timeText = $"{time:D2}:00";
             GameCountDown.Text = timeText;
             Master.Instance.GameTime = timeText;
             Master.Instance.SettingTime = timeText;
+
+            Master.Instance.SettingsChanged = true;
         }
 
         private void AllControlPanelDisabled() {
@@ -662,7 +666,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                 Master.Instance.NumRedWins = int.Parse(RedNumWinsTextBox.Text);
                 var converter = new System.Windows.Media.BrushConverter();
                 RedNumWinsTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
-                // Master.Instance.SettingsChanged = true;
+                Master.Instance.SettingsChanged = true;
             } catch {
                 ;
             }
@@ -691,7 +695,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                 Master.Instance.NumBlueWins = int.Parse(BlueNumWinsTextBox.Text);
                 var converter = new System.Windows.Media.BrushConverter();
                 BlueNumWinsTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
-                // Master.Instance.SettingsChanged = true;
+                Master.Instance.SettingsChanged = true;
             } catch {
                 ;
             }
@@ -699,7 +703,7 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         /***** 手動判定の際のキーボードショートカット *******************************************************************************************************/
         private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e) {
-            if (!Master.Instance.DuringGame) return;
+            if (!Master.Instance.IsGameRunning) return;
 
             // ダメージ
             if (e.Key == Key.D1)

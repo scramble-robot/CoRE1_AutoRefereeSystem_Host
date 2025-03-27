@@ -53,15 +53,15 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         /***** 試合のルール *******************************************************************************************************/
 
-        public int GameTimeMin { private set; get; } = 5;
-        public int MaxHP { private set; get; } = 40;
+        public int TornamentGameTimeMin { private set; get; } = 5;
+        public int PreliminaryGameTimeMin { private set; get; } = 2;
+        public int MaxHPAttacker { private set; get; } = 40;
         public int MaxHPBuilder { private set; get; } = 80;
         public int MaxHPAutoTurret { private set; get; } = 200;
-        public int PreGameTimeMin { private set; get; } = 2;
 
-        public int PreRedMaxHP { private set; get; } = 100;  // 予選の赤（攻撃サイド）のMaxHP
+        public int PreliminaryGameRedMaxHP { private set; get; } = 100;  // 予選の赤（攻撃サイド）のMaxHP
 
-        public int PreBlueMaxHP { private set; get; } = 20;  // 予選の青（迎撃サイド）のMaxHP
+        public int PreliminaryGameBlueMaxHP { private set; get; } = 20;  // 予選の青（迎撃サイド）のMaxHP
 
         public int HitDamage { private set; get; } = 10;
 
@@ -75,17 +75,19 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         public int PenaltyDamage { private set; get; } = 10;
         public int RespawnTime { private set; get; } = 60;
-        public int RespawnHP { private set; get; } = 30;
+        public int RespawnHPAttacker { private set; get; } = 30;
         public int RespawnHPBuilder { private set; get; } = 60;
+
         public int InvincibleTime { private set; get; } = 5;
 
-        public int BaseNeutralPointTime { private set; get; } = 30;
+        public int CommonBaseNeutralPointTime { private set; get; } = 30;
         public int BaseInvulnerableTime { private set; get; } = 5;
 
 
         /***** 各種フラグ *******************************************************************************************************/
-        public bool GameEndFlag { set; get; } = false;
-        public bool DuringGame { private set; get; } = false;
+        public bool IsGameCountingDown { private set; get; } = false;
+        public bool IsGameRunning { private set; get; } = false;
+        public bool IsGameEnded { private set; get; } = false;
         public DisqualifiedFlagEnum DisqualifiedFlag { set; get; } = DisqualifiedFlagEnum.NONE;
 
         /***** enum定義 *******************************************************************************************************/
@@ -655,7 +657,7 @@ namespace CoRE1_AutoRefereeSystem_Host
         }
 
         private void UpdateBaseActive(object sender, EventArgs e) {
-            if (!Instance.DuringGame) return;
+            if (!Instance.IsGameRunning) return;
             if (Instance.GameFormat == GameFormatEnum.PRELIMINALY) return;
 
             Application.Current.Dispatcher.Invoke(() => {
@@ -670,7 +672,7 @@ namespace CoRE1_AutoRefereeSystem_Host
         // 試合時間中に勝敗が決定しているか確認
         private void CheckGameEnd(object sender, EventArgs e) {
         //private void CheckGameEnd() {
-            if (!Instance.DuringGame) return;
+            if (!Instance.IsGameRunning) return;
 
             Application.Current.Dispatcher.Invoke(() => {
             var window = GetMainWindow();
@@ -680,19 +682,19 @@ namespace CoRE1_AutoRefereeSystem_Host
                     // 迎撃サイドのすべてのロボットが撃破される
                     // 上記2条件に当てはまらず、2分間が経過する
                     if (Instance.DisqualifiedFlag == DisqualifiedFlagEnum.RED || window.Red12.Robot1.Status.DefeatedFlag) { // 赤が失格 or 攻撃サイドが撃破
-                        Instance.GameEndFlag = true;
+                        Instance.IsGameEnded = true;
                         Instance.Winner = WinnerEnum.BLUE;
                         window.TimerLabel.Text = "BLUE WINS!!!";
-                        Instance.DuringGame = false;
+                        Instance.IsGameRunning = false;
                         Instance.GameStatus = GameStatusEnum.POSTGAME;
                     } else if (Instance.DisqualifiedFlag == DisqualifiedFlagEnum.BLUE || 
                               (window.Blue12.Robot1.Status.DefeatedFlag &&
                                window.Blue12.Robot2.Status.DefeatedFlag &&
                                window.Blue34.Robot1.Status.DefeatedFlag)) { // 青が失格 or 迎撃サイドがすべて撃破
-                        Instance.GameEndFlag = true;
+                        Instance.IsGameEnded = true;
                         Instance.Winner = WinnerEnum.RED;
                         window.TimerLabel.Text = "RED WINS!!!";
-                        Instance.DuringGame = false;
+                        Instance.IsGameRunning = false;
                         Instance.GameStatus = GameStatusEnum.POSTGAME;
                     }
                 }
@@ -709,23 +711,23 @@ namespace CoRE1_AutoRefereeSystem_Host
                     if (Instance.DisqualifiedFlag == DisqualifiedFlagEnum.BLUE ||
                         (window.CommonBase.Status.Occupied == OccupiedEnum.RED
                         && window.RedBase.Status.Occupied == OccupiedEnum.RED)) { // 青が失格 or 赤が占拠
-                        Instance.GameEndFlag = true;
+                        Instance.IsGameEnded = true;
                         Instance.Winner = WinnerEnum.RED;
                         window.TimerLabel.Text = "RED WINS!!!";
                         window.RedNumWinsTextBox.Text = (Instance.NumRedWins + 1).ToString();
                         window.EnterRedNumWins();
-                        Instance.DuringGame = false;
+                        Instance.IsGameRunning = false;
                         Instance.GameStatus = GameStatusEnum.POSTGAME;
                     }
                     else if (Instance.DisqualifiedFlag == DisqualifiedFlagEnum.RED ||
                              (window.CommonBase.Status.Occupied == OccupiedEnum.BLUE
                              && window.BlueBase.Status.Occupied == OccupiedEnum.BLUE)) { // 赤が失格 or 青が占拠
-                        Instance.GameEndFlag = true;
+                        Instance.IsGameEnded = true;
                         Instance.Winner = WinnerEnum.BLUE;
                         window.TimerLabel.Text = "BLUE WINS!!!";
                         window.BlueNumWinsTextBox.Text = (Instance.NumBlueWins + 1).ToString();
                         window.EnterBlueNumWins();
-                        Instance.DuringGame = false;
+                        Instance.IsGameRunning = false;
                         Instance.GameStatus = GameStatusEnum.POSTGAME;
                     }
                 }
@@ -738,13 +740,12 @@ namespace CoRE1_AutoRefereeSystem_Host
         /// また，ゲームスタートイベントが発生
         /// </summary>
         public void GameStart() {
-            GetMainWindow().TimerLabel.Text = "GAME TIME";
+            GetMainWindow().TimerLabel.Text = "COUNT DOWN";
             Instance.GameStatus = GameStatusEnum.GAME;
-            Instance.DuringGame = true;
-            //_updateTimer.Start();
-            int gameTime = Instance.GameTimeMin;
-            if (Instance.GameFormat == GameFormatEnum.PRELIMINALY) gameTime = Instance.PreGameTimeMin;
-            StartTimer(gameTime * 60 + 25 + 1); // 25秒前から開始する
+            Instance.IsGameCountingDown = true;
+            int gameTime = Instance.TornamentGameTimeMin;
+            if (Instance.GameFormat == GameFormatEnum.PRELIMINALY) gameTime = Instance.PreliminaryGameTimeMin; 
+            StartTimer(25 + 1); // 25秒前のカウントダウン開始
             GameStartEvent?.Invoke();
             AllocateButton();
         }
@@ -759,12 +760,11 @@ namespace CoRE1_AutoRefereeSystem_Host
             GetMainWindow().TimerLabel.Text = "GAME READY?";
             Instance.GameStatus = GameStatusEnum.PREGAME;
             Instance.DisqualifiedFlag = DisqualifiedFlagEnum.NONE;
-            Instance.DuringGame = false;
-            //_updateTimer.Stop();
+            Instance.IsGameRunning = false;
 
-            int gameTime = Instance.GameTimeMin;
+            int gameTime = Instance.TornamentGameTimeMin;
             if (Instance.GameFormat == GameFormatEnum.PRELIMINALY)
-                gameTime = Instance.PreGameTimeMin;
+                gameTime = Instance.PreliminaryGameTimeMin;
             ResetTimer(gameTime * 60);
             GameResetEvent?.Invoke();
             AllocateButton();
@@ -788,9 +788,26 @@ namespace CoRE1_AutoRefereeSystem_Host
         private static void OnCountDownTimedEvent(object source, ElapsedEventArgs e) {
             Instance.CurrentTime = DateTime.Now - _startTime;
             var currentRemainingTime = _remainingTime - Instance.CurrentTime;
-            if (Instance.GameEndFlag || currentRemainingTime.TotalSeconds <= 0) {
+            
+            if (Instance.IsGameCountingDown) {
+                //if (currentRemainingTime.TotalSeconds <= gameTime * 60) {
+                if (currentRemainingTime.TotalSeconds <= 0) {
+                    Instance.IsGameCountingDown = false;
+                    Application.Current.Dispatcher.Invoke(() => {
+                        GetMainWindow().TimerLabel.Text = "GAME TIME";
+                    });
+
+                    int gameTime = Instance.TornamentGameTimeMin;
+                    if (Instance.GameFormat == GameFormatEnum.PRELIMINALY) gameTime = Instance.PreliminaryGameTimeMin;
+                    StartTimer(gameTime * 60 + 1);
+                    Instance.IsGameRunning = true;
+                    return;
+                }
+            }
+
+            if (Instance.IsGameEnded || currentRemainingTime.TotalSeconds <= 0) {
                 _countDownTimer.Stop();
-                if (Instance.GameEndFlag) return;
+                if (Instance.IsGameEnded) return;
 
                 Instance.GameStatus += 1;
                 if (Instance.GameStatus == GameStatusEnum.POSTGAME
@@ -805,7 +822,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                             window.EnterBlueNumWins();
                         });
                         Instance.DisqualifiedFlag = DisqualifiedFlagEnum.NONE;
-                        Instance.DuringGame = false;
+                        Instance.IsGameRunning = false;
                         AllocateButton();
                         return;
                     } else if (Instance.DisqualifiedFlag == DisqualifiedFlagEnum.BLUE) { // 青が失格
@@ -817,7 +834,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                             window.EnterRedNumWins();
                         });
                         Instance.DisqualifiedFlag = DisqualifiedFlagEnum.NONE;
-                        Instance.DuringGame = false;
+                        Instance.IsGameRunning = false;
                         AllocateButton();
                         return;
                     }
@@ -833,7 +850,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                                 window.BlueNumWinsTextBox.Text = (Instance.NumBlueWins + 1).ToString();
                                 window.EnterBlueNumWins();
                             });
-                            Instance.DuringGame = false;
+                            Instance.IsGameRunning = false;
                         } else {
                             Instance.Winner = WinnerEnum.RED;
                             Application.Current.Dispatcher.Invoke(() => {
@@ -842,7 +859,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                                 window.RedNumWinsTextBox.Text = (Instance.NumRedWins + 1).ToString();
                                 window.EnterRedNumWins();
                             });
-                            Instance.DuringGame = false;
+                            Instance.IsGameRunning = false;
                         }
                     }
 
@@ -856,7 +873,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                                 window.RedNumWinsTextBox.Text = (Instance.NumRedWins + 1).ToString();
                                 window.EnterRedNumWins();
                             });
-                            Instance.DuringGame = false;
+                            Instance.IsGameRunning = false;
                         } else {
                             Instance.Winner = WinnerEnum.BLUE;
                             Application.Current.Dispatcher.Invoke(() => {
@@ -865,7 +882,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                                 window.BlueNumWinsTextBox.Text = (Instance.NumBlueWins + 1).ToString();
                                 window.EnterBlueNumWins();
                             });
-                            Instance.DuringGame = false;
+                            Instance.IsGameRunning = false;
                         }
                     }
 
@@ -879,7 +896,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                                 window.RedNumWinsTextBox.Text = (Instance.NumRedWins + 1).ToString();
                                 window.EnterRedNumWins();
                             });
-                            Instance.DuringGame = false;
+                            Instance.IsGameRunning = false;
                         } else {
                             Instance.Winner = WinnerEnum.BLUE;
                             Application.Current.Dispatcher.Invoke(() => {
@@ -888,7 +905,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                                 window.BlueNumWinsTextBox.Text = (Instance.NumBlueWins + 1).ToString();
                                 window.EnterBlueNumWins();
                             });
-                            Instance.DuringGame = false;
+                            Instance.IsGameRunning = false;
                         }
                     }
 
@@ -899,13 +916,13 @@ namespace CoRE1_AutoRefereeSystem_Host
                             Application.Current.Dispatcher.Invoke(() => {
                                 GetMainWindow().TimerLabel.Text = "BLUE WINS!!!";
                             });
-                            Instance.DuringGame = false;
+                            Instance.IsGameRunning = false;
                         } else {
                             Instance.Winner = WinnerEnum.RED;
                             Application.Current.Dispatcher.Invoke(() => {
                                 GetMainWindow().TimerLabel.Text = "RED WINS!!!";
                             });
-                            Instance.DuringGame = false;
+                            Instance.IsGameRunning = false;
                         }
                     }
 
@@ -915,13 +932,13 @@ namespace CoRE1_AutoRefereeSystem_Host
                         Application.Current.Dispatcher.Invoke(() => {
                             GetMainWindow().TimerLabel.Text = "DRAW!!!";
                         });
-                        Instance.DuringGame = false;
+                        Instance.IsGameRunning = false;
                     }
                 }
 
                 AllocateButton();
                 Instance.DisqualifiedFlag = DisqualifiedFlagEnum.NONE;
-                Instance.DuringGame = false;
+                Instance.IsGameRunning = false;
                 return;
             }
 
@@ -1039,9 +1056,9 @@ namespace CoRE1_AutoRefereeSystem_Host
                 settings.Blue5ComPort = window.Blue5.ComPortSelectionComboBox.SelectedItem;
 
                 settings.Red6EndPoint = window.Red6.EndPointTextBox.Text;
-                settings.Blue6EndPoint = window.Red6.EndPointTextBox.Text;
+                settings.Blue6EndPoint = window.Blue6.EndPointTextBox.Text;
                 settings.RedBaseEndPoint = window.RedBase.EndPointTextBox.Text;
-                settings.BlueBaseEndPoint = window.Red6.EndPointTextBox.Text;
+                settings.BlueBaseEndPoint = window.BlueBase.EndPointTextBox.Text;
                 settings.CommonBaseEndPoint = window.CommonBase.EndPointTextBox.Text;
                 settings.BuffHost = "192.168.11.10:8888";
             }));

@@ -590,7 +590,6 @@ namespace CoRE1_AutoRefereeSystem_Host
                     if (arsSequence == Master.ARSSequenceEnum.OPENED) {
                         ;
                     } else if (arsSequence == Master.ARSSequenceEnum.RECONNECTING) {
-                        Debug.WriteLine(serverIPEndPoint);
                         client = new TcpClient();
                         client.Connect(serverIPEndPoint);
                         stream = client.GetStream();
@@ -653,8 +652,8 @@ namespace CoRE1_AutoRefereeSystem_Host
 
                                 BootButton.Content = "Boot";
                                 ConnectButton.IsEnabled = true;
-                                BootButton.IsEnabled = true;
-                                PingButton1.IsEnabled = true;
+                                BootButton.IsEnabled = false;
+                                PingButton1.IsEnabled = false;
                             });
 
                             numSoftwareReset = 0;
@@ -790,11 +789,9 @@ namespace CoRE1_AutoRefereeSystem_Host
                         int[] info = receivedDataString.Split(',').Select(part => Convert.ToInt32(part, 16)).ToArray();
 
                         // ダメージパネルのヒット情報から占拠レベルを計算
-                        if (Master.Instance.DuringGame) {
+                        if (Master.Instance.IsGameRunning) {
                             // 青の攻撃
                             if (status.IsRedActive && status.Occupied != Master.OccupiedEnum.BLUE) {
-                                Debug.WriteLine("Blue Active");
-
                                 if (!isRedActivePrev) {
                                     Application.Current.Dispatcher.Invoke(() => {
                                         RedBaseDPPanel.Opacity = 1;
@@ -918,16 +915,16 @@ namespace CoRE1_AutoRefereeSystem_Host
         }
 
         private void OnLastAttackTimedEvent(object source, ElapsedEventArgs e) {
-            if (!Master.Instance.DuringGame) return;
+            if (!Master.Instance.IsGameRunning) return;
             if (_baseStatus.Occupied != Master.OccupiedEnum.NO) return;
             if (_baseStatus.OccupationLevel == 0) return;
 
             var timePassed = DateTime.Now - _baseStatus.LastAttackStartTime;
-            _baseStatus.LastAttackRemainingTime = TimeSpan.FromSeconds(Master.Instance.BaseNeutralPointTime) - timePassed;
+            _baseStatus.LastAttackRemainingTime = TimeSpan.FromSeconds(Master.Instance.CommonBaseNeutralPointTime) - timePassed;
         }
 
         private void OnInvulnerableTimedEvent(object source, ElapsedEventArgs e) {
-            if (!Master.Instance.DuringGame) return;
+            if (!Master.Instance.IsGameRunning) return;
 
             if (_baseStatus.LeftRDPInvulnerable) {
                 var timePassed = DateTime.Now - _baseStatus.LeftRDPInvulnerableStartTime;
@@ -1197,9 +1194,9 @@ namespace CoRE1_AutoRefereeSystem_Host
                     e.Handled = true;
 
                     serverIPEndPoint = tmpIPEndPoint;
-                    Debug.WriteLine(serverIPEndPoint);
                     var converter = new System.Windows.Media.BrushConverter();
                     EndPointTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
+                    Master.Instance.SettingsChanged = true;
                 } else {
                     MessageBox.Show($"Invalid endpoint: {EndPointTextBox.Text}.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
@@ -1210,7 +1207,6 @@ namespace CoRE1_AutoRefereeSystem_Host
             string input = EndPointTextBox.Text;
             if (TryParseIpPort(input, out IPEndPoint? tmpIPEndPoint)) {
                 serverIPEndPoint = tmpIPEndPoint;
-                Debug.WriteLine(serverIPEndPoint);
                 var converter = new System.Windows.Media.BrushConverter();
                 EndPointTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
             } else {

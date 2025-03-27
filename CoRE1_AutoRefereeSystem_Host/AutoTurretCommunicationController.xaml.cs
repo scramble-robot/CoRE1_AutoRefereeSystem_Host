@@ -116,7 +116,6 @@ namespace CoRE1_AutoRefereeSystem_Host
                     if (arsSequence == Master.ARSSequenceEnum.OPENED) {
                         ;
                     } else if (arsSequence == Master.ARSSequenceEnum.RECONNECTING) {
-                        Debug.WriteLine(serverIPEndPoint);
                         client = new TcpClient();
                         client.Connect(serverIPEndPoint);
                         stream = client.GetStream();
@@ -183,8 +182,8 @@ namespace CoRE1_AutoRefereeSystem_Host
 
                                 BootButton.Content = "Boot";
                                 ConnectButton.IsEnabled = true;
-                                BootButton.IsEnabled = true;
-                                PingButton1.IsEnabled = true;
+                                BootButton.IsEnabled = false;
+                                PingButton1.IsEnabled = false;
                             });
 
                             numSoftwareReset = 0;
@@ -248,7 +247,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                     // 送信データを規定のプロトコルに基づいて作成
                     _sendData.Clear();
 
-                    // 宛先の機能No (05はauto turret)
+                    // 宛先の機能No (07はauto turret)
                     _sendData.Add("07");
 
                     // [b0: アクティブフラグ, b1: 撃破フラグ]
@@ -318,7 +317,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         // 文字列を,で分割し，それぞれの16進数の文字をint型に変換
                         int[] info = receivedDataString.Split(',').Select(part => Convert.ToInt32(part, 16)).ToArray();
 
-                        if (Master.Instance.DuringGame && !robotStatus.DefeatedFlag && !robotStatus.InvincibilityFlag) {
+                        if (Master.Instance.IsGameRunning && !robotStatus.DefeatedFlag && !robotStatus.InvincibilityFlag) {
                             // ダメージパネルのヒット情報からHPを計算
                             double attackBuff = 1;
                             if (robotStatus.TeamColor.Contains("Red"))
@@ -635,9 +634,9 @@ namespace CoRE1_AutoRefereeSystem_Host
                     e.Handled = true;
 
                     serverIPEndPoint = tmpIPEndPoint;
-                    Debug.WriteLine(serverIPEndPoint);
                     var converter = new System.Windows.Media.BrushConverter();
                     EndPointTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
+                    Master.Instance.SettingsChanged = true;
                 } else {
                     MessageBox.Show($"Invalid endpoint: {EndPointTextBox.Text}.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
@@ -648,7 +647,6 @@ namespace CoRE1_AutoRefereeSystem_Host
             string input = EndPointTextBox.Text;
             if (TryParseIpPort(input, out IPEndPoint? tmpIPEndPoint)) {
                 serverIPEndPoint = tmpIPEndPoint;
-                Debug.WriteLine(serverIPEndPoint);
                 var converter = new System.Windows.Media.BrushConverter();
                 EndPointTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
             } else {

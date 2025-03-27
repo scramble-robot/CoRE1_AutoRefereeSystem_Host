@@ -392,7 +392,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         // 文字列を,で分割し，それぞれの16進数の文字をint型に変換
                         int[] info = receivedDataString.Split(',').Select(part => Convert.ToInt32(part, 16)).ToArray();
 
-                        if (Master.Instance.DuringGame && !robotStatus.DefeatedFlag && !robotStatus.InvincibilityFlag) {
+                        if (Master.Instance.IsGameRunning && !robotStatus.DefeatedFlag && !robotStatus.InvincibilityFlag) {
                             // ダメージパネルのヒット情報からHPを計算
                             double attackBuff = 1;
                             if (robotStatus.TeamColor.Contains("Red")) {
@@ -423,7 +423,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                                 robotStatus.PowerOnFlag = false;
                                 robotStatus.DefeatedNum++;
                                 if (Master.Instance.GameFormat != Master.GameFormatEnum.PRELIMINALY
-                                    && !Master.Instance.GameEndFlag) {
+                                    && !Master.Instance.IsGameEnded) {
                                     robot.StartRespawnTimer();
                                 }
                             }

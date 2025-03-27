@@ -441,7 +441,6 @@ namespace CoRE1_AutoRefereeSystem_Host
                     if (arsSequence == Master.ARSSequenceEnum.OPENED) {
                         ;
                     } else if (arsSequence == Master.ARSSequenceEnum.RECONNECTING) {
-                        Debug.WriteLine(serverIPEndPoint);
                         client = new TcpClient();
                         client.Connect(serverIPEndPoint);
                         stream = client.GetStream();
@@ -504,8 +503,8 @@ namespace CoRE1_AutoRefereeSystem_Host
 
                                 BootButton.Content = "Boot";
                                 ConnectButton.IsEnabled = true;
-                                BootButton.IsEnabled = true;
-                                PingButton1.IsEnabled = true;
+                                BootButton.IsEnabled = false;
+                                PingButton1.IsEnabled = false;
                             });
 
                             numSoftwareReset = 0;
@@ -569,8 +568,8 @@ namespace CoRE1_AutoRefereeSystem_Host
                     // 送信データを規定のプロトコルに基づいて作成
                     _sendData.Clear();
 
-                    // 宛先の機能No (09は共通陣地)
-                    _sendData.Add("09");
+                    // 宛先の機能No (09は赤・青陣地)
+                    _sendData.Add("08");
 
                     // [b0: アクティブフラグ, b1: 撃破フラグ]
                     _sendData.Add(
@@ -641,7 +640,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         // 文字列を,で分割し，それぞれの16進数の文字をint型に変換
                         int[] info = receivedDataString.Split(',').Select(part => Convert.ToInt32(part, 16)).ToArray();
 
-                        if (Master.Instance.DuringGame && status.IsActive) {
+                        if (Master.Instance.IsGameRunning && status.IsActive) {
                             if (!isActivePrev) {
                                 Application.Current.Dispatcher.Invoke(() => {
                                     BaseDPPanel.Opacity = 1;
@@ -744,7 +743,7 @@ namespace CoRE1_AutoRefereeSystem_Host
         }
 
         private void OnInvulnerableTimedEvent(object source, ElapsedEventArgs e) {
-            if (!Master.Instance.DuringGame) return;
+            if (!Master.Instance.IsGameRunning) return;
 
             if (_baseStatus.LeftHighDPInvulnerable) {
                 var timePassed = DateTime.Now - _baseStatus.LeftHighDPInvulnerableStartTime;
@@ -965,7 +964,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                 StopWatchingReceivedData();
                 try {
                     HostStatusTextBox.Text = "Booting ARS...";
-                    string command = "boot commonbase";
+                    string command = "boot teambase";
                     SendTextToArduino(command);
 
                     BootButton.Content = "Shut.";
@@ -992,9 +991,9 @@ namespace CoRE1_AutoRefereeSystem_Host
                     e.Handled = true;
 
                     serverIPEndPoint = tmpIPEndPoint;
-                    Debug.WriteLine(serverIPEndPoint);
                     var converter = new System.Windows.Media.BrushConverter();
                     EndPointTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
+                    Master.Instance.SettingsChanged = true;
                 } else {
                     MessageBox.Show($"Invalid endpoint: {EndPointTextBox.Text}.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
