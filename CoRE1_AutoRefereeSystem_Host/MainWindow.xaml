@@ -86,42 +86,111 @@
                                          FontSize="20"
                                          FontWeight="Bold"
                                          Checked="PreliminaryRadioButton_Checked"
-                                         Margin="10,3,10,0" />
+                                         Margin="5,3,5,0" />
                             <RadioButton x:Name="SemifinalsRadioButton"
                                          Content="SEMIFINALS"
                                          FontSize="20"
                                          FontWeight="Bold"
                                          Background="{DynamicResource PrimaryHueLightBrush}"
                                          Checked="SemifinalsRadioButton_Checked"
-                                         Margin="10,0,10,0" />
+                                         Margin="5,0,10,0" />
                             <RadioButton x:Name="FinalsRadioButton"
                                          Content="FINALS"
                                          FontSize="20"
                                          FontWeight="Bold"
                                          Background="{DynamicResource PrimaryHueLightBrush}"
                                          Checked="FinalsRadioButton_Checked"
-                                         Margin="10,0,10,5" />
+                                         Margin="5,0,10,5" />
+                        </StackPanel>
+                        <StackPanel x:Name="GameNumPanel"
+                                    Background="#66F5E98B">
+                            <Label Content="#Wins"
+                                   Foreground="Black"
+                                   HorizontalAlignment="Left"
+                                   VerticalAlignment="Center"
+                                   Margin="5,0,0,0"
+                                   FontSize="18"
+                                   FontWeight="Bold" />
+                            <StackPanel Orientation="Horizontal"
+                                        Margin="0,0,0,0">
+                                <Label Content="Red "
+                                       Foreground="Black"
+                                       HorizontalAlignment="Left"
+                                       VerticalAlignment="Bottom"
+                                       Margin="5,0,0,0"
+                                       FontSize="16"
+                                       FontWeight="Bold" />
+                                <TextBox x:Name="RedNumWinsTextBox"
+                                         materialDesign:HintAssist.Hint="0"
+                                         TextWrapping="Wrap"
+                                         FontSize="14"
+                                         FontFamily="DSEG7 Modern"
+                                         Style="{DynamicResource MaterialDesignTextBox}"
+                                         Margin="5,0,10,0"
+                                         Width="20"
+                                         TextChanged="RedNumWinsTextBox_TextChanged"
+                                         KeyDown="RedNumWinsTextBox_KeyDown"
+                                         TextAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Blue"
+                                       Foreground="Black"
+                                       HorizontalAlignment="Left"
+                                       VerticalAlignment="Bottom"
+                                       Margin="5,0,0,0"
+                                       FontSize="16"
+                                       FontWeight="Bold" />
+                                <TextBox x:Name="BlueNumWinsTextBox"
+                                         materialDesign:HintAssist.Hint="0"
+                                         TextWrapping="Wrap"
+                                         FontSize="14"
+                                         FontFamily="DSEG7 Modern"
+                                         Style="{DynamicResource MaterialDesignTextBox}"
+                                         Margin="5,0,10,0"
+                                         Width="20"
+                                         TextChanged="BlueNumWinsTextBox_TextChanged"
+                                         KeyDown="BlueNumWinsTextBox_KeyDown"
+                                         TextAlignment="Center" />
+                            </StackPanel>
                         </StackPanel>
                         <StackPanel x:Name="GameStackPanel"
                                     Background="#66F5E98B">
-                            <!--<Label Content="GAME"
-                               FontSize="28"
-                               FontFamily="ROG Fonts" />-->
-                            <Button x:Name="GameStartButton"
-                                    Content="START"
-                                    IsEnabled="False"
-                                    Click="GameStartButton_Click"
-                                    FontSize="20"
-                                    Margin="10,10,10,5" />
-                            <Button x:Name="GameResetButton"
-                                    Content="RESET"
-                                    IsEnabled="False"
-                                    Click="GameResetButton_Click"
-                                    FontSize="20"
-                                    Margin="10,10,10,5" />
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="GameStartButton"
+                                        Content="START"
+                                        IsEnabled="False"
+                                        Click="GameStartButton_Click"
+                                        FontSize="18"
+                                        Margin="10,10,0,5" />
+                                <Button x:Name="GameResetButton"
+                                        Content="RESET"
+                                        IsEnabled="False"
+                                        Click="GameResetButton_Click"
+                                        FontSize="18"
+                                        Margin="10,10,5,5" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="RedDQtButton"
+                                        Content="DQ"
+                                        IsEnabled="False"
+                                        BorderBrush="#FFB7403A"
+                                        Background="#FFB7403A"
+                                        Click="RedDQButton_Click"
+                                        FontSize="18"
+                                        Width="84"
+                                        Margin="10,5,5,5" />
+                                <Button x:Name="BlueDQButton"
+                                        Content="DQ"
+                                        IsEnabled="False"
+                                        Background="#FF3A6FB7"
+                                        BorderBrush="#FF3A6FB7"
+                                        Click="BlueDQButton_Click"
+                                        FontSize="18"
+                                        Width="81"
+                                        Margin="5,5,10,5" />
+                            </StackPanel>
                         </StackPanel>
                     </StackPanel>
-
                     <StackPanel x:Name="StatusStackPanel"
                                 Orientation="Horizontal">
                         <StackPanel x:Name="RedTeamStatus"
@@ -204,6 +273,7 @@
                                             Click="RedEMSpot1Button_Click"
                                             FontSize="18"
                                             Margin="10,10,0,5"
+                                            Height="40"
                                             Width="95" />
                                     <TextBox x:Name="RedAttackbuff1TimeTextBlock"
                                              IsEnabled="False"
@@ -247,7 +317,8 @@
                                         Margin="10,5,5,5"
                                         Height="40"
                                         Width="95"
-                                        HorizontalAlignment="Left" />
+                                        HorizontalAlignment="Left"
+                                        Cursor="Hand" />
 
                                 <StackPanel Orientation="Horizontal">
                                     <Button x:Name="RedEMSpot4Button"
@@ -287,15 +358,15 @@
                                              d:Text="60 sec.."
                                              FontSize="18"
                                              Margin="5,10,10,10"
-                                            Width="80"
+                                             Width="80"
                                              TextAlignment="Center" />
                                 </StackPanel>
 
                                 <StackPanel Orientation="Horizontal">
                                     <Button x:Name="RedZone1Button"
                                             Content="ZONE 1"
-                                            BorderBrush="#FFB7403A"
-                                            Background="#FFB7403A"
+                                            BorderBrush="#FFFFC107"
+                                            Background="#FFFFC107"
                                             Click="RedZone1Button_Click"
                                             FontSize="18"
                                             Margin="10,5,0,5"
@@ -315,8 +386,8 @@
                                 <StackPanel Orientation="Horizontal">
                                     <Button x:Name="RedZone2Button"
                                             Content="ZONE 2"
-                                            BorderBrush="#FFB7403A"
-                                            Background="#FFB7403A"
+                                            BorderBrush="#FFFFC107"
+                                            Background="#FFFFC107"
                                             Click="RedZone2Button_Click"
                                             FontSize="18"
                                             Margin="10,5,0,5"
@@ -500,15 +571,15 @@
                                              d:Text="60 sec.."
                                              FontSize="18"
                                              Margin="5,10,10,10"
-                                            Width="80"
+                                             Width="80"
                                              TextAlignment="Center" />
                                 </StackPanel>
 
                                 <StackPanel Orientation="Horizontal">
                                     <Button x:Name="BlueZone1Button"
                                             Content="ZONE 1"
-                                            BorderBrush="#FFB7403A"
-                                            Background="#FFB7403A"
+                                            BorderBrush="#FFFFC107"
+                                            Background="#FFFFC107"
                                             Click="BlueZone1Button_Click"
                                             FontSize="18"
                                             Margin="10,5,0,5"
@@ -528,8 +599,8 @@
                                 <StackPanel Orientation="Horizontal">
                                     <Button x:Name="BlueZone2Button"
                                             Content="ZONE 2"
-                                            BorderBrush="#FFB7403A"
-                                            Background="#FFB7403A"
+                                            BorderBrush="#FFFFC107"
+                                            Background="#FFFFC107"
                                             Click="BlueZone2Button_Click"
                                             FontSize="18"
                                             Margin="10,5,0,5"
@@ -773,6 +844,43 @@
                                                          AutoTurretLabel="Blue 6"
                                                          AutoTurretColor="#100000FF"
                                                          Background="White" />
+            </StackPanel>
+            <StackPanel x:Name="StriderStackPanel"
+                        Orientation="Vertical"
+                        Margin="1940,850,0,0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Background="#66F5E98B">
+                <!--<StackPanel Orientation="Horizontal"
+                            Background="#10FF0000">-->
+                <StackPanel Orientation="Horizontal">
+                    <Label Content="Red 7 "
+                           FontSize="22"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Left"
+                           VerticalAlignment="Center" />
+                    <ComboBox x:Name="RedStriderTeamNameComboBox"
+                              Margin="5,10,10,10"
+                              Width="190"
+                              FontSize="18"
+                              SelectionChanged="RedStriderTeamNameComboBox_SelectionChanged" />
+                </StackPanel>
+                <!--<StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Left"
+                            Background="#100000FF">-->
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Left">
+                    <Label Content="Blue 7"
+                           FontSize="22"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Left"
+                           VerticalAlignment="Center" />
+                    <ComboBox x:Name="BlueStriderTeamNameComboBox"
+                              Margin="5,10,10,10"
+                              Width="190"
+                              FontSize="18"
+                              SelectionChanged="BlueStriderTeamNameComboBox_SelectionChanged" />
+                </StackPanel>
             </StackPanel>
         </Grid>
     </ScrollViewer>

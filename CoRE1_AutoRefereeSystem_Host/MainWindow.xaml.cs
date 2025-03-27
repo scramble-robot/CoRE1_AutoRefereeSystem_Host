@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
 using System.Net;
+using System.Configuration;
 
 
 namespace CoRE1_AutoRefereeSystem_Host
@@ -15,6 +16,14 @@ namespace CoRE1_AutoRefereeSystem_Host
     {
         public MainWindow() {
             InitializeComponent();
+
+            RedStriderTeamNameComboBox.Items.Clear();
+            foreach (string tn in Master.Instance.TeamName)
+                if (tn.Contains("[STR]")) RedStriderTeamNameComboBox.Items.Add(tn);
+
+            BlueStriderTeamNameComboBox.Items.Clear();
+            foreach (string tn in Master.Instance.TeamName)
+                if (tn.Contains("[STR]")) BlueStriderTeamNameComboBox.Items.Add(tn);
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e) {
@@ -29,29 +38,40 @@ namespace CoRE1_AutoRefereeSystem_Host
                 FinalsRadioButton.IsChecked = true;
 
             Red12.Robot1.TeamNameComboBox.SelectedItem = settings.Red1TeamName;
-            Red12.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Red1RobotType;
             Red12.Robot2.TeamNameComboBox.SelectedItem = settings.Red2TeamName;
-            Red12.Robot2.RobotTypeComboBox.SelectedIndex = (int)settings.Red2RobotType;
             Red34.Robot1.TeamNameComboBox.SelectedItem = settings.Red3TeamName;
-            Red34.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Red3RobotType;
             Red34.Robot2.TeamNameComboBox.SelectedItem = settings.Red4TeamName;
-            Red34.Robot2.RobotTypeComboBox.SelectedIndex = (int)settings.Red4RobotType;
             Red5.Robot1.TeamNameComboBox.SelectedItem = settings.Red5TeamName;
-            Red5.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Red5RobotType;
             Red6.Robot1.TeamNameComboBox.SelectedItem = settings.Red6TeamName;
-            Red6.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Red6RobotType;
+            RedStriderTeamNameComboBox.SelectedItem = settings.Red7TeamName;
+
             Blue12.Robot1.TeamNameComboBox.SelectedItem = settings.Blue1TeamName;
-            Blue12.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Blue1RobotType;
             Blue12.Robot2.TeamNameComboBox.SelectedItem = settings.Blue2TeamName;
-            Blue12.Robot2.RobotTypeComboBox.SelectedIndex = (int)settings.Blue2RobotType;
             Blue34.Robot1.TeamNameComboBox.SelectedItem = settings.Blue3TeamName;
-            Blue34.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Blue3RobotType;
             Blue34.Robot2.TeamNameComboBox.SelectedItem = settings.Blue4TeamName;
-            Blue34.Robot2.RobotTypeComboBox.SelectedIndex = (int)settings.Blue4RobotType;
             Blue5.Robot1.TeamNameComboBox.SelectedItem = settings.Blue5TeamName;
-            Blue5.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Blue5RobotType;
             Blue6.Robot1.TeamNameComboBox.SelectedItem = settings.Blue6TeamName;
+            BlueStriderTeamNameComboBox.SelectedItem = settings.Blue7TeamName;
+
+            Red12.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Red1RobotType;
+            Red12.Robot2.RobotTypeComboBox.SelectedIndex = (int)settings.Red2RobotType;
+            Red34.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Red3RobotType;
+            Red34.Robot2.RobotTypeComboBox.SelectedIndex = (int)settings.Red4RobotType;
+            Red5.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Red5RobotType;
+            Red6.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Red6RobotType;
+            
+            Blue12.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Blue1RobotType;
+            Blue12.Robot2.RobotTypeComboBox.SelectedIndex = (int)settings.Blue2RobotType;
+            Blue34.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Blue3RobotType;
+            Blue34.Robot2.RobotTypeComboBox.SelectedIndex = (int)settings.Blue4RobotType;
+            Blue5.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Blue5RobotType;
             Blue6.Robot1.RobotTypeComboBox.SelectedIndex = (int)settings.Blue6RobotType;
+
+            RedNumWinsTextBox.Text = settings.NumRedWins.ToString();
+            EnterRedNumWins();
+
+            BlueNumWinsTextBox.Text = settings.NumBlueWins.ToString();
+            EnterBlueNumWins();
 
             Red12.ComPortSelectionComboBox.SelectedItem = settings.Red12ComPort;
             Red34.ComPortSelectionComboBox.SelectedItem = settings.Red34ComPort;
@@ -99,7 +119,7 @@ namespace CoRE1_AutoRefereeSystem_Host
 
             if (!allHostShutdown) {
                 MessageBox.Show("You must excecute 'shutdown' command on all booted HostPCBs.",
-                    "Failed to terminate CoRE-2 2024 Host program", MessageBoxButton.OK, MessageBoxImage.Error);
+                    "Failed to terminate CoRE-1 2025 Host program", MessageBoxButton.OK, MessageBoxImage.Error);
                 e.Cancel = true;
             }
         }
@@ -387,6 +407,28 @@ namespace CoRE1_AutoRefereeSystem_Host
             // BlueBase
             BlueBase.IsEnabled = false;
         }
+        /***** 失格による試合終了 *******************************************************************************************************/
+
+        private void RedDQButton_Click(object sender, RoutedEventArgs e) {
+            Master.Instance.DisqualifiedFlag = Master.DisqualifiedFlagEnum.RED;
+        }
+
+        private void BlueDQButton_Click(object sender, RoutedEventArgs e) {
+            Master.Instance.DisqualifiedFlag = Master.DisqualifiedFlagEnum.BLUE;
+        }
+
+        /***** ストライダーのチーム選択 *******************************************************************************************************/
+        private void RedStriderTeamNameComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e) {
+            if (RedStriderTeamNameComboBox.SelectedItem is null) return;
+            Master.Instance.RedStriderTeamName = RedStriderTeamNameComboBox.SelectedItem.ToString();
+            Master.Instance.SettingsChanged = true;
+        }
+
+        private void BlueStriderTeamNameComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e) {
+            if (BlueStriderTeamNameComboBox.SelectedItem is null) return;
+            Master.Instance.BlueStriderTeamName = BlueStriderTeamNameComboBox.SelectedItem.ToString();
+            Master.Instance.SettingsChanged = true;
+        }
 
         /***** 強化素材によるバフ効果 *******************************************************************************************************/
         private void RedEMSpot1Button_Click(object sender, RoutedEventArgs e) {
@@ -514,56 +556,6 @@ namespace CoRE1_AutoRefereeSystem_Host
             BlueZone2Button.IsEnabled = false;
         }
 
-        /***** 副審のArduinoからUDPで受信するための設定 *******************************************************************************************************/
-        //private void BuffHostTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) {
-        //    var converter = new System.Windows.Media.BrushConverter();
-        //    BuffHostTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#30FF0000");
-        //}
-        
-        //private void BuffHostTextBox_KeyDown(object sender, KeyEventArgs e) {
-        //    if (e.Key == System.Windows.Input.Key.Enter) {
-        //        string input = BuffHostTextBox.Text;
-        //        if (TryParseIpPort(input, out IPEndPoint? tmpIPEndPoint)) {
-        //            Keyboard.ClearFocus();
-        //            e.Handled = true;
-        //            var converter = new System.Windows.Media.BrushConverter();
-        //            BuffHostTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
-        //            Master.Instance.SettingsChanged = true;
-        //        } else {
-        //            MessageBox.Show($"Invalid endpoint: {BuffHostTextBox.Text}.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        //        }
-        //    }
-        //}
-
-        //private void BuffHostOpenButton_Click(object sender, RoutedEventArgs e) {
-            
-        //}
-
-        static bool TryParseIpPort(string input, out IPEndPoint? endPoint) {
-            endPoint = null;
-
-            // ":"が含まれていない場合は無効
-            if (!input.Contains(":"))
-                return false;
-
-            // ":"で分割
-            string[] parts = input.Split(':');
-            if (parts.Length != 2)
-                return false;
-
-            // IPアドレスのチェック
-            if (!IPAddress.TryParse(parts[0], out IPAddress? ipAddress))
-                return false;
-
-            // ポート番号のチェック（1～65535）
-            if (!int.TryParse(parts[1], out int port) || port < 1 || port > 65535)
-                return false;
-
-            // IPEndPointを作成
-            endPoint = new IPEndPoint(ipAddress, port);
-            return true;
-        }
-
         /***** デバフのcallback *******************************************************************************************************/
 
         private void ShieldRed1ToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
@@ -643,6 +635,65 @@ namespace CoRE1_AutoRefereeSystem_Host
                 Blue5.Robot1.Status.IsShieldBuffActive = true;
             } else {
                 Blue5.Robot1.Status.IsShieldBuffActive=false;
+            }
+        }
+
+        /***** チームごとの試合勝利数入力callback *******************************************************************************************************/
+        private void RedNumWinsTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) {
+            var converter = new System.Windows.Media.BrushConverter();
+            RedNumWinsTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#30FF0000");
+        }
+
+        private void RedNumWinsTextBox_KeyDown(object sender, KeyEventArgs e) {
+            if (e.Key == System.Windows.Input.Key.Enter) {
+                try {
+                    Master.Instance.NumRedWins = int.Parse(RedNumWinsTextBox.Text);
+                    var converter = new System.Windows.Media.BrushConverter();
+                    RedNumWinsTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
+                    Master.Instance.SettingsChanged = true;
+                } catch {
+                    ;
+                }
+            }
+        }
+
+        public void EnterRedNumWins() {
+            try {
+                Master.Instance.NumRedWins = int.Parse(RedNumWinsTextBox.Text);
+                var converter = new System.Windows.Media.BrushConverter();
+                RedNumWinsTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
+                // Master.Instance.SettingsChanged = true;
+            } catch {
+                ;
+            }
+        }
+
+        private void BlueNumWinsTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) {
+            var converter = new System.Windows.Media.BrushConverter();
+            BlueNumWinsTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#30FF0000");
+        }
+
+        private void BlueNumWinsTextBox_KeyDown(object sender, KeyEventArgs e) {
+            if (e.Key == System.Windows.Input.Key.Enter) {
+                try {
+                    Master.Instance.NumBlueWins = int.Parse(BlueNumWinsTextBox.Text);
+                    var converter = new System.Windows.Media.BrushConverter();
+                    BlueNumWinsTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
+                    Master.Instance.SettingsChanged = true;
+                } catch {
+                    ;
+                }
+            }
+        }
+
+        public void EnterBlueNumWins() {
+            try {
+                Master.Instance.NumBlueWins = int.Parse(BlueNumWinsTextBox.Text);
+                var converter = new System.Windows.Media.BrushConverter();
+                BlueNumWinsTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
+                // Master.Instance.SettingsChanged = true;
+            } catch {
+                ;
             }
         }
 

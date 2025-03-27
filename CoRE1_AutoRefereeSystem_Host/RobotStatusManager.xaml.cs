@@ -278,7 +278,7 @@ namespace CoRE1_AutoRefereeSystem_Host
             TeamNameComboBox.Items.Clear();
             foreach (string tn in Master.Instance.TeamName)
                 TeamNameComboBox.Items.Add(tn);
-            
+
             Status = new RobotStatus(this);
 
             RobotTypeComboBox.Items.Clear();
@@ -310,6 +310,18 @@ namespace CoRE1_AutoRefereeSystem_Host
                 Status.HPBarColor = Master.HPBarColorEnum.BLUE;
                 Status.DamagePanelColor = Master.DamagePanelColorEnum.BLUE;
             }
+
+            var tmp = TeamNameComboBox.SelectedItem;
+            TeamNameComboBox.Items.Clear();
+            TeamNameComboBox.Items.Add("");
+            if (PanelLabel.Contains("6")) {
+                foreach (string tn in Master.Instance.TeamName)
+                    if (tn.Contains("[ATR]")) TeamNameComboBox.Items.Add(tn);
+            } else {
+                foreach (string tn in Master.Instance.TeamName)
+                    if (tn.Contains("[ATK]") || tn.Contains("[BLD]")) TeamNameComboBox.Items.Add(tn);
+            }
+            TeamNameComboBox.SelectedItem = tmp;
 
             /*
             TeamNameComboBox.SelectedIndex = 0;
@@ -351,8 +363,8 @@ namespace CoRE1_AutoRefereeSystem_Host
             Status.TeamName = TeamNameComboBox.SelectedItem.ToString();
             Status.TeamID = TeamNameComboBox.SelectedIndex;
 
-            if (Status.TeamName.Contains("[ATK]")) RobotTypeComboBox.SelectedItem = "Attacker";
-            else if (Status.TeamName.Contains("[BLD]")) RobotTypeComboBox.SelectedItem = "Builder";
+             if (Status.TeamName.Contains("[ATK]")) RobotTypeComboBox.SelectedItem = "Attacker";
+             else if (Status.TeamName.Contains("[BLD]")) RobotTypeComboBox.SelectedItem = "Builder";
             
             Master.Instance.SettingsChanged = true;
         }
@@ -360,7 +372,6 @@ namespace CoRE1_AutoRefereeSystem_Host
         private void RobotTypeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             if (RobotTypeComboBox.SelectedItem is null) return;
             Status.RobotType = (Master.RobotTypeEnum)RobotTypeComboBox.SelectedIndex;
-            Master.Instance.SettingsChanged = true;
 
             if (Master.Instance.GameFormat == Master.GameFormatEnum.PRELIMINALY) return;
 
@@ -394,7 +405,7 @@ namespace CoRE1_AutoRefereeSystem_Host
             Status.HP = 0;
             Status.DefeatedFlag = true;
             Status.PowerOnFlag = false;
-            // Status.DefeatedNum++;
+             Status.DefeatedNum++;
             Status.AddRobotLog("Defeated by Host");
 
             // 基本的にこのボタンはロボットが倒れるなどして再起不能になった時に押すので必要ない

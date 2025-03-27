@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
@@ -74,7 +75,6 @@ namespace CoRE1_AutoRefereeSystem_Host
 
             try {
                 Directory.CreateDirectory("config");
-                
                 if (File.Exists(settingsFilePath)) {
                     FileExsits = true;
                     string json = File.ReadAllText(settingsFilePath);
@@ -159,7 +159,6 @@ namespace CoRE1_AutoRefereeSystem_Host
 
             try {
                 Directory.CreateDirectory("config");
-                
                 if (File.Exists(settingsFilePath)) {
                     FileExsits = true;
                     string json = File.ReadAllText(settingsFilePath);

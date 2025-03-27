@@ -117,9 +117,21 @@ namespace CoRE1_AutoRefereeSystem_Host
                     if (_occupationLevel <= -5) {
                         _occupationLevel = -5;
                         _occupied = Master.OccupiedEnum.RED;
+
+                        Application.Current.Dispatcher.Invoke(() => {
+                            _baseStatusManager.ResetTimeTextBox.IsEnabled = false;
+                            _baseStatusManager.ResetTimeTextBox.Text = "";
+                        });
+
                     } else if (_occupationLevel >= 5) {
                         _occupationLevel = 5;
                         _occupied = Master.OccupiedEnum.BLUE;
+
+                        Application.Current.Dispatcher.Invoke(() => {
+                            _baseStatusManager.ResetTimeTextBox.IsEnabled = false;
+                            _baseStatusManager.ResetTimeTextBox.Text = "";
+                        });
+
                     } else {
                         _occupied = Master.OccupiedEnum.NO;
                         _lastAttackStartTime = DateTime.Now;
@@ -1201,7 +1213,6 @@ namespace CoRE1_AutoRefereeSystem_Host
                 Debug.WriteLine(serverIPEndPoint);
                 var converter = new System.Windows.Media.BrushConverter();
                 EndPointTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#3000FF00");
-                Master.Instance.SettingsChanged = true;
             } else {
                 MessageBox.Show($"Invalid endpoint: {EndPointTextBox.Text}.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
