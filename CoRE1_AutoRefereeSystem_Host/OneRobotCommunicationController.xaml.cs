@@ -95,7 +95,7 @@ namespace CoRE1_AutoRefereeSystem_Host
             // this.IsEnabled = false;
 
             /*CommEnabledToggleButton1.IsEnabled = false;
-            ConnectButton.IsEnabled = false;
+            OpenButton.IsEnabled = false;
             PingButton1.IsEnabled = false;
             BootButton.IsEnabled = false;
             ShutdownButton.IsEnabled = false;
@@ -112,7 +112,7 @@ namespace CoRE1_AutoRefereeSystem_Host
 
                 CommEnabledToggleButton1.IsEnabled = false;
                 ComPortSelectionComboBox.IsEnabled = false;
-                ConnectButton.IsEnabled = false;
+                OpenButton.IsEnabled = false;
                 PingButton1.IsEnabled = false;
                 BootButton.IsEnabled = false;
                 ShutdownButton.IsEnabled = false;
@@ -140,8 +140,8 @@ namespace CoRE1_AutoRefereeSystem_Host
                         if (!_serialPort.IsOpen) {
                             Dispatcher.Invoke(() => {
                                 HostStatusTextBox.Text = "HostPCB closed";
-                                ConnectButton.Content = "Open";
-                                ConnectButton.IsEnabled = true;
+                                OpenButton.Content = "Open";
+                                OpenButton.IsEnabled = true;
                                 PingButton1.IsEnabled = false;
                                 BootButton.IsEnabled = false;
                                 ShutdownButton.IsEnabled = false;
@@ -159,7 +159,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                                 HostStatusTextBox.IsEnabled = true;
 
                                 BootButton.IsEnabled = false;
-                                ConnectButton.IsEnabled = false;
+                                OpenButton.IsEnabled = false;
                                 ShutdownButton.IsEnabled = true;
                                 PingButton1.IsEnabled = false;
 
@@ -232,7 +232,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                                 LinkTextBox.AppendText(data + ">");
                                 LinkTextBox.ScrollToEnd();
 
-                                ConnectButton.IsEnabled = true;
+                                OpenButton.IsEnabled = true;
                                 BootButton.IsEnabled = true;
                                 ShutdownButton.IsEnabled = false;
                                 PingButton1.IsEnabled = true;
@@ -536,7 +536,7 @@ namespace CoRE1_AutoRefereeSystem_Host
             ReceivedDataTextBox1.Clear();
 
             //_serialPort.Close();
-            //ConnectButton.Content = "Connect";
+            //OpenButton.Content = "Connect";
             StartWatchingReceiveData();
             arsSequence = Master.ARSSequenceEnum.NONE;
         }
@@ -607,16 +607,16 @@ namespace CoRE1_AutoRefereeSystem_Host
         private void CommEnabledToggleButton_CheckedChanged(object sender, RoutedEventArgs e) {
             if (CommEnabledToggleButton1.IsChecked == true) {
                 Robot1.Status.Connection = Master.RobotConnectionEnum.ENABLED;
-                ConnectButton.IsEnabled = true;
+                OpenButton.IsEnabled = true;
                 ComPortSelectionComboBox.IsEnabled = true;
             } else {
                 Robot1.Status.Connection = Master.RobotConnectionEnum.DISABLED;
-                ConnectButton.IsEnabled = false;
+                OpenButton.IsEnabled = false;
                 ComPortSelectionComboBox.IsEnabled = false;
             }
         }
 
-        private void ConnectButton_Click(object sender, RoutedEventArgs e) {
+        private void OpenButton_Click(object sender, RoutedEventArgs e) {
             if (!_serialPort.IsOpen) {
                 if (ComPortSelectionComboBox.SelectedItem == null) {
                     MessageBox.Show("You must select COM port", "Warning",
@@ -630,7 +630,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                     _serialPort.Open();
                     arsSequence = Master.ARSSequenceEnum.OPENED;
                     HostStatusTextBox.Text = "HostPCB opend";
-                    ConnectButton.Content = "Close";
+                    OpenButton.Content = "Close";
                     PingButton1.IsEnabled = true;
                     BootButton.IsEnabled = true;
                     ShutdownButton.IsEnabled = false;
@@ -644,8 +644,8 @@ namespace CoRE1_AutoRefereeSystem_Host
             } else {
                 _serialPort.Close();
                 HostStatusTextBox.Text = "HostPCB closed";
-                ConnectButton.Content = "Open";
-                ConnectButton.IsEnabled = true;
+                OpenButton.Content = "Open";
+                OpenButton.IsEnabled = true;
                 PingButton1.IsEnabled = false;
                 BootButton.IsEnabled = false;
                 ShutdownButton.IsEnabled = false;

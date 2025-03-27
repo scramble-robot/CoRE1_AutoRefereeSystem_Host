@@ -44,6 +44,10 @@ namespace CoRE1_AutoRefereeSystem_Host
                 _robotStatusManager = instance;
             }
 
+            public RobotStatus() {
+                _robotStatusManager = null;
+            }
+
             public Master.RobotConnectionEnum Connection {
                 get { return _connection; }
                 set { _connection = value; }

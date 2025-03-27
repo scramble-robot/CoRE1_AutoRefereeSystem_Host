@@ -69,10 +69,10 @@
                           SelectionChanged="ComPortSelectionComboBox_SelectionChanged" />
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-                <Button x:Name="ConnectButton"
+                <Button x:Name="OpenButton"
                         Content="Open"
                         Margin="10,5,5,5"
-                        Click="ConnectButton_Click"
+                        Click="OpenButton_Click"
                         HorizontalAlignment="Left"
                         Width="85" />
                 <Button x:Name="BootButton"

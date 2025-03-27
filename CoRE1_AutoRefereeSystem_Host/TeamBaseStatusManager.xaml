@@ -194,10 +194,10 @@
                              Width="130"
                              TextChanged="EndPointTextBox_TextChanged"
                              KeyDown="EndPointTextBox_KeyDown" />
-                    <Button x:Name="ConnectButton"
+                    <Button x:Name="OpenButton"
                             Content="Open"
                             Margin="10,5,0,5"
-                            Click="ConnectButton_Click"
+                            Click="OpenButton_Click"
                             HorizontalAlignment="Left"
                             Width="70" />
                     <Button x:Name="BootButton"

@@ -221,8 +221,9 @@ namespace CoRE1_AutoRefereeSystem_Host
         public Random ARSTimeoutRandom { set; get; } = new Random();
 
         // ストライダーのチーム名
-        public string RedStriderTeamName { set; get; } = "";
-        public string BlueStriderTeamName { set; get; } = "";
+        public RobotStatusManager.RobotStatus Red7Status { set; get; } = new RobotStatusManager.RobotStatus();
+
+        public RobotStatusManager.RobotStatus Blue7Status { set; get; } = new RobotStatusManager.RobotStatus();
 
         // チームの勝利数
         public int NumRedWins { set; get; } = 0;
@@ -373,6 +374,9 @@ namespace CoRE1_AutoRefereeSystem_Host
         public readonly DispatcherTimer _udpReceiverTimer;
 
         private Master() {
+            Red7Status.TeamColor = "Red7";
+            Blue7Status.TeamColor = "Blue7";
+
             _updateTimer = new System.Timers.Timer();
             _updateTimer.Interval = 100;
             _updateTimer.Elapsed += UpdateAttackBuff;
@@ -990,14 +994,6 @@ namespace CoRE1_AutoRefereeSystem_Host
             }));
         }
 
-        private static int GetTeamOffset(Master.RobotTypeEnum robotType) {
-            int offset = 0;
-            if (robotType == Master.RobotTypeEnum.BUILDER) offset = 15;
-            else if (robotType == Master.RobotTypeEnum.AUTOTURRET) offset = 18;
-            else if (robotType == Master.RobotTypeEnum.STRIDER) offset = 20;
-            return offset;
-        }
-
         private static void SaveSettings(object sender, EventArgs e) {
             if (!Instance.SettingsChanged) return;
 
@@ -1022,7 +1018,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                 settings.Red4TeamName = window.Red34.Robot2.Status.TeamName;
                 settings.Red5TeamName = window.Red5.Robot1.Status.TeamName;
                 settings.Red6TeamName = window.Red6.Robot1.Status.TeamName;
-                settings.Red7TeamName = Instance.RedStriderTeamName;
+                settings.Red7TeamName = Instance.Red7Status.TeamName;
 
                 settings.Blue1TeamName = window.Blue12.Robot1.Status.TeamName;
                 settings.Blue2TeamName = window.Blue12.Robot2.Status.TeamName;
@@ -1030,7 +1026,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                 settings.Blue4TeamName = window.Blue34.Robot2.Status.TeamName;
                 settings.Blue5TeamName = window.Blue5.Robot1.Status.TeamName;
                 settings.Blue6TeamName = window.Blue6.Robot1.Status.TeamName;
-                settings.Blue7TeamName = Instance.BlueStriderTeamName;
+                settings.Blue7TeamName = Instance.Blue7Status.TeamName;
 
                 settings.Red1RobotType = window.Red12.Robot1.Status.RobotType;
                 settings.Red2RobotType = window.Red12.Robot2.Status.RobotType;
@@ -1081,6 +1077,14 @@ namespace CoRE1_AutoRefereeSystem_Host
 
             // 指定のクラスにセット
             Msgs.GameTime = Instance.GameTime;
+            if (Instance.IsGameCountingDown) { // カウントダウンの時は試合時間分を足す
+                int gameTime = Instance.TornamentGameTimeMin;
+                if (Instance.GameFormat == GameFormatEnum.PRELIMINALY) gameTime = Instance.PreliminaryGameTimeMin;
+                var time = TimeSpan.ParseExact(Msgs.GameTime, @"mm\:ss", null);
+                time = new TimeSpan(0, gameTime, time.Seconds);
+                Msgs.GameTime = time.ToString(@"mm\:ss");
+            }
+
             Msgs.GameSystem = (int)Instance.GameFormat;
             Msgs.RedDeathCnt = Instance.TotalRedDefeated;
             Msgs.BlueDeathCnt = Instance.TotalBlueDefeated;
@@ -1100,34 +1104,42 @@ namespace CoRE1_AutoRefereeSystem_Host
             Msgs.BlueSpot[3] = Bool2Int(Instance.IsBlueAttackBuff4Active);
             Msgs.BlueSpot[4] = Bool2Int(Instance.IsBlueAttackBuff5Active);
 
+            // ストライダー
+            Msgs.RedStrider = Bool2Int(Instance.RedInvinsible);
+            Msgs.BlueStrider = Bool2Int(Instance.BlueInvinsible);
+
+            // ゾーン1,2考慮して送らないといけない．優先度低め．
+            // テキストボックスの値を参照してやるのが一番楽
+            //Msgs.RedInfTime = 
+            //Msgs.BlueInfTime = 
+
             // 陣地
             var window = GetMainWindow();
-            Msgs.RedArea = 10 - (window.RedBase.Status.OccupationLevel + 5);
-            Msgs.CenterArea = window.CommonBase.Status.OccupationLevel;
-            Msgs.BlueArea = 10 - (window.BlueBase.Status.OccupationLevel + 5);
+            Msgs.RedArea = window.RedBase.Status.OccupationLevel;
+            Msgs.CenterArea = window.CommonBase.Status.OccupationLevel + 5;
+            Msgs.BlueArea = window.BlueBase.Status.OccupationLevel;
 
             // 試合結果
-            Msgs.RedWin = 0;
-            Msgs.BlueWin = 0;
+            Msgs.RedWin = (uint)Instance.NumRedWins;
+            Msgs.BlueWin = (uint)Instance.NumBlueWins;
             Msgs.Winner = (uint)Instance.Winner;
 
             // Robot
-            RobotClass redAutoRobot = new RobotClass();
-            RobotClass blueAutoRobot = new RobotClass();
-            redAutoRobot.TeamColor = "Red6";  redAutoRobot.TeamID = 18;
-            blueAutoRobot.TeamColor = "Blue6"; blueAutoRobot.TeamID = 18;
-
             RobotStatusManager.RobotStatus[] AllRobotStatus = {
                 window.Red12.Robot1.Status,
                 window.Red12.Robot2.Status,
                 window.Red34.Robot1.Status,
                 window.Red34.Robot2.Status,
                 window.Red5.Robot1.Status,
+                window.Red6.Robot1.Status,
+                Instance.Red7Status,
                 window.Blue12.Robot1.Status,
                 window.Blue12.Robot2.Status,
                 window.Blue34.Robot1.Status,
                 window.Blue34.Robot2.Status,
-                window.Blue5.Robot1.Status
+                window.Blue5.Robot1.Status,
+                window.Blue6.Robot1.Status,
+                Instance.Blue7Status
             };
 
             for (int i = 0; i < AllRobotStatus.Length; i++) {
@@ -1144,9 +1156,6 @@ namespace CoRE1_AutoRefereeSystem_Host
 
                 Msgs.Robot[i].RespawnTime = AllRobotStatus[i].RespawnTimeString;
             }
-
-            Msgs.Robot[10] = redAutoRobot;
-            Msgs.Robot[11] = blueAutoRobot;
 
             // UDPでデータを送信
             try {

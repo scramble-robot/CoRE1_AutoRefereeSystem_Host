@@ -424,13 +424,13 @@ namespace CoRE1_AutoRefereeSystem_Host
         /***** ストライダーのチーム選択 *******************************************************************************************************/
         private void RedStriderTeamNameComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e) {
             if (RedStriderTeamNameComboBox.SelectedItem is null) return;
-            Master.Instance.RedStriderTeamName = RedStriderTeamNameComboBox.SelectedItem.ToString();
+            Master.Instance.Red7Status.TeamName = RedStriderTeamNameComboBox.SelectedItem.ToString();
             Master.Instance.SettingsChanged = true;
         }
 
         private void BlueStriderTeamNameComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e) {
             if (BlueStriderTeamNameComboBox.SelectedItem is null) return;
-            Master.Instance.BlueStriderTeamName = BlueStriderTeamNameComboBox.SelectedItem.ToString();
+            Master.Instance.Blue7Status.TeamName = BlueStriderTeamNameComboBox.SelectedItem.ToString();
             Master.Instance.SettingsChanged = true;
         }
 

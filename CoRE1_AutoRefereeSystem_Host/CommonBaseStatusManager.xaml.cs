@@ -614,7 +614,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                                 HostStatusTextBox.Text = "Boot succeeded";
                                 HostStatusTextBox.IsEnabled = true;
 
-                                ConnectButton.IsEnabled = false;
+                                OpenButton.IsEnabled = false;
                                 PingButton1.IsEnabled = false;
 
                                 //stream.ReadTimeout = Master.Instance.ARSTimeoutRandom.Next(
@@ -651,7 +651,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                                 LinkTextBox.ScrollToEnd();
 
                                 BootButton.Content = "Boot";
-                                ConnectButton.IsEnabled = true;
+                                OpenButton.IsEnabled = true;
                                 BootButton.IsEnabled = false;
                                 PingButton1.IsEnabled = false;
                             });
@@ -1059,14 +1059,14 @@ namespace CoRE1_AutoRefereeSystem_Host
             _baseStatus.OccupationLevel += 1;
         }
 
-        private async void ConnectButton_Click(object sender, RoutedEventArgs e) {
+        private async void OpenButton_Click(object sender, RoutedEventArgs e) {
             if (client is null || !client.Connected) {
                 if (serverIPEndPoint is null) {
                     // Debug.WriteLine("stream is null");
                     return;
                 }
                 try {
-                    ConnectButton.Content = "...";
+                    OpenButton.Content = "...";
 
                     client = new TcpClient();
                     await client.ConnectAsync(serverIPEndPoint);
@@ -1078,12 +1078,12 @@ namespace CoRE1_AutoRefereeSystem_Host
 
                     arsSequence = Master.ARSSequenceEnum.OPENED;
                     HostStatusTextBox.Text = "Arduino server connected";
-                    ConnectButton.Content = "Close";
+                    OpenButton.Content = "Close";
                     PingButton1.IsEnabled = true;
                     BootButton.IsEnabled = true;
                     SendButton.IsEnabled = true;
                 } catch (Exception ex) {
-                    ConnectButton.Content = "Open";
+                    OpenButton.Content = "Open";
                     MessageBox.Show($"{this.Name}: Failed to connect to Arduino server\n" +
                          $"\nProbably, selected IP has already been connnected by another.",
                          "Connection failure", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -1098,8 +1098,8 @@ namespace CoRE1_AutoRefereeSystem_Host
                 client.Close();
                 arsSequence = Master.ARSSequenceEnum.NONE;
                 HostStatusTextBox.Text = "Arduino server closed";
-                ConnectButton.Content = "Open";
-                ConnectButton.IsEnabled = true;
+                OpenButton.Content = "Open";
+                OpenButton.IsEnabled = true;
                 PingButton1.IsEnabled = false;
                 BootButton.IsEnabled = false;
                 SendButton.IsEnabled = false;
