@@ -706,7 +706,8 @@ namespace CoRE1_AutoRefereeSystem_Host
                     var status = _baseStatus;
                     var baseRecivedTextBox = ReceivedDataTextBox1;
 
-                    bool activeFlag = status.IsRedActive | status.IsBlueActive;
+                    bool redActiveFlag = status.IsRedActive;
+                    bool blueActiveFlag = status.IsBlueActive;
                     bool defeatedFlag = false; // dummy
 
                     int hpBarColor = (int)status.OccupationLevelBarColor;
@@ -719,9 +720,9 @@ namespace CoRE1_AutoRefereeSystem_Host
                     // 宛先の機能No (09は共通陣地)
                     _sendData.Add("09");
 
-                    // [b0: アクティブフラグ, b1: 撃破フラグ]
+                    // [b0: 赤アクティブフラグ, b1: 青アクティフラグ, b2: 撃破フラグ]
                     _sendData.Add(
-                        (BitShift(activeFlag, 0) | BitShift(defeatedFlag, 1)).ToString("X2")
+                        (BitShift(redActiveFlag, 0) | BitShift(blueActiveFlag, 1) | BitShift(defeatedFlag, 2)).ToString("X2")
                     );
 
                     // [b0..3:HPバーのカラー,b4..7:ダメージプレートのカラー]
@@ -809,7 +810,7 @@ namespace CoRE1_AutoRefereeSystem_Host
 
                                     status.LeftRDPInvulnerable = true;
                                     status.LeftRDPInvulnerableStartTime = DateTime.Now;
-                                    status.AddRobotLog($"Hit Left RDP. -{diff}, now: {status.OccupationLevel}");
+                                    status.AddRobotLog($"Hit Left RDP. +{diff}, now: {status.OccupationLevel}");
                                 }
                                 if (!status.CenterRDPInvulnerable && BitHigh(info[5], (int)BaseStatus.DamagePanelPosition.CenterRDP)) {
                                     int diff = 2 * attackBuff; // 2倍ダメージ
@@ -817,7 +818,7 @@ namespace CoRE1_AutoRefereeSystem_Host
 
                                     status.CenterRDPInvulnerable = true;
                                     status.CenterRDPInvulnerableStartTime = DateTime.Now;
-                                    status.AddRobotLog($"Hit Center RDP. -{diff}, now: {status.OccupationLevel}");
+                                    status.AddRobotLog($"Hit Center RDP. +{diff}, now: {status.OccupationLevel}");
                                 }
                                 if (!status.RightRDPInvulnerable && BitHigh(info[5], (int)BaseStatus.DamagePanelPosition.RightRDP)) {
                                     int diff = 1 * attackBuff;
@@ -825,7 +826,7 @@ namespace CoRE1_AutoRefereeSystem_Host
 
                                     status.RightRDPInvulnerable = true;
                                     status.RightRDPInvulnerableStartTime = DateTime.Now;
-                                    status.AddRobotLog($"Hit Right RDP. -{diff}, now: {status.OccupationLevel}");
+                                    status.AddRobotLog($"Hit Right RDP. +{diff}, now: {status.OccupationLevel}");
                                 }
                             }
 
@@ -895,7 +896,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                             );
                             LinkTextBox.ScrollToEnd();
 
-                            HostStatusTextBox.Text = "Restarting: Openning HostPCB";
+                            HostStatusTextBox.Text = "Restarting: Openning Arduino Server";
                             HostStatusTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#66F5E98B");
                         });
 

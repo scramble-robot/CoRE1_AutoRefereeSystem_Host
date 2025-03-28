@@ -81,7 +81,7 @@ namespace CoRE1_AutoRefereeSystem_Host
         #region
         private void UserControl_Loaded(object sender, RoutedEventArgs e) {
             Robot1.RobotTypeComboBox.SelectedIndex = 3;
-
+            Robot1.RobotTypeComboBox.IsEnabled = false;
         }
 
         private void UserControl_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e) {
@@ -366,7 +366,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                             );
                             LinkTextBox.ScrollToEnd();
 
-                            HostStatusTextBox.Text = "Restarting: Openning HostPCB";
+                            HostStatusTextBox.Text = "Restarting: Openning Arduino Server";
                             HostStatusTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#66F5E98B");
                         });
 

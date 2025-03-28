@@ -477,6 +477,8 @@ namespace CoRE1_AutoRefereeSystem_Host
                                 if (Master.Instance.BlueInvinsible) attackBuff = 0;
                             }
 
+                            if (robotStatus.IsShieldBuffActive) attackBuff /= 2.0;
+
                             for (int i = 0; i < 4; i++) {
                                 if (BitHigh(info[4], i)) {
                                     robotStatus.HP -= (int)(attackBuff * Master.Instance.HitDamage) ;

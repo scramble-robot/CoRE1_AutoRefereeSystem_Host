@@ -1070,6 +1070,16 @@ namespace CoRE1_AutoRefereeSystem_Host
             Instance.SettingsChanged = false;
         }
 
+        private async void SendMsgs(string ip, int port) {
+            try {
+                string json = JsonConvert.SerializeObject(Msgs);
+                byte[] data = Encoding.UTF8.GetBytes(json);
+
+                await _operatorUdpSender.SendAsync(data, data.Length, ip, port);
+            } catch (Exception ex) {
+                Debug.WriteLine(ex.ToString());
+            }
+        }
 
         private int isSending = 0;
         private async void SendMsgsToOperatorScreen(object sender, EventArgs e) {
@@ -1158,42 +1168,11 @@ namespace CoRE1_AutoRefereeSystem_Host
             }
 
             // UDPでデータを送信
-            try {
-                string json = JsonConvert.SerializeObject(Msgs);
-                byte[] data = Encoding.UTF8.GetBytes(json);
-
-                await _operatorUdpSender.SendAsync(data, data.Length, "192.168.100.100", _sendPort);
-            } catch (Exception ex) {
-                Debug.WriteLine(ex.ToString());
-            }
-
-            try {
-                string json = JsonConvert.SerializeObject(Msgs);
-                byte[] data = Encoding.UTF8.GetBytes(json);
-
-                await _operatorUdpSender.SendAsync(data, data.Length, "192.168.100.101", _sendPort);
-            } catch (Exception ex) {
-                Debug.WriteLine(ex.ToString());
-            }
-
-            try {
-                string json = JsonConvert.SerializeObject(Msgs);
-                byte[] data = Encoding.UTF8.GetBytes(json);
-
-                await _operatorUdpSender.SendAsync(data, data.Length, "192.168.100.102", _sendPort);
-            } catch (Exception ex) {
-                Debug.WriteLine(ex.ToString());
-            }
-
-            try {
-                string json = JsonConvert.SerializeObject(Msgs);
-                byte[] data = Encoding.UTF8.GetBytes(json);
-
-                await _operatorUdpSender.SendAsync(data, data.Length, "192.168.100.103", _sendPort);
-            } catch (Exception ex) {
-                Debug.WriteLine(ex.ToString());
-            }
-
+            SendMsgs("192.168.11.100", _sendPort);
+            SendMsgs("192.168.11.101", _sendPort);
+            SendMsgs("192.168.11.102", _sendPort);
+            SendMsgs("192.168.11.103", _sendPort);
+            
             Interlocked.Exchange(ref isSending, 0);
         }
 
