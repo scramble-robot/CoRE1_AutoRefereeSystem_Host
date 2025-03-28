@@ -749,7 +749,7 @@ namespace CoRE1_AutoRefereeSystem_Host
             Instance.IsGameCountingDown = true;
             int gameTime = Instance.TornamentGameTimeMin;
             if (Instance.GameFormat == GameFormatEnum.PRELIMINALY) gameTime = Instance.PreliminaryGameTimeMin; 
-            StartTimer(25 + 1); // 25秒前のカウントダウン開始
+            StartTimer(27 + 1); // 27秒前のカウントダウン開始
             GameStartEvent?.Invoke();
             AllocateButton();
         }
@@ -1154,6 +1154,8 @@ namespace CoRE1_AutoRefereeSystem_Host
 
             for (int i = 0; i < AllRobotStatus.Length; i++) {
                 Msgs.Robot[i].TeamID = Array.IndexOf(Instance.TeamName, AllRobotStatus[i].TeamName);
+
+                if (Msgs.Robot[i].TeamID == -1) Msgs.Robot[i].TeamID = 0;
                 Msgs.Robot[i].TeamColor = AllRobotStatus[i].TeamColor;
                 Msgs.Robot[i].HP = AllRobotStatus[i].HP;
                 Msgs.Robot[i].MaxHP = AllRobotStatus[i].MaxHP;
@@ -1172,7 +1174,19 @@ namespace CoRE1_AutoRefereeSystem_Host
             SendMsgs("192.168.11.101", _sendPort);
             SendMsgs("192.168.11.102", _sendPort);
             SendMsgs("192.168.11.103", _sendPort);
-            
+            SendMsgs("192.168.11.104", _sendPort);
+            SendMsgs("192.168.11.105", _sendPort);
+
+            SendMsgs("192.168.11.110", _sendPort);
+            SendMsgs("192.168.11.111", _sendPort);
+            SendMsgs("192.168.11.112", _sendPort);
+            SendMsgs("192.168.11.113", _sendPort);
+            SendMsgs("192.168.11.114", _sendPort);
+            SendMsgs("192.168.11.115", _sendPort);
+
+            SendMsgs("192.168.11.120", _sendPort);
+            SendMsgs("192.168.11.121", _sendPort);
+
             Interlocked.Exchange(ref isSending, 0);
         }
 

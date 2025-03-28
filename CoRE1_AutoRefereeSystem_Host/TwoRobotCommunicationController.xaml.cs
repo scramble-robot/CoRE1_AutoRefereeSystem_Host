@@ -120,13 +120,13 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         private void UserControl_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e) {
             if (this.IsEnabled) {
-                Robot1.Status.Connection = Master.RobotConnectionEnum.ENABLED;
-                Robot2.Status.Connection = Master.RobotConnectionEnum.ENABLED;
+                //Robot1.Status.Connection = Master.RobotConnectionEnum.ENABLED;
+                //Robot2.Status.Connection = Master.RobotConnectionEnum.ENABLED;
                 Robot1.RobotTypeComboBox.SelectedIndex = 1;
                 Robot2.RobotTypeComboBox.SelectedIndex = 1;
             } else {
-                Robot1.Status.Connection = Master.RobotConnectionEnum.DISABLED;
-                Robot2.Status.Connection = Master.RobotConnectionEnum.DISABLED;
+                //Robot1.Status.Connection = Master.RobotConnectionEnum.DISABLED;
+                //Robot2.Status.Connection = Master.RobotConnectionEnum.DISABLED;
                 Robot1.RobotTypeComboBox.SelectedIndex = 0;
                 Robot2.RobotTypeComboBox.SelectedIndex = 0;
 
@@ -145,8 +145,6 @@ namespace CoRE1_AutoRefereeSystem_Host
 
         /* イベント ****************************************************************************************************************************************/
         private void UpdateRobotStatus(object sender, EventArgs args) {
-            if (_isWatching) StopWatchingReceivedData();
-
             // 1つ前のイベントがクライアント基板からの応答が遅くてまだ終了していない（別スレッドで実行中）場合はスキップ
             if (Interlocked.CompareExchange(ref _isBusy, 1, 0) != 0) return;
 
@@ -200,12 +198,12 @@ namespace CoRE1_AutoRefereeSystem_Host
                                 );
                                 statusChanged = true;
 
-                                if (Robot1.Status.Connection == Master.RobotConnectionEnum.ENABLED) {
-                                    Robot1.Status.Connection = Master.RobotConnectionEnum.CONNECTED;
-                                }
-                                if (Robot2.Status.Connection == Master.RobotConnectionEnum.ENABLED) {
-                                    Robot2.Status.Connection = Master.RobotConnectionEnum.CONNECTED;
-                                }
+                                //if (Robot1.Status.Connection == Master.RobotConnectionEnum.ENABLED) {
+                                //    Robot1.Status.Connection = Master.RobotConnectionEnum.CONNECTED;
+                                //}
+                                //if (Robot2.Status.Connection == Master.RobotConnectionEnum.ENABLED) {
+                                //    Robot2.Status.Connection = Master.RobotConnectionEnum.CONNECTED;
+                                //}
                                 arsSequence = Master.ARSSequenceEnum.UPDATING;
                             } else {
                                 HostStatusTextBox.Text = "Boot failed";
@@ -259,7 +257,9 @@ namespace CoRE1_AutoRefereeSystem_Host
                         string command = "shutdown";
                         SendTextToHostPCB(command);
                         // string data = _serialPort.ReadTo(">");
-                        string data = "OK"; // HACK
+
+                        // HACK
+                        string data = "OK"; 
                         if (data.Contains("OK")) {
                             Dispatcher.Invoke(() => {
                                 HostStatusTextBox.Text = "ARS shutdown";
@@ -279,10 +279,10 @@ namespace CoRE1_AutoRefereeSystem_Host
                             numTimeout = 0;
                             _serialPort.ReadTimeout = 10000;
 
-                            if (CommEnabledToggleButton1.IsChecked == true)
-                                Robot1.Status.Connection = Master.RobotConnectionEnum.ENABLED;
-                            if (CommEnabledToggleButton2.IsChecked == true)
-                                Robot2.Status.Connection = Master.RobotConnectionEnum.ENABLED;
+                            //if (CommEnabledToggleButton1.IsChecked == true)
+                            //    Robot1.Status.Connection = Master.RobotConnectionEnum.ENABLED;
+                            //if (CommEnabledToggleButton2.IsChecked == true)
+                            //    Robot2.Status.Connection = Master.RobotConnectionEnum.ENABLED;
                             arsSequence = Master.ARSSequenceEnum.OPENED;
 
                             // shutdownコマンドは時間がかかるので，cpuResetは無し
@@ -548,7 +548,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         _serialPort.ReadTimeout = Master.Instance.ARSTimeoutRandom.Next(
                             Master.Instance.TimeoutMin, Master.Instance.TimeoutMax
                         );
-                        Thread.Sleep(1000);
+                        Thread.Sleep(5000);
                     } catch (Exception ex) when (
                             ex is IOException || ex is InvalidOperationException ||
                             ex is OperationCanceledException) {
@@ -602,16 +602,6 @@ namespace CoRE1_AutoRefereeSystem_Host
                 LinkTextBox.AppendText(data);
                 LinkTextBox.ScrollToEnd();
             });
-        }
-
-        private void Reset() {
-            LinkTextBox.Clear();
-            ReceivedDataTextBox1.Clear();
-            ReceivedDataTextBox2.Clear();
-
-            // _serialPort.Close();
-            StartWatchingReceiveData();
-            //commSeq = Master.CommunicationSeqEnum.NONE;
         }
 
         private void UpdateCOMPortsList() {
@@ -670,6 +660,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                 Robot1.Status.Connection = Master.RobotConnectionEnum.ENABLED;
                 OpenButton.IsEnabled = true;
                 ComPortSelectionComboBox.IsEnabled = true;
+                PingButton1.IsEnabled = true;
                 if (CommEnabledToggleButton2.IsChecked == true) {
                     _numCommunicationRobot = 2;
                 } else {
@@ -677,6 +668,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                 }
             } else {
                 Robot1.Status.Connection = Master.RobotConnectionEnum.DISABLED;
+                PingButton1.IsEnabled = false;
                 _numCommunicationRobot = 1;
                 if (CommEnabledToggleButton2.IsChecked == false) {
                     OpenButton.IsEnabled = false;
@@ -691,6 +683,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                 Robot2.Status.Connection = Master.RobotConnectionEnum.ENABLED;
                 OpenButton.IsEnabled = true;
                 ComPortSelectionComboBox.IsEnabled = true;
+                PingButton2.IsEnabled = true;
 
                 if (CommEnabledToggleButton1.IsChecked == true) {
                     _numCommunicationRobot = 2;
@@ -700,6 +693,8 @@ namespace CoRE1_AutoRefereeSystem_Host
             } else {
                 Robot2.Status.Connection = Master.RobotConnectionEnum.DISABLED;
                 _numCommunicationRobot = 1;
+                PingButton2.IsEnabled = false;
+
                 if (CommEnabledToggleButton1.IsChecked == false) {
                     OpenButton.IsEnabled = false;
                     ComPortSelectionComboBox.IsEnabled = false;
@@ -767,15 +762,29 @@ namespace CoRE1_AutoRefereeSystem_Host
             if (arsSequence != Master.ARSSequenceEnum.OPENED) return;
 
             StopWatchingReceivedData();
-            try {
+            //try {
                 HostStatusTextBox.Text = "Booting ARS...";
                 arsSequence = Master.ARSSequenceEnum.BOOTING;
                 _serialPort.DiscardInBuffer();
-                string command = $"boot {Master.Instance.HostCH[this.Name]} " + Master.Instance.TeamNodeNo[Robot1.Status.TeamName].ToString("D4");
+
+                string command = $"boot {Master.Instance.HostCH[this.Name]} ";
+                if (Robot1.Status.Connection == Master.RobotConnectionEnum.ENABLED && Robot2.Status.Connection == Master.RobotConnectionEnum.ENABLED)
+                {
+                    command = $"boot {Master.Instance.HostCH[this.Name]} " + Master.Instance.TeamNodeNo[Robot1.Status.TeamName].ToString("D4") + " " + Master.Instance.TeamNodeNo[Robot2.Status.TeamName].ToString("D4");
+                }
+                else if (Robot1.Status.Connection == Master.RobotConnectionEnum.ENABLED)
+                {
+                    command = $"boot {Master.Instance.HostCH[this.Name]} " + Master.Instance.TeamNodeNo[Robot1.Status.TeamName].ToString("D4");
+                }
+                else if (Robot2.Status.Connection == Master.RobotConnectionEnum.ENABLED)
+                {
+                    command = $"boot {Master.Instance.HostCH[this.Name]} " + Master.Instance.TeamNodeNo[Robot2.Status.TeamName].ToString("D4");
+                }
+
                 SendTextToHostPCB(command);
-            } catch (Exception ex) {
-                ;
-            }
+            //} catch (Exception ex) {
+            //    ;
+            //}
         }
 
         private void ShutdownButton_Click(object sender, RoutedEventArgs e) {

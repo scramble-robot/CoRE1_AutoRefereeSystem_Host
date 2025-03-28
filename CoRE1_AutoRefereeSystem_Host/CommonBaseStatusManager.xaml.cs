@@ -527,7 +527,7 @@ namespace CoRE1_AutoRefereeSystem_Host
             // Master.Instance.UpdateEvent += UpdateRobotStatus;
 
             _updateTimer = new System.Timers.Timer();
-            _updateTimer.Interval = 500;
+            _updateTimer.Interval = 100;
             _updateTimer.Elapsed += UpdateBaseStatus;
             _updateTimer.Start();
 

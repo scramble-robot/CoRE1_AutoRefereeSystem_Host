@@ -289,7 +289,7 @@ namespace CoRE1_AutoRefereeSystem_Host
             RobotTypeComboBox.Items.Add("");
             RobotTypeComboBox.Items.Add("Attacker");
             RobotTypeComboBox.Items.Add("Builder");
-            RobotTypeComboBox.Items.Add("AutoTureet");
+            RobotTypeComboBox.Items.Add("AutoTurret");
             //RobotTypeComboBox.Items.Add("Strider");
             RobotTypeComboBox.SelectedIndex = 1;
 
@@ -367,9 +367,10 @@ namespace CoRE1_AutoRefereeSystem_Host
             Status.TeamName = TeamNameComboBox.SelectedItem.ToString();
             Status.TeamID = TeamNameComboBox.SelectedIndex;
 
-             if (Status.TeamName.Contains("[ATK]")) RobotTypeComboBox.SelectedItem = "Attacker";
-             else if (Status.TeamName.Contains("[BLD]")) RobotTypeComboBox.SelectedItem = "Builder";
-            
+            if (Status.TeamName.Contains("[ATK]")) RobotTypeComboBox.SelectedItem = "Attacker";
+            else if (Status.TeamName.Contains("[BLD]")) RobotTypeComboBox.SelectedItem = "Builder";
+            else if (Status.TeamName.Contains("[ATR]")) RobotTypeComboBox.SelectedItem = "AutoTurret";
+
             Master.Instance.SettingsChanged = true;
         }
 
