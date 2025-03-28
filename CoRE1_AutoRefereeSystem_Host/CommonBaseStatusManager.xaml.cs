@@ -1,20 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.Eventing.Reader;
-using System.IO.Ports;
 using System.Linq;
 using System.Net.Sockets;
 using System.Net;
-using System.Security;
 using System.Threading;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
-using static CoRE1_AutoRefereeSystem_Host.CommonBaseStatusManager;
-using static CoRE1_AutoRefereeSystem_Host.RobotStatusManager;
 using System.Windows.Input;
 using System.Text;
 using System.IO;
@@ -636,7 +630,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                             //HostStatusTextBox.Background = (System.Windows.Media.Brush)converter.ConvertFromString("#00FFFFFF");
                         });
 
-                        Thread.Sleep(3000);
+                        Thread.Sleep(2000);
                         string command = "shutdown";
                         SendTextToArduino(command);
                         // string data = _serialPort.ReadTo(">");
@@ -712,7 +706,20 @@ namespace CoRE1_AutoRefereeSystem_Host
 
                     int hpBarColor = (int)status.OccupationLevelBarColor;
                     int dpColor = hpBarColor; // dummy
-                    int occupationLevelPercent = Math.Abs(status.OccupationLevel) * 10;
+                    int occupationLevelPercent = status.OccupationLevel * 10 + 50;
+                    if (occupationLevelPercent == 50) {
+                        hpBarColor = (int)Master.HPBarColorEnum.WHITE;
+                    } else if (occupationLevelPercent < 50) {
+                        hpBarColor = (int)Master.HPBarColorEnum.RED;
+                    } else {
+                        hpBarColor = (int)Master.HPBarColorEnum.BLUE;
+                    }
+
+                    if (!redActiveFlag && !blueActiveFlag) {
+                        hpBarColor = (int)Master.HPBarColorEnum.WHITE;
+                        dpColor = (int)Master.DamagePanelColorEnum.WHITE;
+                        occupationLevelPercent = 100;
+                    }
 
                     // 送信データを規定のプロトコルに基づいて作成
                     _sendData.Clear();
@@ -720,9 +727,9 @@ namespace CoRE1_AutoRefereeSystem_Host
                     // 宛先の機能No (09は共通陣地)
                     _sendData.Add("09");
 
-                    // [b0: 赤アクティブフラグ, b1: 青アクティフラグ, b2: 撃破フラグ]
+                    // [b2: 赤アクティブフラグ, b3: 青アクティフラグ, b1: 撃破フラグ]
                     _sendData.Add(
-                        (BitShift(redActiveFlag, 0) | BitShift(blueActiveFlag, 1) | BitShift(defeatedFlag, 2)).ToString("X2")
+                        (BitShift(redActiveFlag, 2) | BitShift(blueActiveFlag, 3) | BitShift(defeatedFlag, 1)).ToString("X2")
                     );
 
                     // [b0..3:HPバーのカラー,b4..7:ダメージプレートのカラー]
@@ -929,17 +936,17 @@ namespace CoRE1_AutoRefereeSystem_Host
 
             if (_baseStatus.LeftRDPInvulnerable) {
                 var timePassed = DateTime.Now - _baseStatus.LeftRDPInvulnerableStartTime;
-                _baseStatus.LeftBDPInvulnerableRemainigTime = TimeSpan.FromSeconds(Master.Instance.BaseInvulnerableTime) - timePassed;
+                _baseStatus.LeftRDPInvulnerableRemainigTime = TimeSpan.FromSeconds(Master.Instance.BaseInvulnerableTime) - timePassed;
             }
 
             if (_baseStatus.CenterRDPInvulnerable) {
                 var timePassed = DateTime.Now - _baseStatus.CenterRDPInvulnerableStartTime;
-                _baseStatus.CenterBDPInvulnerableRemainigTime = TimeSpan.FromSeconds(Master.Instance.BaseInvulnerableTime) - timePassed;
+                _baseStatus.CenterRDPInvulnerableRemainigTime = TimeSpan.FromSeconds(Master.Instance.BaseInvulnerableTime) - timePassed;
             }
 
             if (_baseStatus.RightRDPInvulnerable) {
                 var timePassed = DateTime.Now - _baseStatus.RightRDPInvulnerableStartTime;
-                _baseStatus.RightBDPInvulnerableRemainigTime = TimeSpan.FromSeconds(Master.Instance.BaseInvulnerableTime) - timePassed;
+                _baseStatus.RightRDPInvulnerableRemainigTime = TimeSpan.FromSeconds(Master.Instance.BaseInvulnerableTime) - timePassed;
             }
             
             if (_baseStatus.LeftBDPInvulnerable) {
@@ -957,7 +964,6 @@ namespace CoRE1_AutoRefereeSystem_Host
                 _baseStatus.RightBDPInvulnerableRemainigTime = TimeSpan.FromSeconds(Master.Instance.BaseInvulnerableTime) - timePassed;
             }
         }
-
 
         private void ClearLog(object sender, EventArgs args) {
             logClear = true;

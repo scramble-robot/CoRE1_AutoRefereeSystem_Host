@@ -4,23 +4,15 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Timers;
 using System.Diagnostics;
-using static CoRE1_AutoRefereeSystem_Host.RobotStatusManager;
-using System.Net.NetworkInformation;
 using System.Threading;
 using System.IO;
 using System.Media;
+
 
 namespace CoRE1_AutoRefereeSystem_Host
 {
@@ -557,13 +549,18 @@ namespace CoRE1_AutoRefereeSystem_Host
                     var status = _baseStatus;
                     var baseRecivedTextBox = ReceivedDataTextBox1;
 
-
                     bool activeFlag = status.IsActive;
                     bool defeatedFlag = false; // dummy
 
                     int hpBarColor = (int)status.OccupationLevelBarColor;
                     int dpColor = hpBarColor; // dummy
                     int occupationLevelPercent = status.OccupationLevel * 10;
+
+                    if (!status.IsActive) {
+                        hpBarColor = (int)Master.HPBarColorEnum.WHITE;
+                        dpColor = (int)Master.DamagePanelColorEnum.WHITE;
+                        occupationLevelPercent = 100;
+                    }
 
                     // 送信データを規定のプロトコルに基づいて作成
                     _sendData.Clear();
@@ -584,7 +581,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                     // [b0~b5: DP無敵フラグ] 陣地のみで使用
                     _sendData.Add((
                             BitShift(status.LeftHighDPInvulnerable, 0) | BitShift(status.RightHighDPInvulnerable, 1) 
-                            | BitShift(status.LeftLowDPInvulnerable, 2) | BitShift(status.LeftLowDPInvulnerable, 3)
+                            | BitShift(status.LeftLowDPInvulnerable, 2) | BitShift(status.RightLowDPInvulnerable, 3)
                         ).ToString("X2")
                     );
 
@@ -894,7 +891,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                 }
             } else {
                 StopWatchingReceivedData();
-                Thread.Sleep(1000);
+                Thread.Sleep(500);
 
                 if (stream is not null) {
                     stream.Close();
