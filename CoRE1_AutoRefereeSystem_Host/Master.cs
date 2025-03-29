@@ -216,8 +216,8 @@ namespace CoRE1_AutoRefereeSystem_Host
         public bool SettingsChanged { set; get; } = false;
 
         // ARS通信のタイムアウト設定の乱数
-        public int TimeoutMin { set; get; } = 1500;
-        public int TimeoutMax { set; get; } = 2500;
+        public int TimeoutMin { set; get; } = 4000;
+        public int TimeoutMax { set; get; } = 5000;
         public Random ARSTimeoutRandom { set; get; } = new Random();
 
         // ストライダーのチーム名

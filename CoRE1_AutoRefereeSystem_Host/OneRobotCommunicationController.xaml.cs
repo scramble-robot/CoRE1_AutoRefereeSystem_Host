@@ -244,7 +244,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                             _serialPort.ReadTimeout = 10000;
                             Robot1.Status.Connection = Master.RobotConnectionEnum.ENABLED;
                             arsSequence = Master.ARSSequenceEnum.OPENED;
-
+                            
                             // shutdownコマンドは時間がかかるので，cpuResetは無し
                             // Thread.Sleep(1000);
                             // command = "cpuReset";
@@ -303,7 +303,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                 if (_isWatching) StopWatchingReceivedData();
                 try {
                     // クライアントに送信する情報
-                    if (Robot1.Status.Connection != Master.RobotConnectionEnum.CONNECTED) return;
+                    //if (Robot1.Status.Connection != Master.RobotConnectionEnum.CONNECTED) return;
 
                     var robot = Robot1;
                     var robotStatus = Robot1.Status;
@@ -475,7 +475,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         _serialPort.ReadTimeout = Master.Instance.ARSTimeoutRandom.Next(
                             Master.Instance.TimeoutMin, Master.Instance.TimeoutMax
                         );
-                        Thread.Sleep(1000);
+                        Thread.Sleep(2000);
                     } catch (Exception ex) when (
                             ex is IOException || ex is InvalidOperationException ||
                             ex is OperationCanceledException) {

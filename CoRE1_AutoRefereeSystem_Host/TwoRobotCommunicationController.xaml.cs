@@ -548,7 +548,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         _serialPort.ReadTimeout = Master.Instance.ARSTimeoutRandom.Next(
                             Master.Instance.TimeoutMin, Master.Instance.TimeoutMax
                         );
-                        Thread.Sleep(5000);
+                        Thread.Sleep(2000);
                     } catch (Exception ex) when (
                             ex is IOException || ex is InvalidOperationException ||
                             ex is OperationCanceledException) {
@@ -757,12 +757,14 @@ namespace CoRE1_AutoRefereeSystem_Host
             SendTextToHostPCB(command, false);
         }
 
-        private void BootButton_Click(object sender, RoutedEventArgs e) {
+        private void BootButton_Click(object sender, RoutedEventArgs e)
+        {
             if (!_serialPort.IsOpen) return;
             if (arsSequence != Master.ARSSequenceEnum.OPENED) return;
 
             StopWatchingReceivedData();
-            //try {
+            try
+            {
                 HostStatusTextBox.Text = "Booting ARS...";
                 arsSequence = Master.ARSSequenceEnum.BOOTING;
                 _serialPort.DiscardInBuffer();
@@ -782,9 +784,11 @@ namespace CoRE1_AutoRefereeSystem_Host
                 }
 
                 SendTextToHostPCB(command);
-            //} catch (Exception ex) {
-            //    ;
-            //}
+            }
+            catch (Exception ex)
+            {
+                ;
+            }
         }
 
         private void ShutdownButton_Click(object sender, RoutedEventArgs e) {
