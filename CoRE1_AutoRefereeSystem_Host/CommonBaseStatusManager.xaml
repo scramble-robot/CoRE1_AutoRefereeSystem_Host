@@ -23,11 +23,11 @@
                                  Height="20"
                                  Width="200"
                                  Margin="20,10,5,10"
-                                 Background="#FF0015E6"
-                                 Foreground="#FFE61500"
+                                 Foreground="#FF0015E6"
+                                 Background="#FFE61500"
                                  BorderBrush="#FF0B1508"
                                  Maximum="10"
-                                 Value="5" />
+                                 Value="5"/>
                     <TextBox x:Name="PointTextBox"
                              TextWrapping="Wrap"
                              Text="N/A"

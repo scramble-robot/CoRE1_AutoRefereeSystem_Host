@@ -106,6 +106,7 @@ namespace CoRE1_AutoRefereeSystem_Host
     public class NnChSettings
     {
         public Dictionary<string, int> TeamNodeNo = new Dictionary<string, int> {
+            {"", 1103 },
             {"AGSR [ATK]", 9999},
             {"AVNT [ATK]", 9999},
             {"KNIT [ATK]", 9999},

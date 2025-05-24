@@ -531,16 +531,6 @@ namespace CoRE1_AutoRefereeSystem_Host
             });
         }
 
-        private void Reset() {
-            LinkTextBox.Clear();
-            ReceivedDataTextBox1.Clear();
-
-            //_serialPort.Close();
-            //OpenButton.Content = "Connect";
-            StartWatchingReceiveData();
-            arsSequence = Master.ARSSequenceEnum.NONE;
-        }
-
         private void UpdateCOMPortsList() {
             Dispatcher.Invoke(() => {
                 var selectedPort = ComPortSelectionComboBox.SelectedItem as string;
@@ -624,8 +614,8 @@ namespace CoRE1_AutoRefereeSystem_Host
                     return;
                 }
 
-                _serialPort.PortName = ComPortSelectionComboBox.SelectedItem.ToString();
                 try {
+                    _serialPort.PortName = ComPortSelectionComboBox.SelectedItem.ToString();
                     // ホスト基板と接続
                     _serialPort.Open();
                     arsSequence = Master.ARSSequenceEnum.OPENED;
@@ -697,7 +687,9 @@ namespace CoRE1_AutoRefereeSystem_Host
         private void SendTextToHostPCB(string text, bool verbose = true) {
             byte[] data = System.Text.Encoding.ASCII.GetBytes(text + "\r\n");
             foreach (byte b in data) {
-                _serialPort.Write(new byte[] { b }, 0, 1);
+                if (_serialPort.IsOpen) {
+                    _serialPort.Write(new byte[] { b }, 0, 1);
+                }
                 Thread.Sleep(2);
             }
 

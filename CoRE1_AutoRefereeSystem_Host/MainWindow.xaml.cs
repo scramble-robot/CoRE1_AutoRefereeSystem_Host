@@ -18,10 +18,12 @@ namespace CoRE1_AutoRefereeSystem_Host
             InitializeComponent();
 
             RedStriderTeamNameComboBox.Items.Clear();
+            RedStriderTeamNameComboBox.Items.Add("");
             foreach (string tn in Master.Instance.TeamName)
                 if (tn.Contains("[STR]")) RedStriderTeamNameComboBox.Items.Add(tn);
 
             BlueStriderTeamNameComboBox.Items.Clear();
+            BlueStriderTeamNameComboBox.Items.Add("");
             foreach (string tn in Master.Instance.TeamName)
                 if (tn.Contains("[STR]")) BlueStriderTeamNameComboBox.Items.Add(tn);
         }

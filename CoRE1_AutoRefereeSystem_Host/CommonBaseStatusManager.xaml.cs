@@ -140,10 +140,10 @@ namespace CoRE1_AutoRefereeSystem_Host
                         _occupationLevelBarColor = Master.HPBarColorEnum.WHITE;
                     } else if (_occupationLevel < 0) {
                         _occupationLevelBarColor = Master.HPBarColorEnum.RED;
-                        pointText = "B" + Math.Abs(_occupationLevel).ToString();
+                        pointText = "R" + Math.Abs(_occupationLevel).ToString();
                     } else {
                         _occupationLevelBarColor = Master.HPBarColorEnum.BLUE;
-                        pointText = "R" + Math.Abs(_occupationLevel).ToString();
+                        pointText = "B" + Math.Abs(_occupationLevel).ToString();
                     }
 
                     Application.Current.Dispatcher.Invoke(() => {
@@ -878,7 +878,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         }
 
                         if (status.Occupied != Master.OccupiedEnum.NO) {
-                            string teamColor = status.Occupied == Master.OccupiedEnum.RED ? "Blue" : "Red";
+                            string teamColor = status.Occupied == Master.OccupiedEnum.RED ? "Red" : "Blue";
                             status.AddRobotLog($"Occupied by {teamColor} team");
                         }
 

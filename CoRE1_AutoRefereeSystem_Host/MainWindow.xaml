@@ -826,7 +826,7 @@
                 <local:TeamBaseStatusManager x:Name="RedBase"
                                              TeamBaseLabel="Base-R"
                                              TeamBaseColor="#10FF0000"
-                                             OccupationLevelColor="#FFE61500"
+                                             OccupationLevelColor="#FF0015E6"
                                              Background="White" />
 
                 <local:CommonBaseStatusManager x:Name="CommonBase"
@@ -837,7 +837,7 @@
                 <local:TeamBaseStatusManager x:Name="BlueBase"
                                              TeamBaseLabel="Base-B"
                                              TeamBaseColor="#100000FF"
-                                             OccupationLevelColor="#FF0015E6"
+                                             OccupationLevelColor="#FFE61500"
                                              Background="White" />
 
                 <local:AutoTurretCommunicationController x:Name="Blue6"

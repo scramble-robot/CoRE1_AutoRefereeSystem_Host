@@ -52,7 +52,6 @@ namespace CoRE1_AutoRefereeSystem_Host
         public Dictionary<string, int> HostCH = new Dictionary<string, int> {};
 
         /***** 試合のルール *******************************************************************************************************/
-
         public int TornamentGameTimeMin { private set; get; } = 5;
         public int PreliminaryGameTimeMin { private set; get; } = 2;
         public int MaxHPAttacker { private set; get; } = 40;
@@ -216,8 +215,8 @@ namespace CoRE1_AutoRefereeSystem_Host
         public bool SettingsChanged { set; get; } = false;
 
         // ARS通信のタイムアウト設定の乱数
-        public int TimeoutMin { set; get; } = 4000;
-        public int TimeoutMax { set; get; } = 5000;
+        public int TimeoutMin { set; get; } = 2500;
+        public int TimeoutMax { set; get; } = 3500;
         public Random ARSTimeoutRandom { set; get; } = new Random();
 
         // ストライダーのチーム名
@@ -245,7 +244,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                 Application.Current.Dispatcher.Invoke(() => {
                     var window = GetMainWindow();
                     if (window.CommonBase.Status.Occupied == OccupiedEnum.RED) num++;
-                    if (window.RedBase.Status.Occupied == OccupiedEnum.RED) num++;
+                    if (window.BlueBase.Status.Occupied == OccupiedEnum.RED) num++;
                 });
                 return num;
             }
@@ -258,7 +257,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                 Application.Current.Dispatcher.Invoke(() => {
                     var window = GetMainWindow();
                     if (window.CommonBase.Status.Occupied == OccupiedEnum.BLUE) num++;
-                    if (window.BlueBase.Status.Occupied == OccupiedEnum.BLUE) num++;
+                    if (window.RedBase.Status.Occupied == OccupiedEnum.BLUE) num++;
                 });
                 return num;
             }
@@ -313,11 +312,17 @@ namespace CoRE1_AutoRefereeSystem_Host
         public bool BlueHealing { set; get; } = false;
 
         public bool RedInvinsible { set; get; } = false;
+
+        public double RedInvinsibleRemainingTime { set; get; } = 0;
+
         public bool IsRedZone1ShieldBuffActive { set; get; } = false;
         public bool IsRedZone2ShieldBuffActiveWaiting { set; get; } = false;
         public bool IsRedZone2ShieldBuffActive { set; get; } = false;
 
         public bool BlueInvinsible { set; get; } = false;
+
+        public double BlueInvinsibleRemainingTime { set; get; } = 0;
+
         public bool IsBlueZone1ShieldBuffActive { set; get; } = false;
         public bool IsBlueZone2ShieldBuffActiveWaiting { set; get; } = false;
         public bool IsBlueZone2ShieldBuffActive { set; get; } = false;
@@ -587,7 +592,11 @@ namespace CoRE1_AutoRefereeSystem_Host
                 if (Instance.IsRedZone1ShieldBuffActive) {
                     var timePassed = DateTime.Now - Instance._redZone1ShieldBuffStartTime;
                     var remainingTime = TimeSpan.FromSeconds(Instance.Zone1ShieldBuffTime) - timePassed;
-                    if (remainingTime.TotalSeconds <= 0) {
+
+                    Instance.RedInvinsibleRemainingTime = remainingTime.TotalSeconds;
+                    if (Instance.RedInvinsibleRemainingTime <= 0) {
+                        Instance.RedInvinsible = false;
+                        Instance.RedInvinsibleRemainingTime = 0;
                         Instance.IsRedZone1ShieldBuffActive = false;
                         window.RedZone1TimeTextBlock.Text = "";
                         window.RedZone1TimeTextBlock.IsEnabled = false;
@@ -604,6 +613,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         Instance.IsRedZone2ShieldBuffActive = true;
                         Instance._redZone2ShieldBuffStartTime = DateTime.Now;
                     } else {
+                        Instance.RedInvinsibleRemainingTime += Instance.Zone2ShieldBuffTime;
                         window.RedZone2TimeTextBlock.Text = $"waiting...";
                     }
                 }
@@ -611,7 +621,11 @@ namespace CoRE1_AutoRefereeSystem_Host
                 if (Instance.IsRedZone2ShieldBuffActive) {
                     var timePassed = DateTime.Now - Instance._redZone2ShieldBuffStartTime;
                     var remainingTime = TimeSpan.FromSeconds(Instance.Zone2ShieldBuffTime) - timePassed;
-                    if (remainingTime.TotalSeconds <= 0) {
+
+                    Instance.RedInvinsibleRemainingTime = remainingTime.TotalSeconds;
+                    if (Instance.RedInvinsibleRemainingTime <= 0) {
+                        Instance.RedInvinsible = false;
+                        Instance.RedInvinsibleRemainingTime = 0;
                         Instance.IsRedZone2ShieldBuffActive = false;
                         window.RedZone2TimeTextBlock.Text = "";
                         window.RedZone2TimeTextBlock.IsEnabled = false;
@@ -624,7 +638,11 @@ namespace CoRE1_AutoRefereeSystem_Host
                 if (Instance.IsBlueZone1ShieldBuffActive) {
                     var timePassed = DateTime.Now - Instance._blueZone1ShieldBuffStartTime;
                     var remainingTime = TimeSpan.FromSeconds(Instance.Zone1ShieldBuffTime) - timePassed;
-                    if (remainingTime.TotalSeconds <= 0) {
+
+                    Instance.BlueInvinsibleRemainingTime = remainingTime.TotalSeconds;
+                    if (Instance.BlueInvinsibleRemainingTime <= 0) {
+                        Instance.BlueInvinsible = false;
+                        Instance.BlueInvinsibleRemainingTime =0 ;
                         Instance.IsBlueZone1ShieldBuffActive = false;
                         window.BlueZone1TimeTextBlock.Text = "";
                         window.BlueZone1TimeTextBlock.IsEnabled = false;
@@ -641,6 +659,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         Instance.IsBlueZone2ShieldBuffActive = true;
                         Instance._blueZone2ShieldBuffStartTime = DateTime.Now;
                     } else {
+                        Instance.BlueInvinsibleRemainingTime += Instance.Zone2ShieldBuffTime;
                         window.BlueZone2TimeTextBlock.Text = $"waiting...";
                     }
                 }
@@ -648,7 +667,11 @@ namespace CoRE1_AutoRefereeSystem_Host
                 if (Instance.IsBlueZone2ShieldBuffActive) {
                     var timePassed = DateTime.Now - Instance._blueZone2ShieldBuffStartTime;
                     var remainingTime = TimeSpan.FromSeconds(Instance.Zone2ShieldBuffTime) - timePassed;
-                    if (remainingTime.TotalSeconds <= 0) {
+
+                    Instance.BlueInvinsibleRemainingTime = remainingTime.TotalSeconds;
+                    if (Instance.BlueInvinsibleRemainingTime <= 0) {
+                        Instance.BlueInvinsible = false;
+                        Instance.BlueInvinsibleRemainingTime = 0;
                         Instance.IsBlueZone2ShieldBuffActive = false;
                         window.BlueZone2TimeTextBlock.Text = "";
                         window.BlueZone2TimeTextBlock.IsEnabled = false;
@@ -714,7 +737,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                     // 条件１
                     if (Instance.DisqualifiedFlag == DisqualifiedFlagEnum.BLUE ||
                         (window.CommonBase.Status.Occupied == OccupiedEnum.RED
-                        && window.RedBase.Status.Occupied == OccupiedEnum.RED)) { // 青が失格 or 赤が占拠
+                        && window.BlueBase.Status.Occupied == OccupiedEnum.RED)) { // 青が失格 or 赤が占拠
                         Instance.IsGameEnded = true;
                         Instance.Winner = WinnerEnum.RED;
                         window.TimerLabel.Text = "RED WINS!!!";
@@ -725,7 +748,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                     }
                     else if (Instance.DisqualifiedFlag == DisqualifiedFlagEnum.RED ||
                              (window.CommonBase.Status.Occupied == OccupiedEnum.BLUE
-                             && window.BlueBase.Status.Occupied == OccupiedEnum.BLUE)) { // 赤が失格 or 青が占拠
+                             && window.RedBase.Status.Occupied == OccupiedEnum.BLUE)) { // 赤が失格 or 青が占拠
                         Instance.IsGameEnded = true;
                         Instance.Winner = WinnerEnum.BLUE;
                         window.TimerLabel.Text = "BLUE WINS!!!";
@@ -1120,13 +1143,13 @@ namespace CoRE1_AutoRefereeSystem_Host
 
             // ゾーン1,2考慮して送らないといけない．優先度低め．
             // テキストボックスの値を参照してやるのが一番楽
-            //Msgs.RedInfTime = 
-            //Msgs.BlueInfTime = 
+            Msgs.RedInfTime = ((int)Instance.RedInvinsibleRemainingTime).ToString();
+            Msgs.BlueInfTime = ((int)Instance.BlueInvinsibleRemainingTime).ToString();
 
             // 陣地
             var window = GetMainWindow();
             Msgs.RedArea = window.RedBase.Status.OccupationLevel;
-            Msgs.CenterArea = window.CommonBase.Status.OccupationLevel + 5;
+            Msgs.CenterArea = 10 - (window.CommonBase.Status.OccupationLevel + 5);
             Msgs.BlueArea = window.BlueBase.Status.OccupationLevel;
 
             // 試合結果
@@ -1167,25 +1190,26 @@ namespace CoRE1_AutoRefereeSystem_Host
                     Msgs.Robot[i].DeathFlag = 0;
 
                 Msgs.Robot[i].RespawnTime = AllRobotStatus[i].RespawnTimeString;
+                Msgs.Robot[i].Banker = Bool2Int(AllRobotStatus[i].IsShieldBuffActive);
             }
 
             // UDPでデータを送信
-            SendMsgs("192.168.11.100", _sendPort);
             SendMsgs("192.168.11.101", _sendPort);
             SendMsgs("192.168.11.102", _sendPort);
             SendMsgs("192.168.11.103", _sendPort);
             SendMsgs("192.168.11.104", _sendPort);
             SendMsgs("192.168.11.105", _sendPort);
+            SendMsgs("192.168.11.106", _sendPort);
 
-            SendMsgs("192.168.11.110", _sendPort);
             SendMsgs("192.168.11.111", _sendPort);
             SendMsgs("192.168.11.112", _sendPort);
             SendMsgs("192.168.11.113", _sendPort);
             SendMsgs("192.168.11.114", _sendPort);
             SendMsgs("192.168.11.115", _sendPort);
+            SendMsgs("192.168.11.116", _sendPort);
 
-            SendMsgs("192.168.11.120", _sendPort);
             SendMsgs("192.168.11.121", _sendPort);
+            SendMsgs("192.168.11.122", _sendPort);
 
             Interlocked.Exchange(ref isSending, 0);
         }
@@ -1198,6 +1222,9 @@ namespace CoRE1_AutoRefereeSystem_Host
                 while (_buffUdpReciever.Available > 0) {
                     byte[] receivedBytes = _buffUdpReciever.Receive(ref _remoteEndPoint);
                     string receivedData = Encoding.UTF8.GetString(receivedBytes);
+
+                    Debug.WriteLine(receivedData);
+
                     IPAddress senderIp = _remoteEndPoint.Address;
                     _latestDataByIp[senderIp] = receivedData;
 

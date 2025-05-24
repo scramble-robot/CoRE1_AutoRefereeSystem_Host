@@ -711,8 +711,9 @@ namespace CoRE1_AutoRefereeSystem_Host
                     return;
                 }
 
-                _serialPort.PortName = ComPortSelectionComboBox.SelectedItem.ToString();
                 try {
+                    _serialPort.PortName = ComPortSelectionComboBox.SelectedItem.ToString();
+
                     // ホスト基板と接続
                     _serialPort.Open();
                     arsSequence = Master.ARSSequenceEnum.OPENED;

@@ -105,8 +105,8 @@ namespace CoRE1_AutoRefereeSystem_Host
 
                     if (_occupationLevel >= 10) {
                         _occupationLevel = 10;
-                        if (BaseColor.Contains("R")) _occupied = Master.OccupiedEnum.RED;
-                        else _occupied = Master.OccupiedEnum.BLUE;
+                        if (BaseColor.Contains("R")) _occupied = Master.OccupiedEnum.BLUE;
+                        else _occupied = Master.OccupiedEnum.RED;
                     } else if (_occupationLevel < 0) {
                         _occupationLevel = 0;
                         _occupied = Master.OccupiedEnum.NO;
@@ -118,10 +118,10 @@ namespace CoRE1_AutoRefereeSystem_Host
                     if (_occupationLevel == 0) {
                         _occupationLevelBarColor = Master.HPBarColorEnum.WHITE;
                     } else if (BaseColor.Contains("R")) {
-                        _occupationLevelBarColor = Master.HPBarColorEnum.RED;
+                        _occupationLevelBarColor = Master.HPBarColorEnum.BLUE;
                         pointText = "B" + Math.Abs(_occupationLevel).ToString();
                     } else {
-                        _occupationLevelBarColor = Master.HPBarColorEnum.BLUE;
+                        _occupationLevelBarColor = Master.HPBarColorEnum.RED;
                         pointText = "R" + Math.Abs(_occupationLevel).ToString();
                     }
 
@@ -391,11 +391,11 @@ namespace CoRE1_AutoRefereeSystem_Host
         private void UserControl_Loaded(object sender, RoutedEventArgs e) {
             _baseStatus.BaseColor = TeamBaseLabel;
             if (_baseStatus.BaseColor.Contains("R")) {
-                _baseStatus.OccupationLevelBarColor = Master.HPBarColorEnum.RED;
-                _baseStatus.DamagePanelColor = Master.DamagePanelColorEnum.BLUE;
-            } else {
                 _baseStatus.OccupationLevelBarColor = Master.HPBarColorEnum.BLUE;
                 _baseStatus.DamagePanelColor = Master.DamagePanelColorEnum.RED;
+            } else {
+                _baseStatus.OccupationLevelBarColor = Master.HPBarColorEnum.RED;
+                _baseStatus.DamagePanelColor = Master.DamagePanelColorEnum.BLUE;
             }
         }
 
@@ -553,7 +553,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                     bool defeatedFlag = false; // dummy
 
                     int hpBarColor = (int)status.OccupationLevelBarColor;
-                    int dpColor = hpBarColor; // dummy
+                    int dpColor = (int)status.DamagePanelColor;
                     int occupationLevelPercent = status.OccupationLevel * 10;
 
                     if (!status.IsActive) {
@@ -565,7 +565,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                     // 送信データを規定のプロトコルに基づいて作成
                     _sendData.Clear();
 
-                    // 宛先の機能No (09は赤・青陣地)
+                    // 宛先の機能No (08は赤・青陣地)
                     _sendData.Add("08");
 
                     // [b0: アクティブフラグ, b1: 撃破フラグ]
@@ -652,8 +652,8 @@ namespace CoRE1_AutoRefereeSystem_Host
                             // ダメージパネルのヒット情報から占拠レベルを計算
                             if (status.Occupied == Master.OccupiedEnum.NO) {
                                 int attackBuff = 1;
-                                if (status.BaseColor.Contains("R")) attackBuff = (int)Master.Instance.RedAttackBuff;
-                                else attackBuff = (int)Master.Instance.BlueAttackBuff;
+                                if (status.BaseColor.Contains("R")) attackBuff = (int)Master.Instance.BlueAttackBuff;
+                                else attackBuff = (int)Master.Instance.RedAttackBuff;
 
                                 if (!status.LeftHighDPInvulnerable && BitHigh(info[5], (int)BaseStatus.DamagePanelPosition.LeftHighDP)) {
                                     int diff = 2 * attackBuff; // 2倍ダメージ
@@ -694,7 +694,7 @@ namespace CoRE1_AutoRefereeSystem_Host
                         }
 
                         if (!isOccupiedPrev && status.Occupied != Master.OccupiedEnum.NO) {
-                            string teamColor = status.Occupied == Master.OccupiedEnum.RED ? "Blue" : "Red";
+                            string teamColor = status.Occupied == Master.OccupiedEnum.RED ? "Red" : "Blue";
                             status.AddRobotLog($"Occupied by {teamColor} team");
                             isOccupiedPrev = true;
                         }
